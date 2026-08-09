@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+
+<html lang="tr" style=""><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Kalite Filo - Kurumsal Filo Çözümlerinde Güvenilir Ortağınız</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+  tailwind.config = {
+    darkMode: "class",
+    theme: {
+      extend: {
+        "colors": {
+                "inverse-surface": "#2e3132",
+                "outline": "#76777d",
+                "on-secondary-fixed": "#001a43",
+                "on-tertiary-fixed": "#2a1800",
+                "on-surface-variant": "#45464d",
+                "on-primary": "#ffffff",
+                "inverse-on-surface": "#f0f1f3",
+                "surface-tint": "#555e76",
+                "border-subtle": "#E6E8EC",
+                "on-primary-fixed": "#121b30",
+                "accent-orange": "#FFB343",
+                "tertiary-fixed": "#ffddb5",
+                "orange-dark": "#D47504",
+                "surface-container-low": "#f2f4f6",
+                "secondary": "#2a5cb1",
+                "orange-light": "#FCD8B6",
+                "surface-container-highest": "#e1e2e4",
+                "secondary-container": "#79a4ff",
+                "outline-variant": "#c6c6cd",
+                "on-surface": "#191c1e",
+                "secondary-fixed": "#d8e2ff",
+                "surface": "#f8f9fb",
+                "secondary-fixed-dim": "#aec6ff",
+                "primary-fixed": "#d9e2ff",
+                "primary-fixed-dim": "#bdc6e2",
+                "error": "#ba1a1a",
+                "on-primary-fixed-variant": "#3e465d",
+                "surface-container": "#edeef0",
+                "on-error": "#ffffff",
+                "navy-deep": "#182136",
+                "text-secondary": "#5E6675",
+                "surface-bright": "#f8f9fb",
+                "on-secondary-container": "#003881",
+                "primary": "#020a1e",
+                "error-container": "#ffdad6",
+                "primary-container": "#182136",
+                "surface-variant": "#e1e2e4",
+                "surface-dim": "#d9dadc",
+                "on-tertiary-fixed-variant": "#643f00",
+                "on-tertiary-container": "#bd7b00",
+                "tertiary-fixed-dim": "#ffb957",
+                "on-secondary-fixed-variant": "#004397",
+                "surface-container-high": "#e7e8ea",
+                "on-error-container": "#93000a",
+                "text-primary": "#182136",
+                "surface-container-lowest": "#ffffff",
+                "navy-secondary": "#172750",
+                "on-primary-container": "#8088a2",
+                "background": "#f8f9fb",
+                "tertiary": "#130900",
+                "on-tertiary": "#ffffff",
+                "corporate-blue": "#014499",
+                "on-secondary": "#ffffff",
+                "inverse-primary": "#bdc6e2",
+                "on-background": "#191c1e",
+                "tertiary-container": "#321d00"
+        },
+        "borderRadius": {
+                "DEFAULT": "0.25rem",
+                "lg": "0.5rem",
+                "xl": "0.75rem",
+                "full": "9999px"
+        },
+        "spacing": {
+                "margin-desktop": "40px",
+                "gutter": "24px",
+                "stack-gap": "16px",
+                "section-v-space": "100px",
+                "max-content-width": "1360px",
+                "card-padding": "24px"
+        },
+        "fontFamily": {
+                "headline-md": [
+                        "Plus Jakarta Sans"
+                ],
+                "headline-xl-mobile": [
+                        "Plus Jakarta Sans"
+                ],
+                "label-bold": [
+                        "Plus Jakarta Sans"
+                ],
+                "body-lg": [
+                        "Plus Jakarta Sans"
+                ],
+                "headline-xl": [
+                        "Plus Jakarta Sans"
+                ],
+                "headline-lg-mobile": [
+                        "Plus Jakarta Sans"
+                ],
+                "headline-lg": [
+                        "Plus Jakarta Sans"
+                ],
+                "body-md": [
+                        "Plus Jakarta Sans"
+                ]
+        },
+        "fontSize": {
+                "headline-md": [
+                        "30px",
+                        {
+                                "lineHeight": "1.3",
+                                "fontWeight": "600"
+                        }
+                ],
+                "headline-xl-mobile": [
+                        "40px",
+                        {
+                                "lineHeight": "1.1",
+                                "fontWeight": "700"
+                        }
+                ],
+                "label-bold": [
+                        "14px",
+                        {
+                                "lineHeight": "1",
+                                "fontWeight": "600"
+                        }
+                ],
+                "body-lg": [
+                        "18px",
+                        {
+                                "lineHeight": "1.6",
+                                "fontWeight": "400"
+                        }
+                ],
+                "headline-xl": [
+                        "64px",
+                        {
+                                "lineHeight": "1.1",
+                                "letterSpacing": "-0.02em",
+                                "fontWeight": "700"
+                        }
+                ],
+                "headline-lg-mobile": [
+                        "32px",
+                        {
+                                "lineHeight": "1.2",
+                                "fontWeight": "600"
+                        }
+                ],
+                "headline-lg": [
+                        "44px",
+                        {
+                                "lineHeight": "1.2",
+                                "letterSpacing": "-0.01em",
+                                "fontWeight": "600"
+                        }
+                ],
+                "body-md": [
+                        "16px",
+                        {
+                                "lineHeight": "1.5",
+                                "fontWeight": "400"
+                        }
+                ]
+        }
+},
+    },
+  }
+</script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+    </style>
+</head>
+<body class="bg-background text-on-surface font-body-md antialiased pt-[80px]">
+<!-- AppHeader Component -->
+<nav class="fixed top-0 w-full z-50 bg-surface/90 dark:bg-navy-deep/90 backdrop-blur-md border-b border-border-subtle dark:border-outline-variant shadow-sm h-[80px] px-margin-desktop flex justify-between items-center max-w-max-content-width mx-auto left-0 right-0">
+<a class="text-headline-md font-headline-md font-bold text-corporate-blue dark:text-on-primary" href="#">Kalite Filo</a>
+<div class="hidden md:flex gap-6 items-center justify-center">
+<a class="text-text-secondary dark:text-on-surface-variant hover:text-corporate-blue transition-colors text-label-bold font-label-bold hover:bg-surface-container-low dark:hover:bg-navy-secondary transition-all" href="#">Hakkımızda</a>
+<a class="text-text-secondary dark:text-on-surface-variant hover:text-corporate-blue transition-colors text-label-bold font-label-bold hover:bg-surface-container-low dark:hover:bg-navy-secondary transition-all" href="#">Araç Listesi</a>
+<a class="text-text-secondary dark:text-on-surface-variant hover:text-corporate-blue transition-colors text-label-bold font-label-bold hover:bg-surface-container-low dark:hover:bg-navy-secondary transition-all" href="#">Sıkça Sorulan Sorular</a>
+<a class="text-text-secondary dark:text-on-surface-variant hover:text-corporate-blue transition-colors text-label-bold font-label-bold hover:bg-surface-container-low dark:hover:bg-navy-secondary transition-all" href="#">Blog</a>
+</div>
+<div class="flex items-center gap-4">
+<button class="hidden md:block text-text-secondary dark:text-on-surface-variant hover:text-corporate-blue transition-colors text-label-bold font-label-bold border border-border-subtle px-4 h-[48px] rounded-DEFAULT">Müşteri Girişi</button>
+<button class="bg-accent-orange text-navy-deep font-bold h-[48px] px-6 rounded-DEFAULT hover:bg-orange-dark hover:text-white transition-colors text-label-bold font-label-bold">Teklif Al</button>
+</div>
+</nav>
+<!-- Hero Section (Bold & Dynamic) -->
+<section class="relative h-screen min-h-[700px] w-full flex items-center justify-center overflow-hidden">
+<div class="absolute inset-0 bg-cover bg-center w-full h-full z-0 transform scale-105" data-alt="A dynamic, high-speed action shot of a sleek modern corporate sedan driving on a highway at dusk, motion blur on the road, dramatic lighting" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuAYqPqrFx4-RnZNlloPb-bkoaOr0mC5Vu9yaJWbCFn3jnT3gQBx5mwAGkIRByP4DaBVbXMaPPHn065aCDlCb8TkBkrOqQmOD03ojs4tczZ18OInQ_BrfIe39Ay45JkNn_n5Qce1F7niUhKn87LGMH3j0fTBvIt-xbmUIS0a7nxilblanePdfWBNacy6AzJ3Mcbl8R4nw7Zz_rEi00MKsnCDnksa_YC9wziXFTxLdsoRcCQ492FzHqm4')"></div>
+<div class="absolute inset-0 bg-gradient-to-r from-navy-deep/90 via-navy-deep/60 to-transparent z-10"></div>
+<div class="relative z-20 w-full max-w-max-content-width mx-auto px-margin-desktop grid grid-cols-12 gap-gutter items-center">
+<div class="col-span-12 lg:col-span-8 text-white">
+<h1 class="text-[48px] md:text-headline-xl font-headline-xl text-on-primary mb-6 leading-tight">Filo Kiralamada İşinizin Gücüne Güç Katın</h1>
+<p class="text-[20px] md:text-[24px] font-body-lg text-on-primary/90 mb-10 max-w-2xl font-light">Operasyonel maliyetlerinizi düşürün, işinize odaklanın. Premium araç filomuz ve kişiselleştirilmiş hizmetlerimizle tanışın.</p>
+<div class="flex flex-col sm:flex-row gap-4">
+<button class="bg-accent-orange text-navy-deep font-bold h-[48px] px-8 rounded-DEFAULT hover:bg-orange-dark hover:text-white transition-colors text-label-bold font-label-bold">Hemen Teklif Al</button>
+<button class="bg-transparent border border-outline text-on-primary font-bold h-[48px] px-8 rounded-DEFAULT hover:bg-surface-container-lowest/10 transition-colors text-label-bold font-label-bold flex items-center justify-center gap-2">
+                        Araçları İncele
+                        <span class="material-symbols-outlined text-[20px]" data-icon="arrow_forward">arrow_forward</span>
+</button>
+</div>
+</div>
+<!-- Modern Glassmorphism Search Widget -->
+<div class="col-span-12 lg:col-span-4 glass-panel rounded-2xl p-8 shadow-2xl">
+<h3 class="text-headline-md font-headline-md text-white mb-6">Hızlı Araç Bul</h3>
+<div class="space-y-5">
+<div>
+<label class="block text-white/80 text-label-bold font-label-bold mb-2">Marka Seçiniz</label>
+<select class="w-full h-[54px] rounded-DEFAULT border-white/20 bg-white/10 text-white focus:border-accent-orange focus:ring-1 focus:ring-accent-orange appearance-none backdrop-blur-sm">
+<option class="text-navy-deep">Tüm Markalar</option>
+<option class="text-navy-deep">BMW</option>
+<option class="text-navy-deep">Audi</option>
+<option class="text-navy-deep">Mercedes</option>
+<option class="text-navy-deep">Volvo</option>
+</select>
+</div>
+<div>
+<label class="block text-white/80 text-label-bold font-label-bold mb-2">Model Seçiniz</label>
+<select class="w-full h-[54px] rounded-DEFAULT border-white/20 bg-white/10 text-white focus:border-accent-orange focus:ring-1 focus:ring-accent-orange appearance-none backdrop-blur-sm">
+<option class="text-navy-deep">Tüm Modeller</option>
+</select>
+</div>
+<button class="w-full bg-accent-orange text-navy-deep font-bold h-[48px] rounded-DEFAULT hover:bg-orange-dark hover:text-white transition-colors mt-6 text-label-bold font-label-bold flex items-center justify-center gap-2 shadow-lg">
+<span class="material-symbols-outlined text-[20px]" data-icon="search">search</span>
+                        Araçları Listele
+                    </button>
+</div>
+</div>
+</div>
+</section>
+<!-- Featured Vehicles Carousel Area -->
+<section class="py-section-v-space bg-surface-container-low overflow-hidden">
+<div class="max-w-max-content-width mx-auto px-margin-desktop">
+<div class="flex justify-between items-end mb-12">
+<div>
+<h2 class="text-[36px] md:text-headline-lg font-headline-lg text-navy-deep mb-2">Öne Çıkan Araçlar</h2>
+<p class="text-body-lg font-body-lg text-text-secondary">Filomuzun en çok tercih edilen modelleri</p>
+</div>
+<div class="hidden md:flex gap-2">
+<button class="w-12 h-12 rounded-full border border-border-subtle flex items-center justify-center hover:border-accent-orange hover:text-accent-orange transition-colors bg-white">
+<span class="material-symbols-outlined" data-icon="arrow_back">arrow_back</span>
+</button>
+<button class="w-12 h-12 rounded-full border border-border-subtle flex items-center justify-center hover:border-accent-orange hover:text-accent-orange transition-colors bg-white">
+<span class="material-symbols-outlined" data-icon="arrow_forward">arrow_forward</span>
+</button>
+</div>
+</div>
+<div class="grid grid-cols-12 gap-gutter">
+<!-- VehicleCard Component 1 -->
+<div class="col-span-12 md:col-span-6 lg:col-span-4 bg-white rounded-2xl overflow-hidden shadow-sm border border-border-subtle group flex flex-col">
+<div class="relative h-[240px] bg-surface-container overflow-hidden">
+<img alt="BMW 3 Serisi" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" src="https://lh3.googleusercontent.com/aida-public/AB6AXuApiZLSgGxpMe7S0TMmz6GL1_RYlzdXKoJzNBNqvYy7TlXytdYtGjJw6vlGlWh3BgdHUaqM0zk3NncJGFBgmhgH1TufQz8FfrfuCDEoa7lySg2BViDhb0JuT7ob5FAfzv3aPnAflFxo5RfGKDQ56j81gEzkAVFh88cZHWwag7qSaHse77HkTMm0VuCUqZyXpEkr3IaNBebosPTWq_l0afQ2AN-w-E-LoTbyx6iIf63qALW0w8aE80NU"/>
+<div class="absolute top-4 left-4 bg-navy-deep text-white px-3 py-1 rounded-DEFAULT text-sm font-bold">Premium</div>
+</div>
+<div class="p-card-padding flex flex-col flex-grow">
+<h3 class="text-2xl font-bold text-navy-deep mb-1">BMW 3 Serisi</h3>
+<p class="text-text-secondary text-sm mb-4 line-clamp-2">1.6 320i M Sport</p>
+<div class="grid grid-cols-2 gap-y-2 gap-x-4 mb-6">
+<div class="flex items-center gap-2 text-sm text-text-secondary">
+<span class="material-symbols-outlined text-[20px]" data-icon="local_gas_station">local_gas_station</span> Benzin
+                            </div>
+<div class="flex items-center gap-2 text-sm text-text-secondary">
+<span class="material-symbols-outlined text-[20px]" data-icon="settings">settings</span> Otomatik
+                            </div>
+</div>
+<div class="mt-auto pt-4 border-t border-border-subtle flex justify-between items-center">
+<div>
+<span class="block text-xs text-text-secondary mb-1">Aylık Başlangıç</span>
+<span class="text-xl font-bold text-navy-deep">₺24.500<span class="text-sm font-normal text-text-secondary">/ay</span></span>
+</div>
+<button class="bg-accent-orange text-navy-deep font-bold h-[40px] px-6 rounded-DEFAULT hover:bg-orange-dark hover:text-white transition-colors text-label-bold font-label-bold">Teklif Al</button>
+</div>
+</div>
+</div>
+<!-- VehicleCard Component 2 -->
+<div class="col-span-12 md:col-span-6 lg:col-span-4 bg-white rounded-2xl overflow-hidden shadow-sm border border-border-subtle group flex flex-col">
+<div class="relative h-[240px] bg-surface-container overflow-hidden">
+<img alt="Audi A5" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBriFEeAqX-gd5XrtFLy3wrfa1uYQpsv_l9wHrLqcaVTcIm-qBnF4FRJnfQGVeSmTMp2_6RWpVGJPs1c_5bcugRCCpYVQI7SJq8XN-6XHiG5sIDgR4unN2LZJQS-Y7tcYlnUxgkNAbsCFkBbD0gHG86YFG7_kWQPxVwgvRKwaGkfCuFClD1mTXGA4s2kGYn5ss4ITWRFA3DoUxdiRK0HgZVopYxAmfM9oA0CfF5sU8VSJkqpVxNep0n"/>
+<div class="absolute top-4 left-4 bg-navy-deep text-white px-3 py-1 rounded-DEFAULT text-sm font-bold">Executive</div>
+</div>
+<div class="p-card-padding flex flex-col flex-grow">
+<h3 class="text-2xl font-bold text-navy-deep mb-1">Audi A5</h3>
+<p class="text-text-secondary text-sm mb-4 line-clamp-2">40 TDI Quattro S Line</p>
+<div class="grid grid-cols-2 gap-y-2 gap-x-4 mb-6">
+<div class="flex items-center gap-2 text-sm text-text-secondary">
+<span class="material-symbols-outlined text-[20px]" data-icon="local_gas_station">local_gas_station</span> Dizel
+                            </div>
+<div class="flex items-center gap-2 text-sm text-text-secondary">
+<span class="material-symbols-outlined text-[20px]" data-icon="settings">settings</span> Otomatik
+                            </div>
+</div>
+<div class="mt-auto pt-4 border-t border-border-subtle flex justify-between items-center">
+<div>
+<span class="block text-xs text-text-secondary mb-1">Aylık Başlangıç</span>
+<span class="text-xl font-bold text-navy-deep">₺32.000<span class="text-sm font-normal text-text-secondary">/ay</span></span>
+</div>
+<button class="bg-accent-orange text-navy-deep font-bold h-[40px] px-6 rounded-DEFAULT hover:bg-orange-dark hover:text-white transition-colors text-label-bold font-label-bold">Teklif Al</button>
+</div>
+</div>
+</div>
+<!-- VehicleCard Component 3 -->
+<div class="col-span-12 md:col-span-6 lg:col-span-4 bg-white rounded-2xl overflow-hidden shadow-sm border border-border-subtle group flex flex-col">
+<div class="relative h-[240px] bg-surface-container overflow-hidden">
+<img alt="Volvo XC90" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA-K--WSH-L33DkXmhpgDByrGZbURsmjXjRjMI6VDGWVHKDTpxtubrWRkgIg4sbuHu-sYAEjtrifEQOS6ZufUYaKArkd0HM1rOyssRtNtuI4X4qgXyVaxYvMhuS85IW7H0G6LbBhaHgZHwbIqdwlPE7B9d3ZExHxwa5x0wjNrYsVEBlR-W5j9bpMSZ1_66RXfm4H3Z5rkxoPvqm1Rhe3e6YXBuphhF1Yb6jBu4qbMwzrKaLUVvJCzdC"/>
+<div class="absolute top-4 left-4 bg-navy-deep text-white px-3 py-1 rounded-DEFAULT text-sm font-bold">SUV</div>
+</div>
+<div class="p-card-padding flex flex-col flex-grow">
+<h3 class="text-2xl font-bold text-navy-deep mb-1">Volvo XC90</h3>
+<p class="text-text-secondary text-sm mb-4 line-clamp-2">B5 AWD Inscription</p>
+<div class="grid grid-cols-2 gap-y-2 gap-x-4 mb-6">
+<div class="flex items-center gap-2 text-sm text-text-secondary">
+<span class="material-symbols-outlined text-[20px]" data-icon="electric_car">electric_car</span> Mild Hybrid
+                            </div>
+<div class="flex items-center gap-2 text-sm text-text-secondary">
+<span class="material-symbols-outlined text-[20px]" data-icon="settings">settings</span> Otomatik
+                            </div>
+</div>
+<div class="mt-auto pt-4 border-t border-border-subtle flex justify-between items-center">
+<div>
+<span class="block text-xs text-text-secondary mb-1">Aylık Başlangıç</span>
+<span class="text-xl font-bold text-navy-deep">₺45.000<span class="text-sm font-normal text-text-secondary">/ay</span></span>
+</div>
+<button class="bg-accent-orange text-navy-deep font-bold h-[40px] px-6 rounded-DEFAULT hover:bg-orange-dark hover:text-white transition-colors text-label-bold font-label-bold">Teklif Al</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Commercial Section (Dynamic Orange Element) -->
+<section class="py-section-v-space relative overflow-hidden bg-white">
+<div class="absolute top-0 right-0 w-1/2 h-full bg-accent-orange transform skew-x-12 translate-x-32 -z-10"></div>
+<div class="max-w-max-content-width mx-auto px-margin-desktop">
+<div class="grid grid-cols-12 gap-gutter items-center">
+<div class="col-span-12 lg:col-span-6">
+<h2 class="text-[40px] font-bold text-navy-deep mb-6 leading-tight">Ticari Araç Kiralama<br/>İhtiyaçlarınızda Da Yanınızdayız</h2>
+<p class="text-body-lg text-text-secondary mb-8">Kalite Filo'nun Ticari Araç Kiralama hizmeti sayesinde uzun dönem araç kiralamanın avantajlarından hem finansal hem de operasyonel olarak yararlanabilirsiniz. Ticari araç kiralayarak iş yükünüzü azaltır ve ticari araç satın alma bütçenizi farklı bir yatırım olarak kullanabilirsiniz.</p>
+<button class="bg-accent-orange text-navy-deep font-bold h-[48px] px-8 rounded-DEFAULT hover:bg-orange-dark hover:text-white transition-colors text-label-bold font-label-bold flex items-center justify-center gap-2 w-max">
+                        Detaylı İncele
+                        <span class="material-symbols-outlined text-[20px]" data-icon="arrow_forward">arrow_forward</span>
+</button>
+</div>
+<div class="col-span-12 lg:col-span-6 relative z-10 mt-8 lg:mt-0">
+<img alt="Ticari Araçlar" class="rounded-2xl shadow-2xl w-full h-[500px] object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCu2xfqVUC00Kboir0NS9Jn0kDpA6YW4b3AkRgQxxEpo4cRaomFco26YtbTD_QbKXP6y8bkF-ZhpRe7Jj0W7K6v7EkL3-VzN1Xyzq-ZOMKmF40XnPYESTFyDOq9M_9eIEghIpUcPX6YCeG79X5Dsg1tNSfNaNBMJsprmYmksUOZq1dykx3HWsgVS1K4p1QgsjIPYle4LPJRuzivwqTtZTgiAtOuu4ePZmYNNOPL_5waTsxnpyAoQWU4"/>
+</div>
+</div>
+</div>
+</section><section class="py-section-v-space bg-surface-container-lowest border border-border-subtle rounded-2xl p-8 md:p-12 relative overflow-hidden max-w-max-content-width mx-auto mb-section-v-space">
+<div class="absolute -right-20 -top-20 w-64 h-64 bg-surface-container-low rounded-full opacity-50 blur-3xl"></div>
+<div class="relative z-10 grid grid-cols-12 gap-gutter items-center">
+<div class="col-span-12 md:col-span-6">
+<h2 class="font-headline-lg text-headline-lg text-navy-deep mb-6">Neden Kalite Filo'yu Tercih Etmelisiniz?</h2>
+<p class="font-body-lg text-body-lg text-text-secondary mb-6">Operasyonel kiralama sürecini yalnızca araç temini olarak değil, stratejik bir iş ortaklığı olarak görüyoruz. Gelişmiş telematik çözümlerimiz ve 7/24 kesintisiz destek altyapımızla filonuzun yönetimini kolaylaştırıyoruz.</p>
+<ul class="flex flex-col gap-4">
+<li class="flex items-start gap-3">
+<span class="material-symbols-outlined text-corporate-blue mt-1">verified_user</span>
+<div>
+<strong class="text-navy-deep block font-label-bold">Tam Kapsamlı Bakım &amp; Onarım</strong>
+<span class="text-text-secondary text-sm">Tüm periyodik bakımlar, hasar yönetimi ve ikame araç hizmetleri aylık bedele dahildir.</span>
+</div>
+</li>
+<li class="flex items-start gap-3">
+<span class="material-symbols-outlined text-corporate-blue mt-1">analytics</span>
+<div>
+<strong class="text-navy-deep block font-label-bold">Akıllı Raporlama Portalı</strong>
+<span class="text-text-secondary text-sm">Yakıt tüketimi, KM takibi ve sürücü davranışlarını anlık olarak dijital portaldan izleyin.</span>
+</div>
+</li>
+<li class="flex items-start gap-3">
+<span class="material-symbols-outlined text-corporate-blue mt-1">account_balance</span>
+<div>
+<strong class="text-navy-deep block font-label-bold">Finansal Avantajlar</strong>
+<span class="text-text-secondary text-sm">Sermaye çıkışı yapmadan araç ihtiyacınızı karşılar, kiralama faturalarınızı gider göstererek vergi avantajı sağlarsınız.</span>
+</div>
+</li>
+</ul>
+</div>
+<div class="col-span-12 md:col-span-6 rounded-xl overflow-hidden border border-border-subtle bg-surface-container-low aspect-video mt-8 md:mt-0">
+<img class="w-full h-full object-cover" data-alt="A high-angle architectural shot of a neatly organized fleet of identical modern corporate vehicles parked in a vast, clean logistics facility. Bright, natural lighting with long shadows indicating early morning or late afternoon. Minimalist, orderly, representing large-scale corporate fleet management." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCi9BvVQ0YaZX7q0pnUJ4VywaeXM0Wxxn7j5cCHxko-tg4n0nMTpE0S_XStWhfkyad5zrWwqCDsft3oFH6c8YF9fL4obBkm8xi6jYx8DxhwkFPRHHcZJOQtab0VQf0N-ivLvML9C1iN1uC9Lsfri4xRIs25-_YoVh-a5h0-nMpc9_0Z8El76t_LwrdpeKv1XGdcwM4HWjZkEEAZRMQ4WsZ6oNH6PyW0uLewvjreVRAvBEi0vwWpECJw"/>
+</div>
+</div>
+</section>
+<!-- Services Section -->
+<section class="pt-4 pb-section-v-space bg-surface">
+<div class="max-w-max-content-width mx-auto px-margin-desktop">
+<div class="text-center mb-16">
+<h2 class="text-[40px] font-bold text-navy-deep mb-4">Size Özel Filo Çözümleri</h2>
+<p class="text-xl text-text-secondary max-w-2xl mx-auto">İhtiyaçlarınıza uygun esnek ve ekonomik kiralama seçenekleri.</p>
+</div>
+<div class="grid grid-cols-12 gap-gutter">
+<div class="col-span-12 sm:col-span-6 lg:col-span-3 bg-white rounded-2xl p-8 shadow-sm border border-border-subtle hover:border-corporate-blue transition-all duration-300 hover:shadow-md hover:-translate-y-1 group relative flex flex-col text-left cursor-pointer">
+<div class="w-12 h-12 bg-surface border border-border-subtle rounded-xl flex items-center justify-center mb-6 transition-transform duration-300 group-hover:bg-surface-container-low">
+<span class="material-symbols-outlined text-[28px] text-text-secondary group-hover:text-corporate-blue transition-colors" data-icon="calendar_month">calendar_month</span>
+</div>
+<h4 class="text-xl font-bold text-navy-deep mb-3 transition-colors duration-300 group-hover:text-corporate-blue">Uzun Dönem Kiralama</h4>
+<p class="text-text-secondary leading-relaxed mb-6 flex-grow">12-48 ay arası esnek sözleşmelerle filonuzu oluşturun.</p>
+<div class="flex items-center text-corporate-blue font-bold text-sm gap-2 transition-all duration-300 mt-auto">
+        Keşfet <span class="material-symbols-outlined text-sm group-hover:translate-x-1 transition-transform" data-icon="arrow_forward">arrow_forward</span>
+</div>
+</div>
+<div class="col-span-12 sm:col-span-6 lg:col-span-3 bg-white rounded-2xl p-8 shadow-sm border border-border-subtle hover:border-corporate-blue transition-all duration-300 hover:shadow-md hover:-translate-y-1 group relative flex flex-col text-left cursor-pointer">
+<div class="w-12 h-12 bg-surface border border-border-subtle rounded-xl flex items-center justify-center mb-6 transition-transform duration-300 group-hover:bg-surface-container-low">
+<span class="material-symbols-outlined text-[28px] text-text-secondary group-hover:text-corporate-blue transition-colors" data-icon="settings_suggest">settings_suggest</span>
+</div>
+<h4 class="text-xl font-bold text-navy-deep mb-3 transition-colors duration-300 group-hover:text-corporate-blue">Operasyonel Yönetim</h4>
+<p class="text-text-secondary leading-relaxed mb-6 flex-grow">Bakım, onarım ve lastik değişimi gibi operasyonları biz halledelim.</p>
+<div class="flex items-center text-corporate-blue font-bold text-sm gap-2 transition-all duration-300 mt-auto">
+        Keşfet <span class="material-symbols-outlined text-sm group-hover:translate-x-1 transition-transform" data-icon="arrow_forward">arrow_forward</span>
+</div>
+</div>
+<div class="col-span-12 sm:col-span-6 lg:col-span-3 bg-white rounded-2xl p-8 shadow-sm border border-border-subtle hover:border-corporate-blue transition-all duration-300 hover:shadow-md hover:-translate-y-1 group relative flex flex-col text-left cursor-pointer">
+<div class="w-12 h-12 bg-surface border border-border-subtle rounded-xl flex items-center justify-center mb-6 transition-transform duration-300 group-hover:bg-surface-container-low">
+<span class="material-symbols-outlined text-[28px] text-text-secondary group-hover:text-corporate-blue transition-colors" data-icon="local_shipping">local_shipping</span>
+</div>
+<h4 class="text-xl font-bold text-navy-deep mb-3 transition-colors duration-300 group-hover:text-corporate-blue">Ticari Araç Çözümleri</h4>
+<p class="text-text-secondary leading-relaxed mb-6 flex-grow">İşletmenizin yükünü hafifletecek ticari araç filoları.</p>
+<div class="flex items-center text-corporate-blue font-bold text-sm gap-2 transition-all duration-300 mt-auto">
+        Keşfet <span class="material-symbols-outlined text-sm group-hover:translate-x-1 transition-transform" data-icon="arrow_forward">arrow_forward</span>
+</div>
+</div>
+<div class="col-span-12 sm:col-span-6 lg:col-span-3 bg-white rounded-2xl p-8 shadow-sm border border-border-subtle hover:border-corporate-blue transition-all duration-300 hover:shadow-md hover:-translate-y-1 group relative flex flex-col text-left cursor-pointer">
+<div class="w-12 h-12 bg-surface border border-border-subtle rounded-xl flex items-center justify-center mb-6 transition-transform duration-300 group-hover:bg-surface-container-low">
+<span class="material-symbols-outlined text-[28px] text-text-secondary group-hover:text-corporate-blue transition-colors" data-icon="directions_car">directions_car</span>
+</div>
+<h4 class="text-xl font-bold text-navy-deep mb-3 transition-colors duration-300 group-hover:text-corporate-blue">Yönetici Araçları</h4>
+<p class="text-text-secondary leading-relaxed mb-6 flex-grow">Üst düzey yöneticileriniz için premium araç segmentleri.</p>
+<div class="flex items-center text-corporate-blue font-bold text-sm gap-2 transition-all duration-300 mt-auto">
+        Keşfet <span class="material-symbols-outlined text-sm group-hover:translate-x-1 transition-transform" data-icon="arrow_forward">arrow_forward</span>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Hızlı Teklif Al Section -->
+<section class="py-12 bg-surface">
+<div class="max-w-max-content-width mx-auto px-margin-desktop">
+<div class="relative w-full rounded-[2rem] overflow-hidden bg-navy-deep shadow-2xl flex flex-col md:flex-row border border-navy-secondary">
+<div class="relative z-10 w-full md:w-2/3 p-8 md:p-12 flex flex-col md:flex-row items-center justify-between gap-8">
+<div class="absolute inset-0 bg-gradient-to-r from-navy-deep via-navy-deep to-transparent z-0 hidden md:block"></div>
+<div class="relative z-10 flex-1">
+<span class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-accent-orange/20 text-accent-orange text-sm font-bold mb-4">
+<span class="material-symbols-outlined text-[18px]">speed</span> Hızlı İşlem
+                    </span>
+<h2 class="font-headline-xl text-3xl md:text-4xl mb-4 tracking-tight leading-tight text-white">Filo Çözümlerimiz İçin Hızlı Teklif Alın</h2>
+<p class="text-surface-container-low font-body-lg text-base opacity-90 max-w-lg">İhtiyaçlarınıza özel operasyonel kiralama seçenekleri ve avantajlı fiyatlar için hemen iletişime geçin.</p>
+</div>
+<div class="relative z-10 flex-shrink-0">
+<button class="bg-accent-orange text-navy-deep px-8 py-4 rounded-2xl font-label-bold text-lg hover:bg-white hover:text-navy-deep transition-all duration-300 whitespace-nowrap shadow-lg shadow-accent-orange/20 hover:shadow-white/20 hover:-translate-y-1 w-fit flex items-center gap-3">
+                        Hızlı Teklif Al <span class="material-symbols-outlined">trending_flat</span>
+</button>
+</div>
+</div>
+<div class="relative w-full md:w-1/3 h-48 md:h-auto overflow-hidden">
+<div class="absolute inset-0 bg-gradient-to-t from-navy-deep to-transparent z-10 md:hidden"></div>
+<div class="absolute inset-0 bg-gradient-to-l from-transparent to-navy-deep z-10 hidden md:block"></div>
+<img alt="Professional Fleet Management" class="w-full h-full object-cover object-center opacity-80 mix-blend-overlay" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDRdxVmRBrub5w3azID3MxAUrA-nNel-OpGB-QS5HdFNGX-w01NUkxEiY1lP0c1w9xn9_1e1caaINnL33CgHA_vvRSFhBaE5kcW6mC0j6FOOGWRe7_sjCmLvEnAmhkzdavJqCS9WSw9nQSh5OlSl__k-u0qBlbpQew3VHP_3wKTA_rnb_l1qLa4JzeHDdi0pvLU-bxsi6wp8UVi7kPTk3NqHzsQey3MLEZNwMZ00e37MVCCwtERbhDBYVv5Qv83jpynRXehn7yI6gU"/>
+<div class="absolute top-0 right-0 w-full h-full bg-gradient-to-br from-corporate-blue/30 to-accent-orange/20 mix-blend-color z-0 pointer-events-none"></div>
+</div>
+</div>
+</div>
+</section>
+<!-- Fleet Guide (Magazine Style) -->
+<section class="py-section-v-space bg-navy-deep">
+<div class="max-w-max-content-width mx-auto px-margin-desktop">
+<div class="flex justify-between items-end mb-12">
+<div>
+<h2 class="text-[40px] font-bold text-white mb-2">Filo Dünyası'nı Keşfet!</h2>
+<p class="text-xl text-white/70">Filo kiralama hakkında merak ettiğiniz tüm soruların cevapları.</p>
+</div>
+<button class="text-accent-orange font-bold hover:text-white transition-colors flex items-center gap-2">
+                    Tümünü Görüntüle <span class="material-symbols-outlined text-sm" data-icon="arrow_forward">arrow_forward</span>
+</button>
+</div>
+<div class="grid grid-cols-12 gap-gutter">
+<!-- ArticleCard Component 1 -->
+<div class="col-span-12 md:col-span-4 group relative h-[400px] rounded-2xl overflow-hidden cursor-pointer shadow-sm border border-border-subtle flex flex-col bg-white">
+<img alt="Dashboard" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 absolute inset-0" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDE96n66O1xr5hnld8MmqK2Y3-ZaL1MAl7KUhld2qJOKbiZ10MQSsznX80rAHC2a442JzQiWtiK-QcVoVReEp3Pm4lTVqgpbWGfVomIBtWBPG-r6MUTu4g3AxYv5Q4wdQBae1_jyJbOm6M_coupLqU28bGiyEIGIDEW2pzINy43dCBQ2IMlJd3PcdQS5o9l6Nq_s-vpXpyMmeUcauLgwU-S0OpR5ac5NXSHGRXlryKfY3IZmSCNwWXe"/>
+<div class="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent"></div>
+<div class="absolute bottom-0 left-0 w-full p-card-padding flex flex-col justify-end h-full">
+<div class="flex items-center gap-2 mb-3">
+<span class="bg-accent-orange text-navy-deep text-xs font-bold px-3 py-1 rounded-full inline-block">Rehber</span>
+</div>
+<h3 class="text-xl font-bold text-white group-hover:text-accent-orange transition-colors line-clamp-2">Arabanın Göstergeleri ve Anlamları</h3>
+</div>
+</div>
+<!-- ArticleCard Component 2 -->
+<div class="col-span-12 md:col-span-4 group relative h-[400px] rounded-2xl overflow-hidden cursor-pointer shadow-sm border border-border-subtle flex flex-col bg-white">
+<img alt="Engine" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 absolute inset-0" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDFZ09GJOIYDocSVP8dwSTspNfQrNf4yOfu6vxqr0E6JePi7yyObLOXfdw-d-hdL-YqW_wTMq08tyKhlba_oACm2zzUMmOpgiZN2HNyD7qyI-4cZJf2TybnLcQextUghrHSZiucY2LTzw4BGH3qAUMTWAQnBLqT1v7a_ZHBefX5b36ypR6bABdIBr2d3Y8Sd_gYTtuoYKJdu916BCBBG8s8zln6rQSynMNE6lWcHPQ6E05qo5cJeypX"/>
+<div class="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent"></div>
+<div class="absolute bottom-0 left-0 w-full p-card-padding flex flex-col justify-end h-full">
+<div class="flex items-center gap-2 mb-3">
+<span class="bg-accent-orange text-navy-deep text-xs font-bold px-3 py-1 rounded-full inline-block">Teknik</span>
+</div>
+<h3 class="text-xl font-bold text-white group-hover:text-accent-orange transition-colors line-clamp-2">Akü Biten Araba Nasıl Çalışır?</h3>
+</div>
+</div>
+<!-- ArticleCard Component 3 -->
+<div class="col-span-12 md:col-span-4 group relative h-[400px] rounded-2xl overflow-hidden cursor-pointer shadow-sm border border-border-subtle flex flex-col bg-white">
+<img alt="Mechanic" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 absolute inset-0" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAG2qzV9n12fyuG7YiT7e-GHzfTXTOtgT7DSWjtNtDj-cC3StRdNMQMJGYAUQG8pJmJKbrkLePaXxRDRnRNnePC_omlsLZuHTtisdo_K_AGvQnGhNehtnNiRwiPB_VCr3lmmksB2leobDN5juSssgP-UC1guM19uIbNBBTECIGA7TW2tdMEqI2hIK7q8f6YjyjoXbze5WP4RonHyA-MyYKRT59tICBn76Y9p09iBHQf_dlmfOshO7J7"/>
+<div class="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent"></div>
+<div class="absolute bottom-0 left-0 w-full p-card-padding flex flex-col justify-end h-full">
+<div class="flex items-center gap-2 mb-3">
+<span class="bg-accent-orange text-navy-deep text-xs font-bold px-3 py-1 rounded-full inline-block">Bakım</span>
+</div>
+<h3 class="text-xl font-bold text-white group-hover:text-accent-orange transition-colors line-clamp-2">Araba Kaputunda Neler Var?</h3>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- AppFooter Component -->
+<div class="w-full bg-navy-deep border-t border-navy-secondary py-8 flex flex-col md:flex-row items-center justify-between gap-8 px-margin-desktop" style="width: 100vw; position: relative; left: 50%; right: 50%; margin-left: -50vw; margin-right: -50vw;"><div class="flex-1 text-left"><h3 class="font-headline-md text-2xl font-bold text-white tracking-tight mb-1">E-Böltenimize Kaydolun</h3><p class="text-surface-container-low text-sm opacity-90 m-0 whitespace-nowrap">Sektördeki yeniliklerden ve özel kampanyalardan ilk siz haberdar olun.</p></div><form class="flex flex-col sm:flex-row gap-3 w-full max-w-md shrink-0"><div class="relative flex-1 flex items-center bg-white rounded-lg shadow-sm border border-border-subtle overflow-hidden"><span class="material-symbols-outlined text-text-secondary pl-3">email</span><input class="w-full border-none focus:ring-0 bg-transparent text-navy-deep placeholder:text-text-secondary h-10 px-3 text-sm" placeholder="E-posta adresiniz" required="" type="email"/></div><button class="font-label-bold text-navy-deep bg-accent-orange hover:bg-orange-dark hover:text-white px-6 h-10 rounded-lg transition-all duration-300 whitespace-nowrap shadow-md shadow-accent-orange/20 flex items-center justify-center gap-2 text-sm"> Kayıt Ol <span class="material-symbols-outlined text-[18px]">arrow_forward</span></button></form></div><footer class="bg-navy-deep dark:bg-black w-full pt-24 pb-8 border-t border-navy-secondary">
+<div class="grid grid-cols-1 md:grid-cols-4 gap-gutter px-margin-desktop max-w-max-content-width mx-auto mb-16">
+<!-- Brand Column -->
+<div class="flex flex-col gap-6">
+<a class="font-headline-lg text-headline-lg font-bold text-on-primary flex items-center gap-2" href="#">
+<span class="material-symbols-outlined fill text-accent-orange" style="font-size: 40px;">directions_car</span>
+                     Kalite Filo
+                </a>
+<p class="text-on-primary-container text-sm">Kurumsal filo yönetiminde güvenilir iş ortağınız. İhtiyacınıza özel esnek kiralama çözümleri.</p>
+</div>
+<!-- Quick Links -->
+<div class="flex flex-col gap-4"><h4 class="text-on-primary font-bold text-lg mb-2">Hızlı Linkler</h4>
+<a class="text-on-primary-container hover:text-on-primary hover:text-accent-orange transition-colors" href="#">Hakkımızda</a>
+<a class="text-on-primary-container hover:text-on-primary hover:text-accent-orange transition-colors" href="#">Araç Listesi</a>
+<a class="text-on-primary-container hover:text-on-primary hover:text-accent-orange transition-colors" href="#">SSS</a>
+<a class="text-on-primary-container hover:text-on-primary hover:text-accent-orange transition-colors" href="#">Blog</a></div>
+<!-- Legal -->
+<div class="flex flex-col gap-4">
+<h4 class="text-on-primary font-bold text-lg mb-2">Kurumsal</h4>
+<a class="text-on-primary-container hover:text-on-primary hover:text-accent-orange transition-colors" href="#">KVKK ve Gizlilik</a>
+<a class="text-on-primary-container hover:text-on-primary hover:text-accent-orange transition-colors" href="#">Çerez Politikası</a>
+<a class="text-on-primary-container hover:text-on-primary hover:text-accent-orange transition-colors" href="#">Kullanım Koşulları</a>
+</div>
+<!-- Contact -->
+<div class="flex flex-col gap-4"><h4 class="text-on-primary font-bold text-lg mb-2">Bize Ulaşın</h4><a class="text-on-primary-container hover:text-on-primary hover:text-accent-orange transition-colors" href="#">İletişim</a><p class="text-on-primary-container flex items-center gap-2"><span class="material-symbols-outlined text-[20px]">call</span> 05317158068</p><p class="text-on-primary-container flex items-center gap-2"><span class="material-symbols-outlined text-[20px]">mail</span> info@kalitefilo.com.tr</p></div>
+</div>
+<div class="px-margin-desktop max-w-max-content-width mx-auto border-t border-navy-secondary pt-8 flex justify-between items-center">
+<p class="text-on-primary-container text-sm">© 2024 Kalite Filo Kiralama A.Ş. Tüm hakları saklıdır.</p>
+</div>
+</footer>
+</body></html>

@@ -2,11 +2,18 @@
   "name": "kalite-filo-website",
   "version": "0.1.0",
   "private": true,
+  "engines": {
+    "node": ">=20.9.0"
+  },
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
-    "start": "next start",
-    "lint": "eslint"
+    "build": "npm run validate && node scripts/build-static.mjs production",
+    "build:staging": "npm run validate && node scripts/build-static.mjs staging",
+    "lint": "eslint",
+    "typecheck": "tsc --noEmit --incremental false",
+    "validate": "node scripts/validate-foundation.mjs",
+    "verify:output": "node scripts/validate-foundation.mjs --output",
+    "test": "node --test scripts/*.test.mjs"
   },
   "dependencies": {
     "next": "16.2.11",

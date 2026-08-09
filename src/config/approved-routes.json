@@ -1,0 +1,83 @@
+[
+  {
+    "id": "home",
+    "kind": "static",
+    "path": "/",
+    "label": "Ana Sayfa",
+    "status": "foundation",
+    "indexable": false,
+    "sitemap": false
+  },
+  {
+    "id": "about",
+    "kind": "static",
+    "path": "/hakkimizda/",
+    "label": "Hakkımızda",
+    "status": "canonical-path",
+    "indexable": false,
+    "sitemap": false
+  },
+  {
+    "id": "vehicles",
+    "kind": "static",
+    "path": "/araclar/",
+    "label": "Araçlar",
+    "status": "canonical-path",
+    "indexable": false,
+    "sitemap": false
+  },
+  {
+    "id": "vehicle-detail",
+    "kind": "family",
+    "path": "/araclar/[slug]/",
+    "label": "Araçlar",
+    "status": "canonical-path",
+    "indexable": false,
+    "sitemap": false
+  },
+  {
+    "id": "fleet-guide",
+    "kind": "static",
+    "path": "/filo-rehberi/",
+    "label": "Filo Rehberi",
+    "status": "canonical-path",
+    "indexable": false,
+    "sitemap": false
+  },
+  {
+    "id": "fleet-guide-article",
+    "kind": "family",
+    "path": "/filo-rehberi/[slug]/",
+    "label": "Filo Rehberi",
+    "status": "canonical-path",
+    "indexable": false,
+    "sitemap": false
+  },
+  {
+    "id": "faq",
+    "kind": "static",
+    "path": "/sikca-sorulan-sorular/",
+    "label": "Sıkça Sorulan Sorular",
+    "status": "canonical-path",
+    "indexable": false,
+    "sitemap": false
+  },
+  {
+    "id": "contact",
+    "kind": "static",
+    "path": "/iletisim/",
+    "label": "İletişim",
+    "status": "canonical-path",
+    "indexable": false,
+    "sitemap": false
+  },
+  {
+    "id": "quote",
+    "kind": "static",
+    "path": "/teklif-al/",
+    "label": "Teklif Al",
+    "status": "canonical-path",
+    "indexable": false,
+    "sitemap": false
+  }
+]

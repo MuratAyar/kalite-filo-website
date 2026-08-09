@@ -1,0 +1,435 @@
+<!DOCTYPE html><html class="light" lang="tr" style=""><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>Sık Sorulan Sorular - Kalite Filo</title>
+<!-- Material Symbols -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<!-- Google Fonts: Plus Jakarta Sans -->
+<link href="https://fonts.googleapis.com" rel="preconnect">
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Tailwind Configuration -->
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "on-error-container": "#93000a",
+                        "border-subtle": "#E6E8EC",
+                        "on-error": "#ffffff",
+                        "corporate-blue": "#014499",
+                        "tertiary": "#130900",
+                        "on-tertiary-fixed-variant": "#643f00",
+                        "outline": "#76777d",
+                        "inverse-surface": "#2e3132",
+                        "text-primary": "#182136",
+                        "outline-variant": "#c6c6cd",
+                        "tertiary-fixed-dim": "#ffb957",
+                        "inverse-on-surface": "#f0f1f3",
+                        "tertiary-fixed": "#ffddb5",
+                        "primary-fixed-dim": "#bdc6e2",
+                        "surface-container": "#edeef0",
+                        "secondary-container": "#79a4ff",
+                        "on-primary": "#ffffff",
+                        "surface-bright": "#f8f9fb",
+                        "on-tertiary-container": "#bd7b00",
+                        "surface": "#f8f9fb",
+                        "orange-light": "#FCD8B6",
+                        "primary": "#020a1e",
+                        "on-tertiary-fixed": "#2a1800",
+                        "on-primary-fixed-variant": "#3e465d",
+                        "surface-variant": "#e1e2e4",
+                        "error-container": "#ffdad6",
+                        "surface-container-lowest": "#ffffff",
+                        "on-background": "#191c1e",
+                        "inverse-primary": "#bdc6e2",
+                        "background": "#f8f9fb",
+                        "surface-tint": "#555e76",
+                        "surface-dim": "#d9dadc",
+                        "on-primary-container": "#8088a2",
+                        "error": "#ba1a1a",
+                        "on-secondary-container": "#003881",
+                        "tertiary-container": "#321d00",
+                        "on-primary-fixed": "#121b30",
+                        "surface-container-high": "#e7e8ea",
+                        "surface-container-low": "#f2f4f6",
+                        "on-surface-variant": "#45464d",
+                        "text-secondary": "#5E6675",
+                        "secondary-fixed-dim": "#aec6ff",
+                        "primary-fixed": "#d9e2ff",
+                        "accent-orange": "#FFB343",
+                        "surface-container-highest": "#e1e2e4",
+                        "orange-dark": "#D47504",
+                        "on-secondary": "#ffffff",
+                        "navy-secondary": "#172750",
+                        "on-surface": "#191c1e",
+                        "navy-deep": "#182136",
+                        "on-tertiary": "#ffffff",
+                        "on-secondary-fixed": "#001a43",
+                        "primary-container": "#182136",
+                        "secondary": "#2a5cb1",
+                        "on-secondary-fixed-variant": "#004397",
+                        "secondary-fixed": "#d8e2ff"
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    spacing: {
+                        "max-content-width": "1360px",
+                        "card-padding": "24px",
+                        "section-v-space": "100px",
+                        "stack-gap": "16px",
+                        "margin-desktop": "40px",
+                        "gutter": "24px"
+                    },
+                    fontFamily: {
+                        "headline-xl": ["Plus Jakarta Sans"],
+                        "body-md": ["Plus Jakarta Sans"],
+                        "headline-xl-mobile": ["Plus Jakarta Sans"],
+                        "headline-md": ["Plus Jakarta Sans"],
+                        "headline-lg-mobile": ["Plus Jakarta Sans"],
+                        "headline-lg": ["Plus Jakarta Sans"],
+                        "label-bold": ["Plus Jakarta Sans"],
+                        "body-lg": ["Plus Jakarta Sans"]
+                    },
+                    fontSize: {
+                        "headline-xl": ["64px", { lineHeight: "1.1", letterSpacing: "-0.02em", fontWeight: "700" }],
+                        "body-md": ["16px", { lineHeight: "1.5", fontWeight: "400" }],
+                        "headline-xl-mobile": ["40px", { lineHeight: "1.1", fontWeight: "700" }],
+                        "headline-md": ["30px", { lineHeight: "1.3", fontWeight: "600" }],
+                        "headline-lg-mobile": ["32px", { lineHeight: "1.2", fontWeight: "600" }],
+                        "headline-lg": ["44px", { lineHeight: "1.2", letterSpacing: "-0.01em", fontWeight: "600" }],
+                        "label-bold": ["14px", { lineHeight: "1", fontWeight: "600" }],
+                        "body-lg": ["18px", { lineHeight: "1.6", fontWeight: "400" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .accordion-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease-out, padding 0.3s ease;
+        }
+        .accordion-content.active {
+            max-height: 500px; /* arbitrary max height */
+        }
+        .icon-rotate {
+            transition: transform 0.3s ease;
+        }
+        .active .icon-rotate {
+            transform: rotate(180deg);
+        }
+    </style>
+</head>
+<body class="bg-background text-text-primary antialiased font-body-md flex flex-col min-h-screen pt-[80px]">
+<!-- TopNavBar -->
+<nav class="fixed top-0 w-full z-50 bg-surface/90 dark:bg-navy-deep/90 backdrop-blur-md border-b border-border-subtle dark:border-outline-variant shadow-sm h-[80px] px-margin-desktop flex justify-between items-center max-w-max-content-width mx-auto left-0 right-0">
+<a class="text-headline-md font-headline-md font-bold text-corporate-blue dark:text-on-primary" href="#">Kalite Filo</a>
+<div class="hidden md:flex gap-6 items-center"><a class="text-text-secondary dark:text-on-surface-variant hover:text-corporate-blue transition-colors text-label-bold font-label-bold hover:bg-surface-container-low dark:hover:bg-navy-secondary transition-all" href="#">Hakkımızda</a><a class="text-text-secondary dark:text-on-surface-variant hover:text-corporate-blue transition-colors text-label-bold font-label-bold hover:bg-surface-container-low dark:hover:bg-navy-secondary transition-all" href="#">Araç Listesi</a><a class="dark:text-on-surface-variant hover:text-corporate-blue transition-colors text-label-bold font-label-bold hover:bg-surface-container-low dark:hover:bg-navy-secondary transition-all text-corporate-blue border-b-2 border-corporate-blue" href="#">Sıkça Sorulan Sorular</a><a class="text-text-secondary dark:text-on-surface-variant hover:text-corporate-blue transition-colors text-label-bold font-label-bold hover:bg-surface-container-low dark:hover:bg-navy-secondary transition-all" href="#">Blog</a></div>
+<div class="flex items-center gap-4"><button class="hidden md:block text-text-secondary dark:text-on-surface-variant hover:text-corporate-blue transition-colors text-label-bold font-label-bold border border-border-subtle px-4 h-[48px] rounded-DEFAULT">Müşteri Girişi</button><button class="bg-accent-orange text-navy-deep font-bold h-[48px] px-6 rounded-DEFAULT hover:bg-orange-dark hover:text-white transition-colors text-label-bold font-label-bold">Teklif Al</button></div>
+</nav>
+<!-- Main Content Area -->
+<main class="flex-grow pt-[120px] pb-section-v-space flex flex-col items-center w-full px-4 md:px-margin-desktop pt-24"><div class="w-full max-w-max-content-width mb-12">
+    <nav class="flex items-center gap-2 text-sm text-text-secondary font-body-md mb-2">
+        <a href="#" class="hover:text-corporate-blue transition-colors">Ana Sayfa</a>
+        <span class="material-symbols-outlined text-xs">chevron_right</span>
+        <span class="text-navy-deep font-medium">Sıkça Sorulan Sorular</span>
+    </nav>
+    <h1 class="font-headline-lg text-headline-lg-mobile md:text-headline-lg text-navy-deep">Sıkça Sorulan Sorular</h1>
+</div>
+<!-- Header Section -->
+
+<!-- Search Bar -->
+<!-- Category Filters -->
+<div class="w-full max-w-[1000px] mb-12 mt-8">
+<div class="flex flex-wrap gap-3 justify-start">
+<button class="px-5 py-2.5 rounded-full font-label-bold text-label-bold bg-orange-light text-orange-dark border border-transparent transition-colors">Tümü</button>
+<button class="px-5 py-2.5 rounded-full font-label-bold text-label-bold bg-surface-container-lowest text-text-secondary border border-border-subtle hover:bg-surface-container-low transition-colors">Kiralama Süreci</button>
+<button class="px-5 py-2.5 rounded-full font-label-bold text-label-bold bg-surface-container-lowest text-text-secondary border border-border-subtle hover:bg-surface-container-low transition-colors">Araç Kullanımı</button>
+<button class="px-5 py-2.5 rounded-full font-label-bold text-label-bold bg-surface-container-lowest text-text-secondary border border-border-subtle hover:bg-surface-container-low transition-colors">Bakım ve Lastik</button>
+<button class="px-5 py-2.5 rounded-full font-label-bold text-label-bold bg-surface-container-lowest text-text-secondary border border-border-subtle hover:bg-surface-container-low transition-colors">Hasar ve Kaza</button>
+<button class="px-5 py-2.5 rounded-full font-label-bold text-label-bold bg-surface-container-lowest text-text-secondary border border-border-subtle hover:bg-surface-container-low transition-colors">Sözleşme</button>
+<button class="px-5 py-2.5 rounded-full font-label-bold text-label-bold bg-surface-container-lowest text-text-secondary border border-border-subtle hover:bg-surface-container-low transition-colors">Ödeme</button>
+</div>
+</div>
+<!-- FAQ Accordion List -->
+<div class="w-full max-w-[1000px] flex flex-col gap-4">
+<!-- FAQ Item 1 -->
+<div class="faq-item bg-surface-container-lowest border border-border-subtle rounded-xl overflow-hidden hover:shadow-[0_4px_24px_rgba(24,33,54,0.04)] transition-all">
+<button class="w-full flex items-start justify-between p-6 text-left cursor-pointer focus:outline-none bg-surface-container-lowest">
+<div class="flex flex-col gap-2">
+<span class="inline-block px-3 py-1 rounded-full text-xs font-semibold bg-surface-container-low text-text-secondary w-max">Kiralama Süreci</span>
+<h3 class="font-headline-md text-headline-md-mobile md:text-headline-md text-navy-deep">Uzun dönem araç kiralama nedir?</h3>
+</div>
+<span class="material-symbols-outlined text-corporate-blue mt-1 icon-rotate" style="font-variation-settings: &quot;FILL&quot; 0;">keyboard_arrow_down</span>
+</button>
+<div class="accordion-content bg-surface-bright border-t border-border-subtle">
+<div class="p-6">
+<p class="font-body-md text-body-md text-text-secondary mb-4">
+                            Uzun dönem araç kiralama, işletmelerin ihtiyaç duydukları araçları satın almak yerine, 12 ila 48 ay arasında değişen sürelerle, aylık sabit ödemeler karşılığında kullanmalarını sağlayan bir hizmettir.
+                        </p>
+<p class="font-body-md text-body-md text-text-secondary mb-6">
+                            Bu hizmet kapsamında periyodik bakım, onarım, kasko, trafik sigortası, Motorlu Taşıtlar Vergisi (MTV) ve kış lastiği değişimi gibi tüm operasyonel maliyetler ve riskler kiralama şirketi tarafından üstlenilir. İşletmeler, sermayelerini araç satın almaya bağlamadan, yalnızca aylık fatura bedellerini gider olarak kaydederek vergi avantajı sağlarlar.
+                        </p>
+<!-- Feedback Mechanism -->
+<div class="flex items-center justify-between border-t border-border-subtle pt-4 mt-2">
+<span class="font-body-md text-sm text-text-secondary">Bu cevap faydalı oldu mu?</span>
+<div class="flex gap-2">
+<button class="flex items-center gap-1 px-3 py-1.5 rounded border border-border-subtle text-text-secondary hover:border-corporate-blue hover:text-corporate-blue transition-colors text-sm font-medium">
+<span class="material-symbols-outlined text-[18px]" style="font-variation-settings: &quot;FILL&quot; 0;">thumb_up</span> Evet
+                                </button>
+<button class="flex items-center gap-1 px-3 py-1.5 rounded border border-border-subtle text-text-secondary hover:border-corporate-blue hover:text-corporate-blue transition-colors text-sm font-medium">
+<span class="material-symbols-outlined text-[18px]" style="font-variation-settings: &quot;FILL&quot; 0;">thumb_down</span> Hayır
+                                </button>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- FAQ Item 2 -->
+<div class="faq-item bg-surface-container-lowest border border-border-subtle rounded-xl overflow-hidden hover:shadow-[0_4px_24px_rgba(24,33,54,0.04)] transition-all">
+<button class="w-full flex items-start justify-between p-6 text-left cursor-pointer focus:outline-none bg-surface-container-lowest">
+<div class="flex flex-col gap-2">
+<span class="inline-block px-3 py-1 rounded-full text-xs font-semibold bg-surface-container-low text-text-secondary w-max">Kiralama Süreci</span>
+<h3 class="font-headline-md text-headline-md-mobile md:text-headline-md text-navy-deep">Minimum kiralama süresi nedir?</h3>
+</div>
+<span class="material-symbols-outlined text-corporate-blue mt-1 icon-rotate" style="font-variation-settings: &quot;FILL&quot; 0;">keyboard_arrow_down</span>
+</button>
+<div class="accordion-content bg-surface-bright border-t border-border-subtle">
+<div class="p-6">
+<p class="font-body-md text-body-md text-text-secondary mb-4">
+                            Kalite Filo olarak operasyonel kiralama hizmetlerimizde minimum kiralama süresi 12 ay (1 yıl) olarak belirlenmiştir. Müşterilerimizin taleplerine göre 12, 24, 36 ve 48 aylık sözleşme seçenekleri sunulmaktadır.
+                        </p>
+<p class="font-body-md text-body-md text-text-secondary mb-6">
+                            Daha kısa süreli kiralama ihtiyaçlarınız için (1 aydan 11 aya kadar) esnek aylık kiralama çözümlerimiz hakkında müşteri temsilcilerimizle iletişime geçebilirsiniz.
+                        </p>
+<!-- Feedback Mechanism -->
+<div class="flex items-center justify-between border-t border-border-subtle pt-4 mt-2">
+<span class="font-body-md text-sm text-text-secondary">Bu cevap faydalı oldu mu?</span>
+<div class="flex gap-2">
+<button class="flex items-center gap-1 px-3 py-1.5 rounded border border-border-subtle text-text-secondary hover:border-corporate-blue hover:text-corporate-blue transition-colors text-sm font-medium">
+<span class="material-symbols-outlined text-[18px]" style="font-variation-settings: &quot;FILL&quot; 0;">thumb_up</span> Evet
+                                </button>
+<button class="flex items-center gap-1 px-3 py-1.5 rounded border border-border-subtle text-text-secondary hover:border-corporate-blue hover:text-corporate-blue transition-colors text-sm font-medium">
+<span class="material-symbols-outlined text-[18px]" style="font-variation-settings: &quot;FILL&quot; 0;">thumb_down</span> Hayır
+                                </button>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- FAQ Item 3 -->
+<div class="faq-item bg-surface-container-lowest border border-border-subtle rounded-xl overflow-hidden hover:shadow-[0_4px_24px_rgba(24,33,54,0.04)] transition-all">
+<button class="w-full flex items-start justify-between p-6 text-left cursor-pointer focus:outline-none bg-surface-container-lowest">
+<div class="flex flex-col gap-2">
+<span class="inline-block px-3 py-1 rounded-full text-xs font-semibold bg-surface-container-low text-text-secondary w-max">Hasar ve Kaza</span>
+<h3 class="font-headline-md text-headline-md-mobile md:text-headline-md text-navy-deep">Kaza durumunda ne yapılmalıdır?</h3>
+</div>
+<span class="material-symbols-outlined text-corporate-blue mt-1 icon-rotate" style="font-variation-settings: &quot;FILL&quot; 0;">keyboard_arrow_down</span>
+</button>
+<div class="accordion-content bg-surface-bright border-t border-border-subtle">
+<div class="p-6">
+<p class="font-body-md text-body-md text-text-secondary mb-4">
+                            Olası bir kaza durumunda, kasko ve trafik sigortası prosedürlerinin geçerli olabilmesi için aşağıdaki adımları eksiksiz uygulamanız büyük önem taşır:
+                        </p>
+<ul class="list-disc list-inside font-body-md text-body-md text-text-secondary mb-6 space-y-2">
+<li class=""><strong>Polis/Jandarma Çağrılması:</strong> Yaralanmalı kaza, karşı tarafın evrak eksikliği, kamu malına zarar veya sürücünün alkollü olması durumlarında mutlaka kolluk kuvvetlerine zabıt tutturulmalıdır.</li>
+<li class=""><strong>Maddi Hasarlı Kaza Tespit Tutanağı:</strong> Yalnızca maddi hasar olan ve tarafların anlaştığı durumlarda, kaza tespit tutanağı eksiksiz doldurulmalı ve ıslak imzalı olmalıdır.</li>
+<li class=""><strong>Fotoğraf Çekimi:</strong> Araçların kaza anındaki konumlarını ve hasarlarını gösteren geniş açılı fotoğraflar çekilmelidir.</li>
+<li class=""><strong>İletişim:</strong> En kısa sürede (maksimum 24 saat içinde) 0850 XXX XX XX numaralı Kalite Filo Acil Yol Yardım hattını arayarak bilgi verilmeli ve yönlendirme alınmalıdır.</li>
+</ul>
+<!-- Feedback Mechanism -->
+<div class="flex items-center justify-between border-t border-border-subtle pt-4 mt-2">
+<span class="font-body-md text-sm text-text-secondary">Bu cevap faydalı oldu mu?</span>
+<div class="flex gap-2">
+<button class="flex items-center gap-1 px-3 py-1.5 rounded border border-border-subtle text-text-secondary hover:border-corporate-blue hover:text-corporate-blue transition-colors text-sm font-medium">
+<span class="material-symbols-outlined text-[18px]" style="font-variation-settings: &quot;FILL&quot; 0;">thumb_up</span> Evet
+                                </button>
+<button class="flex items-center gap-1 px-3 py-1.5 rounded border border-border-subtle text-text-secondary hover:border-corporate-blue hover:text-corporate-blue transition-colors text-sm font-medium">
+<span class="material-symbols-outlined text-[18px]" style="font-variation-settings: &quot;FILL&quot; 0;">thumb_down</span> Hayır
+                                </button>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- FAQ Item 4 -->
+<div class="faq-item bg-surface-container-lowest border border-border-subtle rounded-xl overflow-hidden hover:shadow-[0_4px_24px_rgba(24,33,54,0.04)] transition-all">
+<button class="w-full flex items-start justify-between p-6 text-left cursor-pointer focus:outline-none bg-surface-container-lowest">
+<div class="flex flex-col gap-2">
+<span class="inline-block px-3 py-1 rounded-full text-xs font-semibold bg-surface-container-low text-text-secondary w-max">Bakım ve Lastik</span>
+<h3 class="font-headline-md text-headline-md-mobile md:text-headline-md text-navy-deep">Periyodik bakımlar nerede ve nasıl yaptırılır?</h3>
+</div>
+<span class="material-symbols-outlined text-corporate-blue mt-1 icon-rotate" style="font-variation-settings: &quot;FILL&quot; 0;">keyboard_arrow_down</span>
+</button>
+<div class="accordion-content bg-surface-bright border-t border-border-subtle">
+<div class="p-6">
+<p class="font-body-md text-body-md text-text-secondary mb-4">
+                            Araçlarınızın periyodik bakımları, kiralama sözleşmesine dahil olan bir hizmettir. Bakım kilometresi yaklaşan araçlar için Kalite Filo Müşteri Hizmetleri üzerinden randevu oluşturulmalıdır.
+                        </p>
+<ul class="list-disc list-inside font-body-md text-body-md text-text-secondary mb-6 space-y-2">
+<li class="">Bakımlar, aracın marka ve modeline uygun yetkili veya özel servislerde yaptırılmaktadır.</li>
+<li class="">Randevu talebi oluşturulduktan sonra size en yakın anlaşmalı servis bilgisi iletilir.</li>
+<li class="">Bakım süresi boyunca (sözleşmedeki şartlara bağlı olarak) operasyonel süreçlerinizin aksamaması için yedek araç tahsisi yapılabilmektedir.</li>
+</ul>
+<!-- Feedback Mechanism -->
+<div class="flex items-center justify-between border-t border-border-subtle pt-4 mt-2">
+<span class="font-body-md text-sm text-text-secondary">Bu cevap faydalı oldu mu?</span>
+<div class="flex gap-2">
+<button class="flex items-center gap-1 px-3 py-1.5 rounded border border-border-subtle text-text-secondary hover:border-corporate-blue hover:text-corporate-blue transition-colors text-sm font-medium">
+<span class="material-symbols-outlined text-[18px]" style="font-variation-settings: &quot;FILL&quot; 0;">thumb_up</span> Evet
+                                </button>
+<button class="flex items-center gap-1 px-3 py-1.5 rounded border border-border-subtle text-text-secondary hover:border-corporate-blue hover:text-corporate-blue transition-colors text-sm font-medium">
+<span class="material-symbols-outlined text-[18px]" style="font-variation-settings: &quot;FILL&quot; 0;">thumb_down</span> Hayır
+                                </button>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Bottom CTA Section -->
+<section class="mt-24 w-full max-w-[1000px] bg-navy-deep rounded-2xl p-8 md:p-12 relative overflow-hidden">
+<!-- Decorative Pattern/Gradient -->
+<div class="absolute inset-0 opacity-10 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-corporate-blue via-transparent to-transparent pointer-events-none"></div>
+<div class="relative z-10 flex flex-col md:flex-row items-center justify-between gap-8">
+<div class="text-center md:text-left flex-1">
+<h2 class="font-headline-lg text-headline-lg-mobile md:text-headline-lg text-on-primary mb-3">Aradığınız Cevabı Bulamadınız mı?</h2>
+<p class="font-body-lg text-body-lg text-primary-fixed-dim">Müşteri temsilcilerimiz size özel çözümler sunmak için hazır.</p>
+</div>
+<div class="flex flex-col sm:flex-row gap-4 w-full md:w-auto">
+
+
+<button class="inline-flex items-center justify-center gap-2 font-label-bold text-label-bold text-navy-deep bg-accent-orange border-2 border-transparent hover:bg-orange-dark hover:text-white transition-colors duration-200 h-[54px] px-6 rounded-lg whitespace-nowrap">
+<span class="material-symbols-outlined" style="font-variation-settings: &quot;FILL&quot; 0;">mail</span>
+                        İletişim Formu
+                    </button>
+</div>
+</div>
+</section>
+</main>
+<!-- Footer -->
+<!-- Fleet Guide (Magazine Style) -->
+<section class="py-section-v-space bg-navy-deep">
+<div class="max-w-max-content-width mx-auto px-margin-desktop">
+<div class="flex justify-between items-end mb-12">
+<div>
+<h2 class="text-[40px] font-bold text-white mb-2">Filo Dünyası'nı Keşfet!</h2>
+<p class="text-xl text-white/70">Filo kiralama hakkında merak ettiğiniz tüm soruların cevapları.</p>
+</div>
+<button class="text-accent-orange font-bold hover:text-white transition-colors flex items-center gap-2">
+                    Tümünü Görüntüle <span class="material-symbols-outlined text-sm" data-icon="arrow_forward">arrow_forward</span>
+</button>
+</div>
+<div class="grid grid-cols-12 gap-gutter">
+<!-- ArticleCard Component 1 -->
+<div class="col-span-12 md:col-span-4 group relative h-[400px] rounded-2xl overflow-hidden cursor-pointer shadow-sm border border-border-subtle flex flex-col bg-white">
+<img alt="Dashboard" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 absolute inset-0" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDE96n66O1xr5hnld8MmqK2Y3-ZaL1MAl7KUhld2qJOKbiZ10MQSsznX80rAHC2a442JzQiWtiK-QcVoVReEp3Pm4lTVqgpbWGfVomIBtWBPG-r6MUTu4g3AxYv5Q4wdQBae1_jyJbOm6M_coupLqU28bGiyEIGIDEW2pzINy43dCBQ2IMlJd3PcdQS5o9l6Nq_s-vpXpyMmeUcauLgwU-S0OpR5ac5NXSHGRXlryKfY3IZmSCNwWXe">
+<div class="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent"></div>
+<div class="absolute bottom-0 left-0 w-full p-card-padding flex flex-col justify-end h-full">
+<div class="flex items-center gap-2 mb-3">
+<span class="bg-accent-orange text-navy-deep text-xs font-bold px-3 py-1 rounded-full inline-block">Rehber</span>
+</div>
+<h3 class="text-xl font-bold text-white group-hover:text-accent-orange transition-colors line-clamp-2">Arabanın Göstergeleri ve Anlamları</h3>
+</div>
+</div>
+<!-- ArticleCard Component 2 -->
+<div class="col-span-12 md:col-span-4 group relative h-[400px] rounded-2xl overflow-hidden cursor-pointer shadow-sm border border-border-subtle flex flex-col bg-white">
+<img alt="Engine" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 absolute inset-0" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDFZ09GJOIYDocSVP8dwSTspNfQrNf4yOfu6vxqr0E6JePi7yyObLOXfdw-d-hdL-YqW_wTMq08tyKhlba_oACm2zzUMmOpgiZN2HNyD7qyI-4cZJf2TybnLcQextUghrHSZiucY2LTzw4BGH3qAUMTWAQnBLqT1v7a_ZHBefX5b36ypR6bABdIBr2d3Y8Sd_gYTtuoYKJdu916BCBBG8s8zln6rQSynMNE6lWcHPQ6E05qo5cJeypX">
+<div class="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent"></div>
+<div class="absolute bottom-0 left-0 w-full p-card-padding flex flex-col justify-end h-full">
+<div class="flex items-center gap-2 mb-3">
+<span class="bg-accent-orange text-navy-deep text-xs font-bold px-3 py-1 rounded-full inline-block">Teknik</span>
+</div>
+<h3 class="text-xl font-bold text-white group-hover:text-accent-orange transition-colors line-clamp-2">Akü Biten Araba Nasıl Çalışır?</h3>
+</div>
+</div>
+<!-- ArticleCard Component 3 -->
+<div class="col-span-12 md:col-span-4 group relative h-[400px] rounded-2xl overflow-hidden cursor-pointer shadow-sm border border-border-subtle flex flex-col bg-white">
+<img alt="Mechanic" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 absolute inset-0" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAG2qzV9n12fyuG7YiT7e-GHzfTXTOtgT7DSWjtNtDj-cC3StRdNMQMJGYAUQG8pJmJKbrkLePaXxRDRnRNnePC_omlsLZuHTtisdo_K_AGvQnGhNehtnNiRwiPB_VCr3lmmksB2leobDN5juSssgP-UC1guM19uIbNBBTECIGA7TW2tdMEqI2hIK7q8f6YjyjoXbze5WP4RonHyA-MyYKRT59tICBn76Y9p09iBHQf_dlmfOshO7J7">
+<div class="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent"></div>
+<div class="absolute bottom-0 left-0 w-full p-card-padding flex flex-col justify-end h-full">
+<div class="flex items-center gap-2 mb-3">
+<span class="bg-accent-orange text-navy-deep text-xs font-bold px-3 py-1 rounded-full inline-block">Bakım</span>
+</div>
+<h3 class="text-xl font-bold text-white group-hover:text-accent-orange transition-colors line-clamp-2">Araba Kaputunda Neler Var?</h3>
+</div>
+</div>
+</div>
+</div>
+</section><footer class="bg-navy-deep dark:bg-black w-full pt-24 pb-8 border-t border-navy-secondary">
+<div class="grid grid-cols-1 md:grid-cols-4 gap-gutter px-margin-desktop max-w-max-content-width mx-auto mb-16">
+<!-- Brand Column -->
+<div class="flex flex-col gap-6">
+<a class="font-headline-lg text-headline-lg font-bold text-on-primary flex items-center gap-2" href="#">
+<span class="material-symbols-outlined fill text-accent-orange" style="font-size: 40px;">directions_car</span>
+                     Kalite Filo
+                </a>
+<p class="text-on-primary-container text-sm">Kurumsal filo yönetiminde güvenilir iş ortağınız. İhtiyacınıza özel esnek kiralama çözümleri.</p>
+</div>
+<!-- Quick Links -->
+<div class="flex flex-col gap-4"><h4 class="text-on-primary font-bold text-lg mb-2">Hızlı Linkler</h4>
+<a class="text-on-primary-container hover:text-on-primary hover:text-accent-orange transition-colors" href="#">Hakkımızda</a>
+<a class="text-on-primary-container hover:text-on-primary hover:text-accent-orange transition-colors" href="#">Araç Listesi</a>
+<a class="text-on-primary-container hover:text-on-primary hover:text-accent-orange transition-colors" href="#">SSS</a>
+<a class="text-on-primary-container hover:text-on-primary hover:text-accent-orange transition-colors" href="#">Blog</a></div>
+<!-- Legal -->
+<div class="flex flex-col gap-4">
+<h4 class="text-on-primary font-bold text-lg mb-2">Kurumsal</h4>
+<a class="text-on-primary-container hover:text-on-primary hover:text-accent-orange transition-colors" href="#">KVKK ve Gizlilik</a>
+<a class="text-on-primary-container hover:text-on-primary hover:text-accent-orange transition-colors" href="#">Çerez Politikası</a>
+<a class="text-on-primary-container hover:text-on-primary hover:text-accent-orange transition-colors" href="#">Kullanım Koşulları</a>
+</div>
+<!-- Contact -->
+<div class="flex flex-col gap-4">
+<h4 class="text-on-primary font-bold text-lg mb-2">Bize Ulaşın</h4>
+<a class="text-on-primary-container hover:text-on-primary hover:text-accent-orange transition-colors mb-2 inline-block" href="#">İletişim</a><p class="text-on-primary-container flex items-center gap-2"><span class="material-symbols-outlined text-[20px]">call</span> 05317158068</p>
+<p class="text-on-primary-container flex items-center gap-2"><span class="material-symbols-outlined text-[20px]">mail</span> info@kalitefilo.com.tr</p>
+</div>
+</div>
+<div class="px-margin-desktop max-w-max-content-width mx-auto border-t border-navy-secondary pt-8 flex justify-between items-center">
+<p class="text-on-primary-container text-sm">© 2024 Kalite Filo Kiralama A.Ş. Tüm hakları saklıdır.</p>
+</div>
+</footer>
+<!-- Accordion Script -->
+<script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const faqItems = document.querySelectorAll('.faq-item button');
+            
+            faqItems.forEach(item => {
+                item.addEventListener('click', function() {
+                    const content = this.nextElementSibling;
+                    const isActive = content.classList.contains('active');
+                    const itemContainer = this.parentElement;
+                    
+                    // Close all
+                    document.querySelectorAll('.accordion-content').forEach(c => {
+                        c.classList.remove('active');
+                        c.parentElement.classList.remove('active');
+                    });
+                    
+                    // Open clicked if it wasn't already active
+                    if (!isActive) {
+                        content.classList.add('active');
+                        itemContainer.classList.add('active');
+                    }
+                });
+            });
+        });
+    </script>
+
+
+
+
+
+
+</body></html>

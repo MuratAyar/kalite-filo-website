@@ -1,0 +1,428 @@
+<!DOCTYPE html><html class="light" lang="tr" style=""><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>Kalite Filo - Filo Rehberi</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "outline": "#76777d",
+                        "inverse-surface": "#2e3132",
+                        "text-primary": "#182136",
+                        "outline-variant": "#c6c6cd",
+                        "tertiary-fixed-dim": "#ffb957",
+                        "inverse-on-surface": "#f0f1f3",
+                        "on-error-container": "#93000a",
+                        "border-subtle": "#E6E8EC",
+                        "on-error": "#ffffff",
+                        "corporate-blue": "#014499",
+                        "tertiary": "#130900",
+                        "on-tertiary-fixed-variant": "#643f00",
+                        "surface": "#f8f9fb",
+                        "primary": "#020a1e",
+                        "orange-light": "#FCD8B6",
+                        "on-tertiary-fixed": "#2a1800",
+                        "on-primary-fixed-variant": "#3e465d",
+                        "surface-variant": "#e1e2e4",
+                        "tertiary-fixed": "#ffddb5",
+                        "primary-fixed-dim": "#bdc6e2",
+                        "surface-container": "#edeef0",
+                        "secondary-container": "#79a4ff",
+                        "on-primary": "#ffffff",
+                        "surface-bright": "#f8f9fb",
+                        "on-tertiary-container": "#bd7b00",
+                        "error": "#ba1a1a",
+                        "tertiary-container": "#321d00",
+                        "on-secondary-container": "#003881",
+                        "on-primary-fixed": "#121b30",
+                        "surface-container-high": "#e7e8ea",
+                        "surface-container-lowest": "#ffffff",
+                        "error-container": "#ffdad6",
+                        "on-background": "#191c1e",
+                        "background": "#f8f9fb",
+                        "inverse-primary": "#bdc6e2",
+                        "surface-tint": "#555e76",
+                        "surface-dim": "#d9dadc",
+                        "on-primary-container": "#8088a2",
+                        "on-surface": "#191c1e",
+                        "navy-deep": "#182136",
+                        "on-tertiary": "#ffffff",
+                        "on-secondary-fixed": "#001a43",
+                        "primary-container": "#182136",
+                        "secondary": "#2a5cb1",
+                        "secondary-fixed": "#d8e2ff",
+                        "on-secondary-fixed-variant": "#004397",
+                        "on-surface-variant": "#45464d",
+                        "surface-container-low": "#f2f4f6",
+                        "secondary-fixed-dim": "#aec6ff",
+                        "primary-fixed": "#d9e2ff",
+                        "accent-orange": "#FFB343",
+                        "text-secondary": "#5E6675",
+                        "surface-container-highest": "#e1e2e4",
+                        "orange-dark": "#D47504",
+                        "navy-secondary": "#172750",
+                        "on-secondary": "#ffffff"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "section-v-space": "100px",
+                        "max-content-width": "1360px",
+                        "card-padding": "24px",
+                        "stack-gap": "16px",
+                        "margin-desktop": "40px",
+                        "gutter": "24px"
+                    },
+                    "fontFamily": {
+                        "headline-xl": ["Plus Jakarta Sans"],
+                        "body-md": ["Plus Jakarta Sans"],
+                        "headline-xl-mobile": ["Plus Jakarta Sans"],
+                        "headline-md": ["Plus Jakarta Sans"],
+                        "headline-lg-mobile": ["Plus Jakarta Sans"],
+                        "headline-lg": ["Plus Jakarta Sans"],
+                        "label-bold": ["Plus Jakarta Sans"],
+                        "body-lg": ["Plus Jakarta Sans"]
+                    },
+                    "fontSize": {
+                        "headline-xl": ["64px", { "lineHeight": "1.1", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "body-md": ["16px", { "lineHeight": "1.5", "fontWeight": "400" }],
+                        "headline-xl-mobile": ["40px", { "lineHeight": "1.1", "fontWeight": "700" }],
+                        "headline-md": ["30px", { "lineHeight": "1.3", "fontWeight": "600" }],
+                        "headline-lg-mobile": ["32px", { "lineHeight": "1.2", "fontWeight": "600" }],
+                        "headline-lg": ["44px", { "lineHeight": "1.2", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+                        "label-bold": ["14px", { "lineHeight": "1", "fontWeight": "600" }],
+                        "body-lg": ["18px", { "lineHeight": "1.6", "fontWeight": "400" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style type="text/tailwindcss">
+        @layer utilities {
+            .glass-panel {
+                @apply bg-white/70 backdrop-blur-lg border border-white/40 shadow-[0_8px_32px_0_rgba(24,33,54,0.05)];
+            }
+            .smooth-transition {
+                @apply transition-all duration-300 ease-out;
+            }
+        }
+    </style>
+</head>
+<body class="bg-background text-on-background font-body-md antialiased pt-[80px]">
+<!-- Navigation Header -->
+<nav class="fixed top-0 w-full z-50 bg-surface/90 dark:bg-navy-deep/90 backdrop-blur-md border-b border-border-subtle dark:border-outline-variant shadow-sm h-[80px] px-margin-desktop flex justify-between items-center max-w-max-content-width mx-auto left-0 right-0">
+<a class="text-headline-md font-headline-md font-bold text-corporate-blue dark:text-on-primary" href="#">Kalite Filo</a>
+<div class="hidden md:flex gap-6 items-center"><a class="text-text-secondary dark:text-on-surface-variant hover:text-corporate-blue transition-colors text-label-bold font-label-bold hover:bg-surface-container-low dark:hover:bg-navy-secondary transition-all" href="#">Hakkımızda</a><a class="text-text-secondary dark:text-on-surface-variant hover:text-corporate-blue transition-colors text-label-bold font-label-bold hover:bg-surface-container-low dark:hover:bg-navy-secondary transition-all" href="#">Araç Listesi</a><a class="text-text-secondary dark:text-on-surface-variant hover:text-corporate-blue transition-colors text-label-bold font-label-bold hover:bg-surface-container-low dark:hover:bg-navy-secondary transition-all" href="#">Sıkça Sorulan Sorular</a><a class="dark:text-on-surface-variant hover:text-corporate-blue transition-colors text-label-bold font-label-bold hover:bg-surface-container-low dark:hover:bg-navy-secondary transition-all text-corporate-blue" href="#">Blog</a></div>
+<div class="flex items-center gap-4"><button class="hidden md:block text-text-secondary dark:text-on-surface-variant hover:text-corporate-blue transition-colors text-label-bold font-label-bold border border-border-subtle px-4 h-[48px] rounded-DEFAULT">Müşteri Girişi</button><button class="bg-accent-orange text-navy-deep font-bold h-[48px] px-6 rounded-DEFAULT hover:bg-orange-dark hover:text-white transition-colors text-label-bold font-label-bold">Teklif Al</button></div>
+</nav>
+<main class="w-full">
+<!-- Hero Section -->
+<section class="w-full max-w-max-content-width mx-auto px-4 md:px-margin-desktop pt-12 pb-section-v-space">
+
+<!-- Categories Tabs -->
+<div class="mb-8 space-y-4">
+    <nav class="flex items-center gap-2 text-sm font-label-bold text-text-secondary">
+        <a href="/" class="hover:text-corporate-blue transition-colors">Ana Sayfa</a>
+        <span class="material-symbols-outlined text-sm">chevron_right</span>
+        <span class="text-navy-deep">Blog</span>
+    </nav>
+    <h1 class="font-headline-xl-mobile md:font-headline-xl text-headline-xl-mobile md:text-headline-xl text-navy-deep">
+        Filo Rehberi
+    </h1>
+    <p class="font-body-lg text-body-lg text-text-secondary max-w-2xl">
+        Kurumsal araç kiralama, filo yönetimi ve sektördeki en güncel gelişmeler hakkında bilmeniz gereken her şey.
+    </p>
+</div><div class="w-full overflow-x-auto no-scrollbar mb-12 border-b border-border-subtle pb-2">
+<div class="flex gap-8 min-w-max px-4">
+<button class="text-corporate-blue border-b-2 border-corporate-blue pb-2 font-label-bold text-label-bold">Tüm İçerikler</button>
+<button class="text-text-secondary hover:text-navy-deep pb-2 font-label-bold text-label-bold smooth-transition">Uzun Dönem Kiralama</button>
+<button class="text-text-secondary hover:text-navy-deep pb-2 font-label-bold text-label-bold smooth-transition">Filo Yönetimi</button>
+<button class="text-text-secondary hover:text-navy-deep pb-2 font-label-bold text-label-bold smooth-transition">Maliyet ve Finans</button>
+<button class="text-text-secondary hover:text-navy-deep pb-2 font-label-bold text-label-bold smooth-transition">Araç Rehberi</button>
+<button class="text-text-secondary hover:text-navy-deep pb-2 font-label-bold text-label-bold smooth-transition">Ticari Araçlar</button>
+<button class="text-text-secondary hover:text-navy-deep pb-2 font-label-bold text-label-bold smooth-transition">Elektrikli Araçlar</button>
+<button class="text-text-secondary hover:text-navy-deep pb-2 font-label-bold text-label-bold smooth-transition">Mevzuat</button>
+<button class="text-text-secondary hover:text-navy-deep pb-2 font-label-bold text-label-bold smooth-transition">Bakım ve Hasar</button>
+</div>
+</div>
+<!-- Featured Post Split -->
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-0 bg-white rounded-xl overflow-hidden border border-border-subtle hover:shadow-[0_12px_40px_-12px_rgba(24,33,54,0.1)] smooth-transition group cursor-pointer mb-12">
+<div class="relative h-[300px] lg:h-auto overflow-hidden">
+<img class="absolute inset-0 w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-700" data-alt="A modern corporate office setting with fleet managers discussing logistics over a sleek digital dashboard. High-end, pristine white and navy aesthetic with bright, natural lighting. A professional, forward-thinking mood." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBpEZQTS_dC74FIi4GIr_uZyWaTXqbMZJD3-G7TjwUn0b8hkTEtjNNtP49Vyb5ZH7PlK4ZpS2VUJGK0jQl71xwvboK2DxO9OZkozOpDo_tWLpM7j0lNRRxr-BlqEHqkuKbz1ZQr2zAJ3uDdYXjYD4esTK7ChyuxvgYrt0x_l81RzxSOtWM_AVRLmhgKOeG5ulqKdckUBZ8ZXDeumeELlGdhzInC9D5oVQhnfogPtQOCjtFIHmEuvkzn">
+<div class="absolute top-4 left-4 bg-orange-light text-orange-dark px-3 py-1 rounded-full font-label-bold text-label-bold text-xs uppercase tracking-wider">
+                        Öne Çıkan
+                    </div>
+</div>
+<div class="p-8 flex flex-col justify-center">
+<div class="flex items-center gap-4 text-sm text-text-secondary mb-4">
+<span class="flex items-center gap-1"><span class="material-symbols-outlined text-[18px]">calendar_today</span> 12 Eki 2024</span>
+<span class="w-1 h-1 rounded-full bg-border-subtle"></span>
+<span class="flex items-center gap-1"><span class="material-symbols-outlined text-[18px]">schedule</span> 5 dk okuma</span>
+</div>
+<h2 class="font-headline-md text-headline-md text-navy-deep mb-4 group-hover:text-corporate-blue transition-colors text-2xl lg:text-3xl">
+                        2025'te Elektrikli Ticari Filolara Geçiş: Kapsamlı Kurumsal Rehber
+                    </h2>
+<p class="font-body-md text-body-md text-text-secondary mb-8 line-clamp-3">
+                        Tedarik zinciri ve lojistik operasyonlarında sürdürülebilirlik hedeflerine ulaşırken maliyetleri optimize etmenin yollarını keşfedin. Elektrikli araç şarj altyapısından vergi avantajlarına kadar tüm detaylar.
+                    </p>
+<div class="mt-auto flex items-center text-accent-orange font-label-bold text-label-bold group-hover:translate-x-2 transition-transform">
+                        Devamını Oku <span class="material-symbols-outlined ml-1">arrow_forward</span>
+</div>
+</div>
+</div>
+<!-- Content Grid -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+<!-- Card 1 -->
+<div class="bg-white rounded-xl border border-border-subtle overflow-hidden hover:shadow-[0_8px_24px_-8px_rgba(24,33,54,0.1)] smooth-transition group flex flex-col cursor-pointer">
+<div class="relative h-48 overflow-hidden">
+<img class="absolute inset-0 w-full h-full object-cover group-hover:scale-105 smooth-transition" data-alt="Close up of a professional contract signing on a modern glass desk." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBpPEN1yuF1LGLEiWlS-CFeO8VgQiR99RNcUD7fz0PlLmEwLXOSI1NyfSppLIY6Z-26NuY-y66361aNBeqznVbl15LtOs10ulMgvd43Mn_cPXuhkIo-zdMO5g3ipGHV1CVvdGxqPB531A1eehsjgSD4DQeQuqflHMckwRs6x5Wj2PsvkUkVMhHH-_J3AQmV9SYYXd1XN4nw5leMev8lgLeXN3h_Aogf__xskrMMrOmc_76QwbkQJObN">
+<div class="absolute top-4 left-4 bg-surface-container-high/90 backdrop-blur-sm text-navy-deep px-3 py-1 rounded-full font-label-bold text-label-bold text-[11px] uppercase tracking-wider">
+                            Bakım ve Hasar
+                        </div>
+</div>
+<div class="p-5 flex flex-col flex-1">
+<h3 class="font-headline-lg-mobile text-headline-lg-mobile text-navy-deep mb-2 group-hover:text-corporate-blue transition-colors text-lg">
+                            Filo sigortası ve hasar yönetimi
+                        </h3>
+<p class="font-body-md text-body-md text-text-secondary mb-4 line-clamp-2 text-sm">
+                            Operasyonel kiralama sürecinde kasko kapsamları ve kaza anında izlenmesi gereken adımlar nelerdir?
+                        </p>
+<div class="mt-auto flex justify-between items-center pt-4 border-t border-border-subtle">
+<span class="text-xs text-outline font-medium">10 Eki 2024</span>
+<span class="material-symbols-outlined text-outline group-hover:text-corporate-blue group-hover:translate-x-1 transition-all text-sm">arrow_forward</span>
+</div>
+</div>
+</div>
+<!-- Card 2 -->
+<div class="bg-white rounded-xl border border-border-subtle overflow-hidden hover:shadow-[0_8px_24px_-8px_rgba(24,33,54,0.1)] smooth-transition group flex flex-col cursor-pointer">
+<div class="relative h-48 overflow-hidden">
+<img class="absolute inset-0 w-full h-full object-cover group-hover:scale-105 smooth-transition" data-alt="A modern car dashboard displaying digital metrics." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDJK9Tx95pfEM8yE5E7nXIKD1D5g3LV7U4Z58YhvhudgNm4rxyf1lO-rxyTe69-E0RjgrPQhrowgcO1Qsh6XMCQWlUGjjuCaB5f47PtsuYGN39vFqXqssHwJEqeo6p0offR8GtYLjNe68g_BIw6D8skP2WFuYwiuI1Sv8L6QpXd_75jyqXgdPRUULyPcwjeuWy6PtAhs4rNazyGV2cD5MpP6FKeDB6nzQNlri-w7l7tOzMhYWG0Z9L_">
+<div class="absolute top-4 left-4 bg-surface-container-high/90 backdrop-blur-sm text-navy-deep px-3 py-1 rounded-full font-label-bold text-label-bold text-[11px] uppercase tracking-wider">
+                            Filo Yönetimi
+                        </div>
+</div>
+<div class="p-5 flex flex-col flex-1">
+<h3 class="font-headline-lg-mobile text-headline-lg-mobile text-navy-deep mb-2 group-hover:text-corporate-blue transition-colors text-lg">
+                            Kilometre limiti nasıl belirlenir?
+                        </h3>
+<p class="font-body-md text-body-md text-text-secondary mb-4 line-clamp-2 text-sm">
+                            Aşım bedelleriyle karşılaşmamak için şirketinizin yıllık kilometre ihtiyacını doğru analiz etme yöntemleri.
+                        </p>
+<div class="mt-auto flex justify-between items-center pt-4 border-t border-border-subtle">
+<span class="text-xs text-outline font-medium">08 Eki 2024</span>
+<span class="material-symbols-outlined text-outline group-hover:text-corporate-blue group-hover:translate-x-1 transition-all text-sm">arrow_forward</span>
+</div>
+</div>
+</div>
+<!-- Card 3 -->
+<div class="bg-white rounded-xl border border-border-subtle overflow-hidden hover:shadow-[0_8px_24px_-8px_rgba(24,33,54,0.1)] smooth-transition group flex flex-col cursor-pointer">
+<div class="relative h-48 overflow-hidden">
+<img class="absolute inset-0 w-full h-full object-cover group-hover:scale-105 smooth-transition" data-alt="Row of premium corporate fleet vehicles lined up neatly." src="https://lh3.googleusercontent.com/aida-public/AB6AXuA8CdO1AQGA1zK2BiB4F-1vig4GyrHA7oMqb0gFw6qqr6eVSYoQ24MOXpo9kwTE7jpHAvrhjcwOJyTmViZsgGEjFw5TLJiwvVGbIXelXXM3E4rce-ArmW8NlwVj4lHRsZIM2F3v-kQW0zOd8wGHWz-y6KtkdMJCPJC1X48XKmrn4lZKEp4WCtVhezYztk7rlOtA9K1JKxsx74n28TinCPB0cKmvW8T5Zy3ilg43mgdh4JeEOSum9VUV">
+<div class="absolute top-4 left-4 bg-surface-container-high/90 backdrop-blur-sm text-navy-deep px-3 py-1 rounded-full font-label-bold text-label-bold text-[11px] uppercase tracking-wider">
+                            Maliyet ve Finans
+                        </div>
+</div>
+<div class="p-5 flex flex-col flex-1">
+<h3 class="font-headline-lg-mobile text-headline-lg-mobile text-navy-deep mb-2 group-hover:text-corporate-blue transition-colors text-lg">
+                            İkinci el filo aracı kiralamak mantıklı mı?
+                        </h3>
+<p class="font-body-md text-body-md text-text-secondary mb-4 line-clamp-2 text-sm">
+                            Daha düşük aylık taksitlerle operasyonel kiralama avantajlarından yararlanmanın finansal boyutu.
+                        </p>
+<div class="mt-auto flex justify-between items-center pt-4 border-t border-border-subtle">
+<span class="text-xs text-outline font-medium">05 Eki 2024</span>
+<span class="material-symbols-outlined text-outline group-hover:text-corporate-blue group-hover:translate-x-1 transition-all text-sm">arrow_forward</span>
+</div>
+</div>
+</div>
+<!-- Card 4 -->
+<div class="bg-white rounded-xl border border-border-subtle overflow-hidden hover:shadow-[0_8px_24px_-8px_rgba(24,33,54,0.1)] smooth-transition group flex flex-col cursor-pointer">
+<div class="relative h-48 overflow-hidden">
+<img class="absolute inset-0 w-full h-full object-cover group-hover:scale-105 smooth-transition" data-alt="Electric vehicle charging station" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBddk14TTBBJ40zJjFLjsFg2ftUqPj7jLwlUDsSApVqp2Hm7IMAKpq4xVAhviMkkCcH9VYr7vUx0j2HAPe7r27lVfI4v4rAAx8T8cuA1t5fDX7AagKNSXqqIpwy2_ppej9f531WfLev3WaNr8EJ_vFBsoLi1uEtueBWXeyvIP5vmV5Uil3XIHYMAmJsKRFBpjfSk3RkzSq4SxE2GbDJ0ZFhqC1MJIdF4adyolS-3tXZncl27wM1aqms">
+<div class="absolute top-4 left-4 bg-surface-container-high/90 backdrop-blur-sm text-navy-deep px-3 py-1 rounded-full font-label-bold text-label-bold text-[11px] uppercase tracking-wider">
+                            Elektrikli Araçlar
+                        </div>
+</div>
+<div class="p-5 flex flex-col flex-1">
+<h3 class="font-headline-lg-mobile text-headline-lg-mobile text-navy-deep mb-2 group-hover:text-corporate-blue transition-colors text-lg">
+                            Şirket filolarında şarj altyapısı kurulumu
+                        </h3>
+<p class="font-body-md text-body-md text-text-secondary mb-4 line-clamp-2 text-sm">
+                            Ofis otoparklarına şarj istasyonu kurmanın maliyetleri ve avantajları hakkında detaylı bilgi.
+                        </p>
+<div class="mt-auto flex justify-between items-center pt-4 border-t border-border-subtle">
+<span class="text-xs text-outline font-medium">02 Eki 2024</span>
+<span class="material-symbols-outlined text-outline group-hover:text-corporate-blue group-hover:translate-x-1 transition-all text-sm">arrow_forward</span>
+</div>
+</div>
+</div>
+<!-- Card 5 -->
+<div class="bg-white rounded-xl border border-border-subtle overflow-hidden hover:shadow-[0_8px_24px_-8px_rgba(24,33,54,0.1)] smooth-transition group flex flex-col cursor-pointer">
+<div class="relative h-48 overflow-hidden">
+<img class="absolute inset-0 w-full h-full object-cover group-hover:scale-105 smooth-transition" data-alt="Commercial delivery vans parked" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC4QZ-IEOfFuWpzceNzBLg6T_0Px3OM4PEQ65ISNDi_j7m8kSZC3orEPwypsBJfhBSrjN4YU6fDG0CBTJYd56vQC9ZmxFWgO2N2Fjely5J6pJzFJNUstRs6Urw03RHbwQK-HQF6Hlpj7rnXuxEfROBd-IGSu0quPfvQmzQ3IjkDgrFiTmMxbYXgbU824VPTRGWsHCmaq55-ks6G1kM4YttbZb8YJmcw7U4OFpkQBzDDQX908DcaGou0">
+<div class="absolute top-4 left-4 bg-surface-container-high/90 backdrop-blur-sm text-navy-deep px-3 py-1 rounded-full font-label-bold text-label-bold text-[11px] uppercase tracking-wider">
+                            Ticari Araçlar
+                        </div>
+</div>
+<div class="p-5 flex flex-col flex-1">
+<h3 class="font-headline-lg-mobile text-headline-lg-mobile text-navy-deep mb-2 group-hover:text-corporate-blue transition-colors text-lg">
+                            Hafif ticari araç kiralamada dikkat edilmesi gerekenler
+                        </h3>
+<p class="font-body-md text-body-md text-text-secondary mb-4 line-clamp-2 text-sm">
+                            Lojistik ve dağıtım operasyonları için en uygun araç tipleri ve sözleşme detayları.
+                        </p>
+<div class="mt-auto flex justify-between items-center pt-4 border-t border-border-subtle">
+<span class="text-xs text-outline font-medium">28 Eyl 2024</span>
+<span class="material-symbols-outlined text-outline group-hover:text-corporate-blue group-hover:translate-x-1 transition-all text-sm">arrow_forward</span>
+</div>
+</div>
+</div>
+<!-- Card 6 -->
+<div class="bg-white rounded-xl border border-border-subtle overflow-hidden hover:shadow-[0_8px_24px_-8px_rgba(24,33,54,0.1)] smooth-transition group flex flex-col cursor-pointer">
+<div class="relative h-48 overflow-hidden">
+<img class="absolute inset-0 w-full h-full object-cover group-hover:scale-105 smooth-transition" data-alt="Legal documents and gavel" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBoUMCR-jybEU9BaI6LLFASv7vSe9eppP75IAmOTdj9_C_NPKv2s6ykfRWUYGgJ5wHYP_JKCcYeAfWIFyObLsVbm5QrgZ3EmMb4mUp6QhPfqJfBIzCYGy9SZ3HnfIStvs9U0kBeaJ82A1OliPWOHnaCBiYjeoVAiA2tlgr-t1zJ6KUhUPPgM5754Jh3Z6DRx6xxHubh3BdZJldlYBProP9fUMmLjylAvTJNWuvOY4u7O9a8hFZviTfb">
+<div class="absolute top-4 left-4 bg-surface-container-high/90 backdrop-blur-sm text-navy-deep px-3 py-1 rounded-full font-label-bold text-label-bold text-[11px] uppercase tracking-wider">
+                            Mevzuat
+                        </div>
+</div>
+<div class="p-5 flex flex-col flex-1">
+<h3 class="font-headline-lg-mobile text-headline-lg-mobile text-navy-deep mb-2 group-hover:text-corporate-blue transition-colors text-lg">
+                            Araç kiralama giderlerinin vergisel boyutu
+                        </h3>
+<p class="font-body-md text-body-md text-text-secondary mb-4 line-clamp-2 text-sm">
+                            2024 yılı itibarıyla operasyonel kiralama faturalarının kurumlar vergisinden düşülmesi kuralları.
+                        </p>
+<div class="mt-auto flex justify-between items-center pt-4 border-t border-border-subtle">
+<span class="text-xs text-outline font-medium">25 Eyl 2024</span>
+<span class="material-symbols-outlined text-outline group-hover:text-corporate-blue group-hover:translate-x-1 transition-all text-sm">arrow_forward</span>
+</div>
+</div>
+</div>
+<!-- Card 7 -->
+<div class="bg-white rounded-xl border border-border-subtle overflow-hidden hover:shadow-[0_8px_24px_-8px_rgba(24,33,54,0.1)] smooth-transition group flex flex-col cursor-pointer">
+<div class="relative h-48 overflow-hidden">
+<img class="absolute inset-0 w-full h-full object-cover group-hover:scale-105 smooth-transition" data-alt="Car keys handing over" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDNlDTCVoIuVgXZnrfwJXDsX7_mXHSDhv0E7Yp9JP_eaq8EdxeAc8elobsZYslAl7xyCfa0gxFWP8VGBXWcRXm23ezOB4P35TPDvgDhoqzPrP2agz6rLbkv4jpe7vFCU872K5XHXat897ovfnNVmoLCGaSYKj0hjjepz3GJfU-WDWMsN88_AmRO9vhP9Tt3d6ZYH8Lq6vj_ADXV9wtoYgz4MNH1emmh3cA3Bbq-3KzTlvzOvD5mkEP1">
+<div class="absolute top-4 left-4 bg-surface-container-high/90 backdrop-blur-sm text-navy-deep px-3 py-1 rounded-full font-label-bold text-label-bold text-[11px] uppercase tracking-wider">
+                            Uzun Dönem Kiralama
+                        </div>
+</div>
+<div class="p-5 flex flex-col flex-1">
+<h3 class="font-headline-lg-mobile text-headline-lg-mobile text-navy-deep mb-2 group-hover:text-corporate-blue transition-colors text-lg">
+                            Satın almak mı, kiralamak mı?
+                        </h3>
+<p class="font-body-md text-body-md text-text-secondary mb-4 line-clamp-2 text-sm">
+                            Şirket sermayesini korumanın yolları ve uzun dönem araç kiralamanın nakit akışına etkileri.
+                        </p>
+<div class="mt-auto flex justify-between items-center pt-4 border-t border-border-subtle">
+<span class="text-xs text-outline font-medium">20 Eyl 2024</span>
+<span class="material-symbols-outlined text-outline group-hover:text-corporate-blue group-hover:translate-x-1 transition-all text-sm">arrow_forward</span>
+</div>
+</div>
+</div>
+<!-- Card 8 -->
+<div class="bg-white rounded-xl border border-border-subtle overflow-hidden hover:shadow-[0_8px_24px_-8px_rgba(24,33,54,0.1)] smooth-transition group flex flex-col cursor-pointer">
+<div class="relative h-48 overflow-hidden">
+<img class="absolute inset-0 w-full h-full object-cover group-hover:scale-105 smooth-transition" data-alt="Mechanic working on car" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDH1VXIVFFYydQjjH0R6em4WF9Hdp-gZl6uC0OHt41C4vU5uCQqXasBnGXT-IjGSbtzX9xMiTzAJvnYTI8URjsuvnmECh2V4xZi_Fwj49JqGtpvubXjy1MKWP30D8nCKrhtfXW_z449xgvVb-EhlJDgYe8gwZVQSfMEkKCTMnmVbKBjoW7Y59msZKyn9IHvYwP3XBaNu7Tztr2fWT4nuL2whuxJdRUZcVuE6a6IB6h_i0_Cy0y5MlBs">
+<div class="absolute top-4 left-4 bg-surface-container-high/90 backdrop-blur-sm text-navy-deep px-3 py-1 rounded-full font-label-bold text-label-bold text-[11px] uppercase tracking-wider">
+                            Bakım ve Hasar
+                        </div>
+</div>
+<div class="p-5 flex flex-col flex-1">
+<h3 class="font-headline-lg-mobile text-headline-lg-mobile text-navy-deep mb-2 group-hover:text-corporate-blue transition-colors text-lg">
+                            Periyodik bakım planlaması
+                        </h3>
+<p class="font-body-md text-body-md text-text-secondary mb-4 line-clamp-2 text-sm">
+                            Filo araçlarınızın ömrünü uzatmak ve operasyonel kesintileri minimize etmek için bakım takvimi oluşturma.
+                        </p>
+<div class="mt-auto flex justify-between items-center pt-4 border-t border-border-subtle">
+<span class="text-xs text-outline font-medium">15 Eyl 2024</span>
+<span class="material-symbols-outlined text-outline group-hover:text-corporate-blue group-hover:translate-x-1 transition-all text-sm">arrow_forward</span>
+</div>
+</div>
+</div>
+<!-- Card 9 -->
+<div class="bg-white rounded-xl border border-border-subtle overflow-hidden hover:shadow-[0_8px_24px_-8px_rgba(24,33,54,0.1)] smooth-transition group flex flex-col cursor-pointer">
+<div class="relative h-48 overflow-hidden">
+<img class="absolute inset-0 w-full h-full object-cover group-hover:scale-105 smooth-transition" data-alt="Data analytics dashboard" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB96dD5K_0JeTZhK8X2y7kwrct-FK2RqD8QdY1w3CUwoPGEMUg7dI7i1eOBXUyccbDGxpjGuBjyCA2dV3Pif1BCKLEu0b2bXbd3lhK-VpKzrqdPM-slB1m9Fjrn31uuKX6YOl2BPI3NMppnEvqJt358hR4xngAO1dIN8biImyMsDJZQtaqcj_4LSFNL0X5Tbh7f-ch2H4-N1XDERjJamEYkq1NWn3Zc8WbRvHO4xwo5AHUdACxIrXpq">
+<div class="absolute top-4 left-4 bg-surface-container-high/90 backdrop-blur-sm text-navy-deep px-3 py-1 rounded-full font-label-bold text-label-bold text-[11px] uppercase tracking-wider">
+                            Filo Yönetimi
+                        </div>
+</div>
+<div class="p-5 flex flex-col flex-1">
+<h3 class="font-headline-lg-mobile text-headline-lg-mobile text-navy-deep mb-2 group-hover:text-corporate-blue transition-colors text-lg">
+                            Telematik sistemleri ile verimlilik artışı
+                        </h3>
+<p class="font-body-md text-body-md text-text-secondary mb-4 line-clamp-2 text-sm">
+                            Araç takip sistemlerinin yakıt tasarrufu ve sürücü güvenliği üzerindeki etkilerini analiz ediyoruz.
+                        </p>
+<div class="mt-auto flex justify-between items-center pt-4 border-t border-border-subtle">
+<span class="text-xs text-outline font-medium">12 Eyl 2024</span>
+<span class="material-symbols-outlined text-outline group-hover:text-corporate-blue group-hover:translate-x-1 transition-all text-sm">arrow_forward</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Pagination -->
+<div class="flex justify-center items-center gap-2 mt-12">
+<button class="w-10 h-10 flex items-center justify-center rounded-lg border border-border-subtle text-outline hover:bg-surface-container-low transition-colors" disabled="">
+<span class="material-symbols-outlined">chevron_left</span>
+</button>
+<button class="w-10 h-10 flex items-center justify-center rounded-lg bg-corporate-blue text-white font-label-bold">1</button>
+<button class="w-10 h-10 flex items-center justify-center rounded-lg border border-border-subtle text-navy-deep hover:bg-surface-container-low transition-colors font-label-bold">2</button>
+<button class="w-10 h-10 flex items-center justify-center rounded-lg border border-border-subtle text-navy-deep hover:bg-surface-container-low transition-colors font-label-bold">3</button>
+<span class="text-outline mx-2">...</span>
+<button class="w-10 h-10 flex items-center justify-center rounded-lg border border-border-subtle text-navy-deep hover:bg-surface-container-low transition-colors font-label-bold">12</button>
+<button class="w-10 h-10 flex items-center justify-center rounded-lg border border-border-subtle text-navy-deep hover:bg-surface-container-low transition-colors">
+<span class="material-symbols-outlined">chevron_right</span>
+</button>
+</div>
+</section>
+<!-- Help / Conversion Section -->
+
+</main>
+<!-- Footer -->
+<footer class="bg-navy-deep dark:bg-black w-full pt-24 pb-8 border-t border-navy-secondary">
+<div class="grid grid-cols-1 md:grid-cols-4 gap-gutter px-margin-desktop max-w-max-content-width mx-auto mb-16">
+<!-- Brand Column -->
+<div class="flex flex-col gap-6">
+<a class="font-headline-lg text-headline-lg font-bold text-on-primary flex items-center gap-2" href="#">
+<span class="material-symbols-outlined fill text-accent-orange" style="font-size: 40px;">directions_car</span>
+                     Kalite Filo
+                </a>
+<p class="text-on-primary-container text-sm">Kurumsal filo yönetiminde güvenilir iş ortağınız. İhtiyacınıza özel esnek kiralama çözümleri.</p>
+</div>
+<!-- Quick Links -->
+<div class="flex flex-col gap-4"><h4 class="text-on-primary font-bold text-lg mb-2">Hızlı Linkler</h4>
+<a class="text-on-primary-container hover:text-on-primary hover:text-accent-orange transition-colors" href="#">Hakkımızda</a>
+<a class="text-on-primary-container hover:text-on-primary hover:text-accent-orange transition-colors" href="#">Araç Listesi</a>
+<a class="text-on-primary-container hover:text-on-primary hover:text-accent-orange transition-colors" href="#">SSS</a>
+<a class="text-on-primary-container hover:text-on-primary hover:text-accent-orange transition-colors" href="#">Blog</a></div>
+<!-- Legal -->
+<div class="flex flex-col gap-4">
+<h4 class="text-on-primary font-bold text-lg mb-2">Kurumsal</h4>
+<a class="text-on-primary-container hover:text-on-primary hover:text-accent-orange transition-colors" href="#">KVKK ve Gizlilik</a>
+<a class="text-on-primary-container hover:text-on-primary hover:text-accent-orange transition-colors" href="#">Çerez Politikası</a>
+<a class="text-on-primary-container hover:text-on-primary hover:text-accent-orange transition-colors" href="#">Kullanım Koşulları</a>
+</div>
+<!-- Contact -->
+<div class="flex flex-col gap-4"><h4 class="text-on-primary font-bold text-lg mb-2">Bize Ulaşın</h4><a class="text-on-primary-container hover:text-on-primary hover:text-accent-orange transition-colors" href="#">İletişim</a><p class="text-on-primary-container flex items-center gap-2"><span class="material-symbols-outlined text-[20px]">call</span> 05317158068</p><p class="text-on-primary-container flex items-center gap-2"><span class="material-symbols-outlined text-[20px]">mail</span> info@kalitefilo.com.tr</p></div>
+</div>
+<div class="px-margin-desktop max-w-max-content-width mx-auto border-t border-navy-secondary pt-8 flex justify-between items-center">
+<p class="text-on-primary-container text-sm">© 2024 Kalite Filo Kiralama A.Ş. Tüm hakları saklıdır.</p>
+</div>
+</footer>
+
+
+
+
+</body></html>

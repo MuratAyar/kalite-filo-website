@@ -1,0 +1,27 @@
+<svg
+  xmlns="http://www.w3.org/2000/svg"
+  viewBox="0 0 64 64"
+  data-placeholder="true"
+>
+  <title>Geçici site simgesi</title>
+  <rect width="64" height="64" rx="12" fill="#e1e2e4" />
+  <rect
+    x="5"
+    y="5"
+    width="54"
+    height="54"
+    rx="8"
+    fill="none"
+    stroke="#76777d"
+    stroke-width="2"
+    stroke-dasharray="5 4"
+  />
+  <path
+    d="M23 24a9 9 0 1 1 15.2 6.5C34.4 34 32 36.2 32 40"
+    fill="none"
+    stroke="#45464d"
+    stroke-width="5"
+    stroke-linecap="round"
+  />
+  <circle cx="32" cy="48" r="2.75" fill="#45464d" />
+</svg>
