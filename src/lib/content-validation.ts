@@ -5,9 +5,11 @@ import {
   contactInformation,
   faqCategories,
   faqEntries,
+  homePageCopy,
   legalPages,
   navigationItems,
   siteIdentity,
+  vehiclePortfolio,
   vehicles,
 } from "@/data";
 import type { EntityId, Slug } from "@/types";
@@ -20,6 +22,7 @@ import {
   asSlug,
   assertMediaAsset,
   assertNonEmptyString,
+  assertUniqueBy,
   ContentValidationError,
 } from "./validation";
 
@@ -39,12 +42,113 @@ function validateSlugs(records: readonly SluggedRecord[], name: string): void {
   }
 }
 
+function validateHomeCopy(): void {
+  const copyFields = [
+    ["Home hero title", homePageCopy.hero.title],
+    ["Home hero intro", homePageCopy.hero.intro],
+    ["Home hero primary action", homePageCopy.hero.primaryAction.label],
+    ["Home hero secondary action", homePageCopy.hero.secondaryAction.label],
+    ["Home finder title", homePageCopy.hero.finder.title],
+    ["Home finder body", homePageCopy.hero.finder.body],
+    ["Home finder action", homePageCopy.hero.finder.action.label],
+    ["Home featured vehicles title", homePageCopy.featuredVehicles.title],
+    ["Home featured vehicles intro", homePageCopy.featuredVehicles.intro],
+    [
+      "Home featured vehicles empty title",
+      homePageCopy.featuredVehicles.emptyState.title,
+    ],
+    [
+      "Home featured vehicles empty body",
+      homePageCopy.featuredVehicles.emptyState.body,
+    ],
+    [
+      "Home featured vehicles empty action",
+      homePageCopy.featuredVehicles.emptyState.action.label,
+    ],
+    ["Home commercial title", homePageCopy.commercial.title],
+    ["Home commercial body", homePageCopy.commercial.body],
+    ["Home commercial action", homePageCopy.commercial.action.label],
+    ["Home why title", homePageCopy.why.title],
+    ["Home why intro", homePageCopy.why.intro],
+    ["Home solutions title", homePageCopy.solutions.title],
+    ["Home solutions intro", homePageCopy.solutions.intro],
+    ["Home conversion eyebrow", homePageCopy.conversion.eyebrow],
+    ["Home conversion title", homePageCopy.conversion.title],
+    ["Home conversion body", homePageCopy.conversion.body],
+    ["Home conversion action", homePageCopy.conversion.action.label],
+    ["Home editorial title", homePageCopy.editorial.title],
+    ["Home editorial intro", homePageCopy.editorial.intro],
+    ["Home editorial empty title", homePageCopy.editorial.emptyState.title],
+    ["Home editorial empty body", homePageCopy.editorial.emptyState.body],
+    ["Home editorial all action", homePageCopy.editorial.allAction.label],
+  ] as const;
+
+  for (const [fieldName, value] of copyFields) {
+    assertNonEmptyString(value, fieldName);
+  }
+
+  assertUniqueBy(homePageCopy.why.steps, (step) => step.id, "Home step ids");
+  for (const step of homePageCopy.why.steps) {
+    asEntityId(step.id, "Home step id");
+    assertNonEmptyString(step.title, `Home step ${step.id} title`);
+    assertNonEmptyString(step.body, `Home step ${step.id} body`);
+  }
+
+  assertUniqueBy(
+    homePageCopy.solutions.items,
+    (solution) => solution.id,
+    "Home solution ids",
+  );
+  for (const solution of homePageCopy.solutions.items) {
+    asEntityId(solution.id, "Home solution id");
+    assertNonEmptyString(solution.title, `Home solution ${solution.id} title`);
+    assertNonEmptyString(solution.body, `Home solution ${solution.id} body`);
+    assertNonEmptyString(
+      solution.action.label,
+      `Home solution ${solution.id} action`,
+    );
+    if (
+      solution.destination !== "vehicles" &&
+      solution.destination !== "quote"
+    ) {
+      throw new ContentValidationError(
+        `Home solution ${solution.id} has an unsupported destination.`,
+      );
+    }
+  }
+
+  if (
+    homePageCopy.publicationStatus !== "draft" &&
+    homePageCopy.publicationStatus !== "approved"
+  ) {
+    throw new ContentValidationError(
+      "Home copy has an unsupported publication status.",
+    );
+  }
+
+  const homeRoute = APPROVED_ROUTES.find((route) => route.id === "home");
+  if (!homeRoute) {
+    throw new ContentValidationError("The approved route registry is missing Home.");
+  }
+
+  if (
+    homeRoute.status === "published" &&
+    homePageCopy.publicationStatus !== "approved"
+  ) {
+    throw new ContentValidationError(
+      "Home cannot be published while its page copy remains draft.",
+    );
+  }
+}
+
 /**
  * Runs when the static root layout is evaluated. It deliberately validates only
  * structural facts that can be proven from repository-owned build-time data.
  */
 export function validateFoundationContent(): void {
+  validateHomeCopy();
   validateSlugs(vehicles, "vehicle");
+  validateSlugs(vehiclePortfolio, "vehicle portfolio");
   validateSlugs(articleCategories, "article category");
   validateSlugs(articles, "article");
   validateSlugs(faqCategories, "FAQ category");
@@ -52,6 +156,9 @@ export function validateFoundationContent(): void {
   validateIds(legalPages, "legal page");
 
   const articleCategoryIds = new Set(articleCategories.map(({ id }) => id));
+  for (const category of articleCategories) {
+    assertNonEmptyString(category.label, `article category ${category.id} label`);
+  }
   for (const article of articles) {
     if (!articleCategoryIds.has(article.categoryId)) {
       throw new ContentValidationError(
@@ -59,12 +166,42 @@ export function validateFoundationContent(): void {
       );
     }
     assertMediaAsset(article.coverImage, `article ${article.id} cover image`);
+    assertNonEmptyString(article.title, `article ${article.id} title`);
+    assertNonEmptyString(article.excerpt, `article ${article.id} excerpt`);
+    asEntityId(article.contentKey, `article ${article.id} contentKey`);
+    article.tagIds.forEach((tagId) =>
+      asEntityId(tagId, `article ${article.id} tag id`),
+    );
+    if (!Number.isInteger(article.readingMinutes) || article.readingMinutes <= 0) {
+      throw new ContentValidationError(
+        `Article ${article.id} readingMinutes must be a positive integer.`,
+      );
+    }
+    if (typeof article.featured !== "boolean") {
+      throw new ContentValidationError(
+        `Article ${article.id} featured must be a boolean.`,
+      );
+    }
+    if (article.author) {
+      assertNonEmptyString(
+        article.author.displayName,
+        `article ${article.id} author displayName`,
+      );
+    }
     asIsoDate(article.publishedAt, `article ${article.id} publishedAt`);
     if (article.updatedAt) {
       asIsoDate(article.updatedAt, `article ${article.id} updatedAt`);
     }
     for (const source of article.sources) {
+      assertNonEmptyString(source.label, `article ${article.id} source label`);
       asHttpsUrl(source.href, `article ${article.id} source`);
+    }
+    assertNonEmptyString(article.seo.title, `article ${article.id} SEO title`);
+    if (article.seo.description) {
+      assertNonEmptyString(
+        article.seo.description,
+        `article ${article.id} SEO description`,
+      );
     }
   }
 
@@ -91,6 +228,133 @@ export function validateFoundationContent(): void {
       assertNonEmptyString(
         vehicle.offer.disclaimer,
         `vehicle ${vehicle.id} offer disclaimer`,
+      );
+    }
+  }
+
+  if (vehiclePortfolio.length !== 32) {
+    throw new ContentValidationError(
+      "The owner-supplied vehicle portfolio must contain exactly 32 records.",
+    );
+  }
+
+  assertUniqueBy(
+    vehiclePortfolio,
+    (vehicle) => vehicle.sourceId,
+    "vehicle portfolio source ids",
+  );
+
+  const featuredPortfolioVehicles = vehiclePortfolio.filter(
+    ({ featured }) => featured,
+  );
+  if (featuredPortfolioVehicles.length !== 4) {
+    throw new ContentValidationError(
+      "The Home vehicle portfolio must contain exactly four featured records.",
+    );
+  }
+
+  for (const vehicle of vehiclePortfolio) {
+    if (!/^KF-\d{3}$/.test(vehicle.sourceId)) {
+      throw new ContentValidationError(
+        `Vehicle portfolio ${vehicle.id} has a malformed source id.`,
+      );
+    }
+    if (
+      vehicle.contentStatus !== "owner-supplied" ||
+      vehicle.sourceStatus !== "active" ||
+      vehicle.priceStatus !== "owner-approved-list-net"
+    ) {
+      throw new ContentValidationError(
+        `Vehicle portfolio ${vehicle.id} has an unsupported source or price state.`,
+      );
+    }
+
+    if (
+      !Number.isSafeInteger(vehicle.listPrice.amountMinor) ||
+      vehicle.listPrice.amountMinor <= 0 ||
+      vehicle.listPrice.amountMinor % 100 !== 0 ||
+      vehicle.listPrice.currency !== "TRY" ||
+      vehicle.listPrice.billingPeriod !== "month" ||
+      vehicle.listPrice.vatTreatment !== "excluded" ||
+      vehicle.listPrice.sourceKind !== "recommended-list-net"
+    ) {
+      throw new ContentValidationError(
+        `Vehicle portfolio ${vehicle.id} has an invalid owner-approved monthly list-net price.`,
+      );
+    }
+    if (vehicle.modelYearLabel !== "2025/2026") {
+      throw new ContentValidationError(
+        `Vehicle portfolio ${vehicle.id} must preserve the supplied model-year label.`,
+      );
+    }
+
+    for (const [name, value] of [
+      ["make", vehicle.make],
+      ["model", vehicle.model],
+      ["trim", vehicle.trim],
+      ["category", vehicle.categoryLabel],
+      ["segment", vehicle.segmentLabel],
+      ["fuel", vehicle.fuelLabel],
+      ["transmission", vehicle.transmissionLabel],
+      ["summary", vehicle.summary],
+    ] as const) {
+      assertNonEmptyString(value, `vehicle portfolio ${vehicle.id} ${name}`);
+    }
+
+    vehicle.featureLabels.forEach((label, index) =>
+      assertNonEmptyString(
+        label,
+        `vehicle portfolio ${vehicle.id} feature ${index}`,
+      ),
+    );
+
+    for (const [name, value] of [
+      ["powerHp", vehicle.powerHp],
+      ["seats", vehicle.seats],
+    ] as const) {
+      if (value !== null && (!Number.isInteger(value) || value <= 0)) {
+        throw new ContentValidationError(
+          `Vehicle portfolio ${vehicle.id} ${name} must be null or a positive integer.`,
+        );
+      }
+    }
+
+    if (Boolean(vehicle.coverImage) !== Boolean(vehicle.imageLicense)) {
+      throw new ContentValidationError(
+        `Vehicle portfolio ${vehicle.id} media and licence record must be provided together.`,
+      );
+    }
+
+    if (vehicle.featured && (!vehicle.coverImage || !vehicle.imageLicense)) {
+      throw new ContentValidationError(
+        `Featured vehicle portfolio ${vehicle.id} requires local media and a verified licence record.`,
+      );
+    }
+
+    if (vehicle.coverImage && vehicle.imageLicense) {
+      assertMediaAsset(
+        vehicle.coverImage,
+        `vehicle portfolio ${vehicle.id} cover image`,
+      );
+      assertNonEmptyString(
+        vehicle.imageLicense.creator,
+        `vehicle portfolio ${vehicle.id} image creator`,
+      );
+      assertNonEmptyString(
+        vehicle.imageLicense.licenseName,
+        `vehicle portfolio ${vehicle.id} image licence`,
+      );
+      assertNonEmptyString(
+        vehicle.imageLicense.localDerivativeNote,
+        `vehicle portfolio ${vehicle.id} image derivative note`,
+      );
+      asHttpsUrl(
+        vehicle.imageLicense.sourcePage,
+        `vehicle portfolio ${vehicle.id} image source`,
+      );
+      asHttpsUrl(
+        vehicle.imageLicense.licenseUrl,
+        `vehicle portfolio ${vehicle.id} image licence URL`,
       );
     }
   }

@@ -4,6 +4,16 @@ Audit date: 2026-08-08
 
 Status: audit only. This document records missing, conflicting, placeholder, and unverified content. It does not supply replacement company facts or legal advice.
 
+## Current-state reconciliation — 2026-08-13
+
+This addendum supersedes only the affected gap statements below; the original audit remains as source history.
+
+- The project owner has now verified `05317158068` and `info@kalitefilo.com.tr` for public contact use. Address, company legal identity, support/call-centre channels, business hours, social URLs, and other contact roles remain unresolved.
+- The approved registry now contains 12 decisions: 10 static routes and the two existing vehicle/article detail families. `/kvkk-ve-guvenlik/`, `/cerez-politikasi/`, and `/kullanim-kosullari/` have neutral static skeletons in `canonical-path` state. They remain unpublished, noindex, and outside the sitemap; legal body text, version, effective date, owner, and application/contact details are still missing.
+- The 32 owner-supplied portfolio records are preserved in local typed data and now render in the unpublished `/arac-listesi/` catalogue. On 14 August 2026, the project owner explicitly approved the `Portföy_32` `Önerilen Liste Net` values for display as monthly TRY net list prices with `KDV hariç`; the same source supplies the three Home-card amounts. This does not establish `Nihai Yayın Net`, VAT-inclusive totals, binding offers, availability promises, approved duration/kilometre assumptions, validity, service scope, contract terms, technical/editorial completeness, or vehicle-detail publication readiness. Twenty-eight representative model-family images have been individually licence/visual-match reviewed and promoted to local assets with attribution; `KF-015`, `KF-026`, `KF-030`, and `KF-031` deliberately remain image-less because the available candidates materially mismatched the records. Final per-record publication approval, galleries, crops, and alt review remain blocked.
+- Six owner-supplied Markdown articles and their local WebP assets are integrated for the current Home editorial presentation. Article authors, reviewers, citations/sources, final editorial metadata, and `/filo-rehberi/[slug]/` detail rendering remain unresolved.
+- Home remains registry status `foundation`, emits noindex behavior, and is excluded from the still-empty sitemap.
+
 ## Outcome
 
 No page currently has a complete publishable content package. The repository contains useful brand direction and design copy, but not a verified corporate identity set, legal texts, vehicle inventory, article corpus, form-processing contract, or licensed production asset library.
@@ -36,7 +46,7 @@ The following infrastructure and naming facts were verified after the original a
 - FAQ label **Sıkça Sorulan Sorular** at `/sikca-sorulan-sorular/`;
 - quote CTA label **Teklif Al** at `/teklif-al/`.
 
-These verifications do not approve any company identity, contact detail, legal wording, vehicle, price, claim, image, font, article, or form-processing behavior listed below.
+Except for the later explicitly verified public phone/email, portfolio records, supplied articles/assets, and the 14 August 2026 monthly net list-price approval recorded above, these verifications do not approve any company identity, contact detail, legal wording, vehicle offer condition, claim, image, font, article, or form-processing behavior listed below.
 
 ## P0 launch blockers
 
@@ -164,7 +174,7 @@ Available direction:
 Missing or unresolved:
 
 - final hero copy and proof for “premium fleet”/cost-reduction statements;
-- verified featured vehicles, versions, availability, and display policy;
+- verified featured vehicles, versions, availability, and remaining offer/display qualifications beyond the approved monthly KDV-excluded net list amounts;
 - real service inclusions and qualifications;
 - destination for every “Keşfet”/“Detaylı İncele” action;
 - full content/destinations for the three editorial cards;
@@ -187,7 +197,7 @@ The page says “Kurumsal Hikayemiz” but no real corporate story exists. Suppl
 
 ### Vehicle portfolio
 
-All vehicle names, trims, prices, and images in Stitch are demo content. `vehicles.md` explicitly says the prices must not be published as real prices.
+All vehicle names, trims, prices, and images in Stitch are demo content. `vehicles.md` correctly says those Stitch prices must not be published as real prices. The current card amounts are instead sourced from the owner-supplied workbook and its separately approved `Önerilen Liste Net` column.
 
 For every vehicle that will appear, supply and verify:
 
@@ -198,7 +208,7 @@ For every vehicle that will appear, supply and verify:
 - available rental terms and annual-kilometre options;
 - availability status and its update date;
 - featured status and controlled badge;
-- price or null, currency, VAT status, validity, term, kilometre, quantity, and service assumptions;
+- the approved monthly net list amount is now present; a complete offer still needs any applicable validity, duration, kilometre, quantity, service assumptions, and binding-offer qualifications;
 - cover image, gallery, provenance/licence, focal crop, dimensions, and Turkish alt-text intent;
 - short description and verified feature list;
 - included/excluded services and qualifications;
@@ -206,7 +216,7 @@ For every vehicle that will appear, supply and verify:
 
 Vehicle detail has no design. It still needs an approved content hierarchy for gallery, summary, technical data, rental options, included services, price/quote disclosure, related vehicles, FAQ, and quote CTA.
 
-Until real inventory and commercial terms are approved, use no numeric prices or stock claims; a quote-only presentation is the safe content state.
+The owner-approved monthly KDV-excluded net list amounts may be shown with explicit `Aylık Liste Net`, `₺…/ay`, and `KDV hariç` labels. Do not turn them into stock claims, VAT-inclusive totals, `Nihai Yayın Net`, or a binding offer, and do not publish the workbook's template duration/kilometre values as approved terms.
 
 ### Filo Rehberi
 
@@ -283,7 +293,7 @@ Missing asset package:
 - real favicon/app icons;
 - approved self-hosted Plus Jakarta Sans files or another licensed font strategy;
 - owned/licensed home, company, office, service-network, contact/map, and editorial photography;
-- correct image per vehicle and gallery images;
+- approved representative images for the four image-less records, plus any required per-vehicle gallery images;
 - social-preview images;
 - intrinsic dimensions, responsive variants, focal points, captions, and Turkish alt-text intent;
 - provenance/licence/expiry records.

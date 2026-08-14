@@ -20,8 +20,8 @@
   {
     "id": "vehicles",
     "kind": "static",
-    "path": "/araclar/",
-    "label": "Araçlar",
+    "path": "/arac-listesi/",
+    "label": "Araç Listesi",
     "status": "canonical-path",
     "indexable": false,
     "sitemap": false
@@ -67,6 +67,33 @@
     "kind": "static",
     "path": "/iletisim/",
     "label": "İletişim",
+    "status": "canonical-path",
+    "indexable": false,
+    "sitemap": false
+  },
+  {
+    "id": "privacy-security",
+    "kind": "static",
+    "path": "/kvkk-ve-guvenlik/",
+    "label": "KVKK ve Güvenlik",
+    "status": "canonical-path",
+    "indexable": false,
+    "sitemap": false
+  },
+  {
+    "id": "cookie-policy",
+    "kind": "static",
+    "path": "/cerez-politikasi/",
+    "label": "Çerez Politikası",
+    "status": "canonical-path",
+    "indexable": false,
+    "sitemap": false
+  },
+  {
+    "id": "terms-of-use",
+    "kind": "static",
+    "path": "/kullanim-kosullari/",
+    "label": "Kullanım Koşulları",
     "status": "canonical-path",
     "indexable": false,
     "sitemap": false

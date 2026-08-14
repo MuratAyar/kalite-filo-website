@@ -25,7 +25,7 @@ export function Breadcrumbs({
 
   return (
     <nav aria-label={ariaLabel} className={className}>
-      <ol className="flex flex-wrap items-center gap-x-2 gap-y-1 text-label text-text-secondary">
+      <ol className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1 text-label text-text-secondary">
         {items.map((item, index) => {
           const isCurrent = index === items.length - 1;
 
@@ -34,15 +34,21 @@ export function Breadcrumbs({
           }
 
           return (
-            <li className="flex min-w-0 items-center gap-2" key={`${item.label}:${index}`}>
+            <li
+              className="flex min-w-0 max-w-full items-center gap-2"
+              key={`${item.label}:${index}`}
+            >
               {isCurrent ? (
-                <span aria-current="page" className="font-semibold text-text-primary">
+                <span
+                  aria-current="page"
+                  className="min-w-0 break-words font-semibold text-text-primary"
+                >
                   {item.label}
                 </span>
               ) : item.href ? (
                 <Link
                   className={classNames(
-                    "rounded-sm underline-offset-4 hover:underline",
+                    "min-w-0 break-words rounded-sm underline-offset-4 hover:underline",
                     "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus",
                   )}
                   href={item.href}

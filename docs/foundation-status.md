@@ -4,9 +4,33 @@ Date: 2026-08-09
 
 ## Outcome
 
-The neutral Phase 1 foundation is implemented and verified as a Next.js static export. No public website page, shared public header/footer, form handler, customer login, portal, authentication, database, ORM, CRM, admin panel, or runtime CMS was implemented.
+The neutral Phase 1 foundation was implemented and verified as a Next.js static export. A later scoped checkpoint has since added the shared public shell and minimal static route skeletons without publishing any route; see `docs/shared-shell-status.md`. No complete public page, form handler, customer login, portal, authentication, database, ORM, CRM, admin panel, or runtime CMS has been implemented.
 
-The final `out/` directory in the workspace is the production-target artifact for `https://kalitefilo.com.tr`. Staging was built and inspected separately before the production artifact was rebuilt. Production and staging artifacts are intentionally target-specific because their origins, crawler policy, and environment-level metadata constraints are frozen at build time.
+The artifact measurements and command results below record the foundation checkpoint. The current `out/` directory may reflect the later shared-shell checkpoint. Production and staging artifacts remain intentionally target-specific because their origins, crawler policy, and environment-level metadata constraints are frozen at build time.
+
+## Current-state reconciliation — 2026-08-13
+
+The sections and metrics below remain the historical 2026-08-09 foundation checkpoint. Current repository facts that supersede its empty-data and nine-route statements are:
+
+- the route registry now has 12 decisions: 10 static routes plus `/araclar/[slug]/` and `/filo-rehberi/[slug]/`;
+- `/kvkk-ve-guvenlik/`, `/cerez-politikasi/`, and `/kullanim-kosullari/` now have minimal static skeletons in `canonical-path` state, with no legal body, version, effective date, or publication approval;
+- the project owner has verified `05317158068` and `info@kalitefilo.com.tr`, now stored as typed contact data;
+- 32 owner-supplied vehicle records are preserved locally; 28 representative model-family images have completed licence/visual-match review and local promotion, while four records deliberately remain image-less;
+- six owner-supplied Markdown articles and local WebPs are integrated, while author/reviewer/source approval and article-detail rendering remain deferred; and
+- Home remains `foundation` and noindex, every route remains outside the sitemap, and the sitemap remains empty.
+
+No current artifact-size or final command metric is asserted by this addendum; the original measurements below must not be read as the current integrated output.
+
+### Price reconciliation — 2026-08-14
+
+The project owner explicitly approved the `Portföy_32` `Önerilen Liste Net`
+values for display on all 32 catalogue cards and the corresponding three Home
+cards. These are monthly TRY net list prices and must be labelled `Aylık Liste
+Net`, `₺…/ay`, and `KDV hariç`. This narrow approval does not fill the workbook's
+blank `Nihai Yayın Net` or `KDV Dahil Nihai` fields and does not approve the
+template duration/kilometre values, price validity, availability, service scope,
+contract conditions, or a binding offer. It does not publish any route; Home and
+the catalogue remain noindex and outside the empty sitemap.
 
 ## Completed foundation work
 
@@ -28,7 +52,7 @@ The final `out/` directory in the workspace is the production-target artifact fo
 - Added the explicit approved-route registry with only:
   - `/` as the unpublished foundation route;
   - `/hakkimizda/`;
-  - `/araclar/`;
+  - `/arac-listesi/`;
   - `/araclar/[slug]/`;
   - `/filo-rehberi/`;
   - `/filo-rehberi/[slug]/`;
@@ -96,9 +120,9 @@ The package now declares Node.js `>=20.9.0` for development/CI builds, matching 
 
 The following remain deliberately unresolved and must not be represented as verified:
 
-- complete Home or any other Phase 1 page;
-- shared public header, navigation, footer, vehicle cards, editorial cards, forms, or responsive page composition;
-- approved but unimplemented Home, About, Vehicle, Filo Rehberi, FAQ, Contact, and Quote routes, plus legal, result, category, and utility routes whose final paths remain unresolved;
+- complete Home or any other Phase 1 page composition;
+- vehicle cards, editorial cards, forms, or complete responsive page compositions beyond the shared shell;
+- approved Home, About, Vehicle, Filo Rehberi, FAQ, Contact, and Quote paths now have only minimal unpublished skeletons; legal, result, category, and utility routes remain unresolved;
 - company legal identity, address, phones, emails, hours, history, statistics, service claims, and commercial claims;
 - vehicle inventory, taxonomy, specifications, availability, prices, VAT treatment, contract terms, kilometre limits, offer dates, and disclaimers;
 - article/FAQ/legal body content, authors, reviewers, dates, sources, and approved SEO descriptions;

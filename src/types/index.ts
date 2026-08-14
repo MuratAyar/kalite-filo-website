@@ -1,5 +1,6 @@
 export type * from "./article";
 export type * from "./faq";
+export type * from "./home";
 export type * from "./legal";
 export type * from "./media";
 export type * from "./navigation";
@@ -7,4 +8,4 @@ export type * from "./primitives";
 export type * from "./seo";
 export type * from "./site";
 export type * from "./vehicle";
-
+export type * from "./vehicle-portfolio";

@@ -108,14 +108,14 @@ The intended family is Plus Jakarta Sans. Production needs an approved self-host
 
 | Component | Variants/status | Required data and behavior |
 | --- | --- | --- |
-| `VehicleCard` | `featured` for Home; `catalog` for Vehicle List | Stable id/slug, verified make/model/trim, normalized category, fuel, transmission, approved image with dimensions/alt, and detail URL. Price is optional and may render only with verified tax, duration, kilometre, validity, availability, and disclaimer data. Whole-card link behavior must not create nested interactive controls. |
+| `VehicleCard` | `featured` for Home; `catalog` for Vehicle List | Stable id/slug, verified make/model/trim, normalized category, fuel, transmission, approved image with dimensions/alt, and a real approved CTA URL. The owner-approved workbook monthly net list amount may render as `Aylık Liste Net`, `₺…/ay`, and `KDV hariç`; do not imply VAT-inclusive total, availability, duration/kilometre, validity, service scope, or a binding offer. Whole-card link behavior must not create nested interactive controls. |
 | `VehicleGrid` | One, two, or three intrinsic columns based on available card width | Maintains readable card width; must not switch to three columns beside a 288px filter panel at the current `md` breakpoint. |
 | `VehicleCategoryNav` | Tabs/chips | One taxonomy shared with cards and detail pages. Must expose selected state and remain operable with keyboard/touch. |
 | `ActiveFilterList` | Label plus removable chips | Announces filter changes, gives each remove button a specific name, and provides a clear-all action only when filters exist. |
 | `VehicleFilterPanel` | Desktop sidebar; mobile presentation missing | Fieldsets/legends and native controls, result count, apply/reset behavior. On mobile use the documented bottom-sheet or full-screen-overlay concept after a design decision; do not leave the full desktop sidebar above results. |
 | `VehicleResultsSummary` | Missing in updated export | Human-readable result count and current sort/filter summary. Dynamic announcements must be polite and not fire excessively. |
 | `SortControl` | Missing in updated export | Native select or accessible menu with a real default and deterministic ordering. |
-| `VehiclePrice` | Present but unverified | Hide numeric pricing until all commercial qualifiers are approved. Never present a demo amount as a current offer. |
+| `VehiclePrice` | Owner-approved list-price display; full offer still unresolved | Render only the 14 August 2026-approved `Portföy_32` `Önerilen Liste Net` value as a monthly TRY net list amount with `KDV hariç`. Never substitute Stitch demo amounts or treat this narrow value as `Nihai Yayın Net`, a VAT-inclusive amount, availability, or a fully qualified offer. |
 | `VehicleDetailLayout` | Required Phase 1 component; no design supplied | Provisional contract only: one H1, approved gallery, factual specs, service/term notes, quote CTA, related vehicles, metadata. Visual design and verified fields are blockers. |
 | `VehicleGallery` | Missing | Prefer static responsive images/thumbnails. A gallery enhancement must retain all images and captions without JavaScript. |
 | `VehicleSpecList` | Missing as a detail component | Semantic definition list/table depending on data; units and unknown values handled consistently. |
@@ -240,4 +240,3 @@ A component is ready for page assembly only when:
 6. Any client boundary is isolated, justified, and has a no-JS baseline.
 7. It works in a Next.js static export and does not call prohibited runtime features.
 8. It contains no placeholder link, fake fact, generated external asset, or excluded portal/auth behavior.
-

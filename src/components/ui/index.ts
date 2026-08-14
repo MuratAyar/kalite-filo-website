@@ -8,4 +8,9 @@ export {
   type ResponsivePictureProps,
 } from "./responsive-picture";
 export { SectionHeading, type SectionHeadingProps } from "./section-heading";
-export { TextLink, type TextLinkProps } from "./text-link";
+export {
+  TextLink,
+  type StyledTextLinkProps,
+  type TextLinkProps,
+  type TextLinkTone,
+} from "./text-link";

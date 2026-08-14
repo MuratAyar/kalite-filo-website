@@ -17,8 +17,8 @@ export function SkipLink({
   return (
     <a
       className={classNames(
-        "sr-only fixed left-4 top-4 z-50 rounded-control bg-surface-card px-4 py-3 text-label font-semibold text-text-primary",
-        "focus:not-sr-only focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus",
+        "fixed left-4 top-4 z-50 inline-flex min-h-11 -translate-y-[calc(100%+2rem)] items-center rounded-control bg-surface-card px-4 py-3 text-label font-semibold text-text-primary",
+        "focus:translate-y-0 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus",
         className,
       )}
       href={`#${targetId}`}

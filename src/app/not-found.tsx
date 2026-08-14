@@ -5,7 +5,7 @@ export default function NotFound() {
     <main
       id="main-content"
       tabIndex={-1}
-      className="grid min-h-svh place-items-center px-page-gutter py-section"
+      className="grid flex-1 place-items-center px-page-gutter py-section"
     >
       <div className="mx-auto flex max-w-2xl flex-col items-center gap-stack text-center">
         <p className="text-label font-semibold text-muted">404</p>

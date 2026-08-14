@@ -4,13 +4,28 @@ Audit date: 2026-08-08; route decisions reconciled 2026-08-09
 
 Status: audit only. The nine core Home, About, Vehicle, Filo Rehberi, FAQ, Contact, and Quote paths/families below are now canonical Phase 1 decisions. Legal, category, result, and utility routes remain inventory candidates. No public page is published, and route approval is not approval to publish unverified content.
 
-## Outcome
+## Current-state reconciliation — 2026-08-13; price update 2026-08-14
+
+The original inventory below is retained as audit history. The current approved registry has 12 route decisions: 10 static routes and two dynamic families. In addition to the nine original core decisions, these legal paths are now canonical:
+
+| Route | Current implementation | Publication state | Remaining blocker |
+| --- | --- | --- | --- |
+| `/arac-listesi/` | Responsive static catalogue with 32 owner-supplied records, owner-approved monthly KDV-excluded net list prices, query-aware filters, 28 attributed local model-family images, and four explicit missing-image states | `canonical-path`; noindex; not in sitemap | Record/editorial approval, remaining binding-offer/availability/term/validity/service-scope policy, four representative images, detail pages, and final QA |
+| `/kvkk-ve-guvenlik/` | Minimal static PageHeader skeleton | `canonical-path`; noindex; not in sitemap | Counsel-approved body, version, effective date, owner, and application details |
+| `/cerez-politikasi/` | Minimal static PageHeader skeleton | `canonical-path`; noindex; not in sitemap | Policy based on actual production cookies/vendors, with version and effective date |
+| `/kullanim-kosullari/` | Minimal static PageHeader skeleton | `canonical-path`; noindex; not in sitemap | Counsel-approved body, version, and effective date |
+
+The older proposed `/kvkk-ve-gizlilik/` path is superseded by `/kvkk-ve-guvenlik/`. `/aydinlatma-metni/`, category, result, and other utility routes remain unresolved and unapproved. All 10 approved static paths now have an App Router page source; neither approved detail family has a route page yet.
+
+The project owner has verified `05317158068` and `info@kalitefilo.com.tr` for the shared footer. Thirty-two owner-supplied vehicle records and six owner-supplied Markdown articles with local WebPs are locally integrated, but they do not publish the vehicle or article detail families. The vehicle index now has responsive catalogue, filter, active/empty/reset, and no-JavaScript fallback states; 28 records have attributed local model-family images and four deliberately fail closed without an image. On 14 August 2026 the owner approved the workbook `Önerilen Liste Net` values for all 32 catalogue cards and the corresponding three Home cards, limited to the monthly `₺…/ay`, `KDV hariç` list-price presentation. Home remains `foundation`, noindex, and outside the empty sitemap.
+
+## Original audit outcome (retained for history)
 
 The repository currently contains one authored App Router route, `/`, as a neutral unpublished foundation placeholder. None of the Kalite Filo public page compositions is implemented or published. The available page evidence consists of nine local Stitch exports, the connected Stitch project summarized in [design-audit.md](./design-audit.md), and four design-derived content reference files.
 
-The approved core route set is `/`, `/hakkimizda/`, `/araclar/`, `/araclar/[slug]/`, `/filo-rehberi/`, `/filo-rehberi/[slug]/`, `/sikca-sorulan-sorular/`, `/iletisim/`, and `/teklif-al/`. The public content name is **Filo Rehberi**, the FAQ label is **Sıkça Sorulan Sorular**, and the quote CTA is **Teklif Al**. Customer login, portal, authentication, CRM, database, ORM, admin, Server Actions, Middleware/Proxy, runtime Next.js API routes, SSR, and ISR are excluded.
+The approved core route set is `/`, `/hakkimizda/`, `/arac-listesi/`, `/araclar/[slug]/`, `/filo-rehberi/`, `/filo-rehberi/[slug]/`, `/sikca-sorulan-sorular/`, `/iletisim/`, and `/teklif-al/`. The public content name is **Filo Rehberi**, the FAQ label is **Sıkça Sorulan Sorular**, and the quote CTA is **Teklif Al**. Customer login, portal, authentication, CRM, database, ORM, admin, Server Actions, Middleware/Proxy, runtime Next.js API routes, SSR, and ISR are excluded.
 
-## Current implementation
+## Original implementation snapshot (retained for history)
 
 | Route | Current source | Current result | Production-ready |
 | --- | --- | --- | --- |
@@ -42,7 +57,7 @@ The nine core routes explicitly marked canonical are approved for consistent use
 | --- | --- | --- | --- | --- |
 | `/` | Home | **Canonical; foundation only** | Neutral unpublished placeholder; page composition missing | Verified claims, featured vehicles, real assets, and CTA destinations |
 | `/hakkimizda/` | About | **Canonical** | Missing | Real corporate story and verified service claims/metrics |
-| `/araclar/` | Vehicle portfolio | **Canonical** | Missing | Verified static dataset, taxonomy, filters, availability, and price policy |
+| `/arac-listesi/` | Vehicle portfolio | **Canonical** | Implemented, unpublished | Final publication approval, availability and binding-offer policy |
 | `/araclar/[slug]/` | Vehicle detail | **Canonical family** | Missing design and route | One statically generated path per verified vehicle; detail layout and content still required |
 | `/filo-rehberi/` | Filo Rehberi index | **Canonical** | Missing | Approved article corpus, taxonomy, and real pagination |
 | `/filo-rehberi/[slug]/` | Filo Rehberi article detail | **Canonical family** | Missing | Every slug needs complete approved content and static generation |
@@ -63,7 +78,7 @@ Crawler access and page indexability are separate static-build decisions. Stagin
 
 The following may be useful, but there is insufficient evidence to add them to the committed Phase 1 information architecture:
 
-- Vehicle category landing pages such as `/araclar/binek/`, `/araclar/suv/`, `/araclar/hafif-ticari/`, and `/araclar/yonetici/`. `vehicles.md` suggests these for SEO, while the design also supports one client-filtered `/araclar/` route. Choose one strategy after the real taxonomy is approved.
+- Vehicle category landing pages such as `/araclar/binek/`, `/araclar/suv/`, `/araclar/hafif-ticari/`, and `/araclar/yonetici/`. `vehicles.md` suggests these for SEO, while the implemented catalogue uses the client-filtered `/arac-listesi/` route. Separate category routes remain unapproved.
 - Article category/tag landing pages. The categories exist as design filters, but no URL policy or publishable article corpus exists.
 - Service-detail pages for Long-Term Rental, Operational Management, Commercial Vehicles, or Executive Vehicles. Home shows “Keşfet” actions, but no page designs or long-form content exist. Those actions may instead target approved anchors, vehicle filters, or the quote page.
 - A campaign page. Blog Detail advertises a 2026 campaign, but no real campaign, terms, or destination is supplied.
@@ -107,7 +122,7 @@ Every navigation or CTA must resolve to a real route, anchor, phone/email URI, o
 | --- | --- |
 | Brand/logo | `/` |
 | Hakkımızda | Approved `/hakkimizda/` route once the page is implemented and published |
-| Araç Listesi | Approved `/araclar/` route once the page is implemented and published |
+| Araç Listesi | Implemented `/arac-listesi/` index; currently unpublished, noindex, and outside the sitemap |
 | Filo Rehberi | `/filo-rehberi/` |
 | Sıkça Sorulan Sorular | `/sikca-sorulan-sorular/` |
 | Teklif Al | `/teklif-al/`; vehicle-originated links may carry a non-sensitive static identifier after its contract is approved |

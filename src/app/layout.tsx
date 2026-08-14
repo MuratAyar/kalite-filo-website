@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 
+import { SiteFooter, SiteHeader } from "@/components/layout";
 import { SkipLink } from "@/components/navigation/skip-link";
 import { getSiteEnvironment } from "@/config/site";
 import { validateFoundationContent } from "@/lib/content-validation";
@@ -35,9 +36,11 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="tr">
-      <body className="min-h-svh bg-page font-sans text-foreground antialiased">
+      <body className="flex min-h-svh flex-col bg-page font-sans text-foreground antialiased">
         <SkipLink />
+        <SiteHeader />
         {children}
+        <SiteFooter />
       </body>
     </html>
   );

@@ -31,6 +31,19 @@ Implementation-order step 2 is complete, together with only the neutral foundati
 
 This checkpoint does **not** complete the shared public header/footer, any Phase 1 page, vehicle or article detail route, real company/content data, forms, PHP handlers, deployment assembly, or launch approval. Plus Jakarta Sans and all final brand/media assets remain blocked on approved local files and rights. See `docs/foundation-status.md` for the exact verification record and current output footprint.
 
+## Current-state reconciliation — 2026-08-13; price update 2026-08-14
+
+The dated foundation checkpoint above remains historical. Planning now proceeds from these verified repository inputs:
+
+- The approved registry contains 12 decisions: 10 static routes and two detail families. The new canonical legal skeletons are `/kvkk-ve-guvenlik/`, `/cerez-politikasi/`, and `/kullanim-kosullari/`; all remain unpublished, noindex, and excluded from the sitemap.
+- `05317158068` and `info@kalitefilo.com.tr` are verified for public contact use. The company legal identity, address, other channel roles, business hours, and social destinations still require approval.
+- Thirty-two owner-supplied portfolio records are local inputs for vehicle work and render in the responsive catalogue; 28 have attributed local representative images. On 14 August 2026, the project owner approved their `Önerilen Liste Net` values for monthly KDV-excluded list-price display on all 32 catalogue cards and the three Home cards. Phase 4 still requires binding-offer, availability, duration/kilometre, validity, service-scope and disclaimer policy; technical/editorial review; four remaining representative images; detail implementation; and publication approval.
+- Six owner-supplied Markdown articles and local WebPs are integrated inputs for Filo Rehberi work. Phase 5 still requires authors/reviewers, citations and claim review, final metadata/taxonomy, index/detail rendering, and static slug generation.
+- Legal route approval does not satisfy Gate 3: counsel-approved bodies, versions, effective dates, owners, and applicable form notices remain required.
+- Home remains in `foundation` state with noindex metadata; no route is published and the sitemap remains empty.
+
+These inputs reduce content uncertainty but do not change the static-export architecture, publication gates, or the remaining implementation order.
+
 ## Phase 1 scope contract
 
 Phase 1 includes only:
@@ -103,7 +116,7 @@ The following facts are closed and should no longer be treated as implementation
 | Staging | `https://staging.kalitefilo.com.tr`, separate document root, DNS and Let's Encrypt SSL configured, HTTPS forced |
 | Home | Canonical path `/` |
 | About | Canonical path `/hakkimizda/` |
-| Vehicles | Index `/araclar/`, detail family `/araclar/[slug]/` |
+| Vehicles | Index `/arac-listesi/`, detail family `/araclar/[slug]/` |
 | Fleet content | Label “Filo Rehberi”, index `/filo-rehberi/`, article family `/filo-rehberi/[slug]/` |
 | FAQ | Label “Sıkça Sorulan Sorular”, route `/sikca-sorulan-sorular/` |
 | Contact | Canonical path `/iletisim/` |
@@ -135,7 +148,7 @@ Obtain approval for:
 
 - the complete vehicle inventory, stable slug, brand/model/trim, category, transmission, fuel, body type, and rental attributes for each vehicle
 - whether any vehicle is genuinely available
-- all price values, currency, billing period, VAT status, duration, kilometre, stock, and “starting from” qualifications
+- the 32 visible price values are now approved as monthly TRY net list amounts with KDV excluded; obtain the still-missing `Nihai Yayın Net`/VAT-inclusive decision, duration, kilometre, stock, validity, service-scope, disclaimer, and any “starting from” qualifications
 - final FAQ questions and answers
 - final article titles, slugs, body copy, categories, authors/reviewers, publication dates, update dates, and sources
 - every quantitative claim, including fleet size, service points, support availability, satisfaction rates, and claimed savings
@@ -247,7 +260,7 @@ Components must receive those values as props rather than repeating phone number
 
 ### Vehicle routes
 
-The vehicle listing is static HTML at the approved `/araclar/` path. Each approved vehicle receives a static detail route in the canonical `/araclar/[slug]/` family, implemented later as `app/araclar/[slug]/page.tsx`.
+The vehicle listing is static HTML at the approved `/arac-listesi/` path. Each approved vehicle receives a static detail route in the canonical `/araclar/[slug]/` family, implemented later as `app/araclar/[slug]/page.tsx`.
 
 That route must:
 
@@ -287,7 +300,7 @@ Prefer CSS scroll snap for horizontal card collections. Do not add an autoplay c
 
 Actions:
 
-- reconcile unresolved legal, category, result, and utility routes and content into one approved matrix while preserving all nine approved core route decisions
+- reconcile unresolved category, result, notice, and utility routes and content while preserving all 12 approved route decisions
 - mark every Stitch-only placeholder and unsupported page
 - complete Gates 0–4 or identify exactly which later phase each unresolved item blocks
 - approve the deployment artifact strategy
@@ -366,7 +379,7 @@ Actions:
 - implement the static vehicle list and approved categories
 - implement every approved vehicle detail route with `generateStaticParams()`
 - add the smallest justified filter enhancement after the static experience works
-- connect vehicle CTAs to the quote route without exposing unapproved prices or availability
+- connect vehicle CTAs to the quote route; expose only the approved monthly KDV-excluded net list prices and no unapproved availability or offer conditions
 
 Exit criteria:
 
@@ -608,7 +621,7 @@ Release requires named approval for:
 
 ## Implementation order
 
-1. Preserve the verified production/staging and nine core canonical route decisions; approve the remaining legal, category, result, and utility route matrix and close company identity, content, asset, legal/form, mail, deployment, and rollback prerequisites in Gates 0–4.
+1. Preserve the verified production/staging context and all 12 approved route decisions; approve the remaining category, result, notice, and utility route matrix and close company identity, content, asset, legal/form, mail, deployment, and rollback prerequisites in Gates 0–4.
 2. Lock the static architecture, typed content contracts, build validation, Node build version, Tailwind v4 tokens, and artifact strategy.
 3. Replace starter assets and build the Turkish metadata foundation, shared shell, navigation, footer, breadcrumbs, accessibility primitives, and branded 404.
 4. Implement the home, about, contact-information, FAQ, and approved legal pages using only verified content.

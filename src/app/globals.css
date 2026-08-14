@@ -180,6 +180,57 @@ body {
   outline-offset: 0.1875rem;
 }
 
+#newsletter-preview-email:focus,
+#newsletter-preview-email:focus-visible {
+  outline: none;
+  outline-offset: 0;
+  box-shadow: none;
+}
+
+.featured-vehicles-action {
+  border-color: var(--kf-corporate-blue) !important;
+  background-color: transparent !important;
+  color: var(--kf-corporate-blue) !important;
+  transition: none !important;
+}
+
+.featured-vehicles-action:hover {
+  border-color: var(--kf-brand-navy) !important;
+  background-color: transparent !important;
+  color: var(--kf-brand-navy) !important;
+}
+
+.home-glass-panel {
+  border: 1px solid rgb(255 255 255 / 24%);
+  background: rgb(255 255 255 / 10%);
+  box-shadow: 0 1.5rem 3rem rgb(2 10 30 / 20%);
+  -webkit-backdrop-filter: blur(0.75rem);
+  backdrop-filter: blur(0.75rem);
+}
+
+.home-why-decoration {
+  position: absolute;
+  top: -8rem;
+  right: -7rem;
+  width: 20rem;
+  height: 20rem;
+  border-radius: 9999px;
+  background: rgb(1 68 153 / 6%);
+  filter: blur(2rem);
+}
+
+.home-hero a:focus-visible,
+.conversion-banner a:focus-visible {
+  outline-color: var(--kf-accent-orange);
+}
+
+@media (forced-colors: active) {
+  .home-glass-panel,
+  .conversion-banner {
+    border: 1px solid CanvasText;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

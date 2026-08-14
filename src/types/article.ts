@@ -34,14 +34,14 @@ export interface Article {
   readonly excerpt: string;
   readonly categoryId: EntityId;
   readonly tagIds: readonly EntityId[];
-  readonly author: ArticleAttribution;
+  readonly author?: ArticleAttribution;
   readonly reviewer?: ArticleAttribution;
   readonly publishedAt: IsoDate;
   readonly updatedAt?: IsoDate;
   readonly readingMinutes: number;
+  readonly featured: boolean;
   readonly coverImage: MediaAsset;
   readonly sources: readonly ArticleSource[];
   readonly contentKey: EntityId;
   readonly seo: SeoMetadata;
 }
-

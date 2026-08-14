@@ -7,6 +7,8 @@ export const actionVariants = {
     "bg-brand-navy text-text-inverse hover:bg-navy-secondary active:bg-navy-secondary",
   outline:
     "border-2 border-brand-navy bg-transparent text-brand-navy hover:bg-surface-muted",
+  "outline-inverse":
+    "border-2 border-text-inverse/70 bg-transparent text-text-inverse hover:border-text-inverse hover:bg-white/10",
   quiet: "bg-transparent text-corporate-blue hover:bg-surface-muted",
   danger: "bg-error text-text-inverse hover:brightness-90",
 } as const;
