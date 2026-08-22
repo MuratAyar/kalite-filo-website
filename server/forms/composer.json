@@ -1,0 +1,15 @@
+{
+  "name": "kalite-filo/quote-form-mailer",
+  "description": "Release-time PHPMailer dependency boundary for the Kalite Filo quote form.",
+  "license": "proprietary",
+  "type": "project",
+  "require": {
+    "php": ">=8.5",
+    "phpmailer/phpmailer": "^7.1"
+  },
+  "config": {
+    "optimize-autoloader": true,
+    "preferred-install": "dist",
+    "sort-packages": true
+  }
+}

@@ -103,8 +103,9 @@ Customer-login notices and authentication policies are not Phase 1 work because 
 
 ### Forms and processing contract
 
-The quote workflow now has an approved native field contract, fixed sender and
-recipient mailboxes, user-facing result copy, and a secret-free PHP 8.5 handler
+The quote workflow now has an approved native field contract, privately
+configured SMTP sender/recipient identities, user-facing result copy, and a
+secret-free PHP 8.5 handler
 under `server/forms/teklif.php`. The handler includes server-side validation,
 same-origin checks, a honeypot, and a small hashed-IP rate limit. Real cPanel
 mail delivery, privacy/retention decisions, counsel-approved disclosure and

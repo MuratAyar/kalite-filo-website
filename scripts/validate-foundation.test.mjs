@@ -19,6 +19,7 @@ import {
   validateHomeMainLinks,
   validateHomeVehicleFinder,
   validateQuoteFormOutput,
+  validateQuotePhpSource,
   validateRoutes,
   validateVehicleCatalogueOutput,
   validateVehicleDetailOutput,
@@ -52,6 +53,24 @@ const validRoute = {
   indexable: false,
   sitemap: false,
 };
+
+test("quote delivery source uses the approved authenticated SMTP boundary", () => {
+  assert.doesNotThrow(() => validateQuotePhpSource({ requireComposerLock: false }));
+
+  const endpoint = readFileSync(
+    path.join(repositoryRoot, "server", "forms", "teklif.php"),
+    "utf8",
+  );
+  const mailer = readFileSync(
+    path.join(repositoryRoot, "server", "forms", "quote-mailer.php"),
+    "utf8",
+  );
+  assert.doesNotMatch(`${endpoint}\n${mailer}`, /\bmail\s*\(/i);
+  assert.match(mailer, /\$config\['from_address'\]/);
+  assert.match(mailer, /\$config\['recipient_address'\]/);
+  assert.match(mailer, /addReplyTo\(\$message\['reply_to_address'\]/);
+  assert.doesNotMatch(mailer, /\$_(?:POST|REQUEST).*?(?:Username|setFrom|addAddress)/s);
+});
 
 test("accepts canonical directory-style internal paths", () => {
   assert.equal(isValidInternalPath("/"), true);

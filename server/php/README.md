@@ -1,7 +1,10 @@
 # PHP endpoint boundary
 
-This directory is reserved for separately approved PHP 8.5 form endpoints. It is intentionally empty during the foundation phase.
+Approved PHP 8.5 form endpoints remain outside the Next.js `public/` tree.
+The implemented quote endpoint lives under `server/forms/`; this directory is
+reserved for any separately approved future PHP boundaries.
 
-PHP files here are not part of the Next.js application and must never be copied into `public/`, because the Next.js development server would expose their source instead of executing it. A later deployment assembly step may copy reviewed handlers into the final hosting artifact while keeping secrets and server-only configuration outside the document root.
-
-No form endpoint, recipient, mail transport, consent workflow, retention policy, spam control, or error contract is approved yet. Do not add a handler until those inputs and the staging test plan are approved.
+PHP does not render the Next.js site. Reviewed release assembly may copy an
+endpoint and its runtime dependencies into the target cPanel document root,
+while secrets and private runtime configuration must remain outside every web
+root. See `server/forms/README.md` for the authenticated SMTP quote boundary.

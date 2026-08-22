@@ -65,6 +65,30 @@ const quotePhpSourcePath = path.join(
   "forms",
   "teklif.php",
 );
+const quoteMailerSourcePath = path.join(
+  repositoryRoot,
+  "server",
+  "forms",
+  "quote-mailer.php",
+);
+const quoteMailExamplePath = path.join(
+  repositoryRoot,
+  "server",
+  "forms",
+  "kalite-filo-mail.example.php",
+);
+const quoteComposerJsonPath = path.join(
+  repositoryRoot,
+  "server",
+  "forms",
+  "composer.json",
+);
+const quoteComposerLockPath = path.join(
+  repositoryRoot,
+  "server",
+  "forms",
+  "composer.lock",
+);
 const expectedArticleArchiveHash =
   "b8100d2419c1e77f250995e19f8d3e8277ddf6f7b38ec8b9cca41a6fe7fadead";
 const approvedClientComponents = new Set([
@@ -575,16 +599,30 @@ function validateSourceArchitecture() {
   return clientComponents;
 }
 
-function validateQuotePhpSource() {
-  if (!existsSync(quotePhpSourcePath)) {
-    fail("The approved quote PHP endpoint source is missing.");
+export function validateQuotePhpSource({ requireComposerLock = true } = {}) {
+  for (const [sourcePath, description] of [
+    [quotePhpSourcePath, "quote PHP endpoint"],
+    [quoteMailerSourcePath, "authenticated SMTP boundary"],
+    [quoteMailExamplePath, "secret-free mail configuration example"],
+    [quoteComposerJsonPath, "quote-form Composer manifest"],
+  ]) {
+    if (!existsSync(sourcePath)) {
+      fail(`The approved ${description} source is missing.`);
+    }
+  }
+  if (requireComposerLock && !existsSync(quoteComposerLockPath)) {
+    fail(
+      "The quote-form Composer lock is missing. Run composer --working-dir=server/forms install --no-dev --prefer-dist --optimize-autoloader --no-interaction.",
+    );
   }
 
   const content = readFileSync(quotePhpSourcePath, "utf8");
+  const mailerContent = readFileSync(quoteMailerSourcePath, "utf8");
+  const exampleContent = readFileSync(quoteMailExamplePath, "utf8");
+  const composerManifest = JSON.parse(readFileSync(quoteComposerJsonPath, "utf8"));
   const requiredContracts = [
     [/declare\s*\(strict_types\s*=\s*1\)/, "strict PHP typing"],
-    [/QUOTE_RECIPIENT\s*=\s*'teklif@kalitefilo\.com\.tr'/, "the approved recipient"],
-    [/QUOTE_SENDER\s*=\s*'noreply@kalitefilo\.com\.tr'/, "the approved sender"],
+    [/require_once __DIR__ \. '\/quote-mailer\.php'/, "the SMTP mailer boundary"],
     [/REQUEST_METHOD[^;]+POST/s, "POST-only handling"],
     [/FILTER_VALIDATE_EMAIL/, "server-side email validation"],
     [/normalized_field\('website'/, "a honeypot field"],
@@ -597,7 +635,9 @@ function validateQuotePhpSource() {
     [/is_valid_turkish_identity_number\(/, "T.C. identity validation"],
     [/rate_limit_allows_request\(\)/, "rate limiting"],
     [/HTTP_ORIGIN/, "origin validation"],
-    [/mail\s*\(/, "the hosting mail transport boundary"],
+    [/https:\/\/kalitefilo\.com\.tr/, "the production origin allowlist"],
+    [/https:\/\/staging\.kalitefilo\.com\.tr/, "the staging origin allowlist"],
+    [/kalite_filo_send_quote_email\(/, "authenticated SMTP delivery"],
     [/header\('Location: \/teklif-al\/\?sonuc='/, "a local result redirect"],
   ];
 
@@ -607,17 +647,49 @@ function validateQuotePhpSource() {
     }
   }
 
-  if (
-    /(?:smtp[_-]?(?:pass|password)|mail[_-]?password|\$password)\s*=/i.test(
-      content,
-    )
-  ) {
-    fail("The quote PHP endpoint must not contain a mail credential.");
+  const requiredMailerContracts = [
+    [/vendor\/autoload\.php/, "the Composer autoloader"],
+    [/KALITE_FILO_MAIL_CONFIG/, "the absolute-path environment override"],
+    [/dirname\(\$formsDirectory, 2\)/, "the account-private fallback path"],
+    [/['\"]private['\"]/, "the private configuration directory"],
+    [/\$mail->isSMTP\(\)/, "SMTP transport"],
+    [/\$mail->SMTPAuth\s*=\s*true/, "mandatory SMTP authentication"],
+    [/ENCRYPTION_SMTPS/, "implicit TLS support"],
+    [/ENCRYPTION_STARTTLS/, "STARTTLS support"],
+    [/\$mail->setFrom\(\(string\) \$config\['from_address'\]/, "configured sender identity"],
+    [/\$mail->addAddress\(\s*\(string\) \$config\['recipient_address'\]/s, "configured recipient identity"],
+    [/\$mail->addReplyTo\(\$message\['reply_to_address'\]/, "visitor Reply-To handling"],
+    [/PHPMailer::CHARSET_UTF8/, "UTF-8 message encoding"],
+    [/\$mail->Body\s*=\s*\$message\['html_body'\]/, "HTML message content"],
+    [/\$mail->AltBody\s*=\s*\$message\['text_body'\]/, "plain-text alternative content"],
+  ];
+  for (const [pattern, description] of requiredMailerContracts) {
+    if (!pattern.test(mailerContent)) {
+      fail(`The quote SMTP boundary is missing ${description}.`);
+    }
+  }
+
+  if (composerManifest.require?.["phpmailer/phpmailer"] !== "^7.1") {
+    fail("The quote-form Composer manifest must require phpmailer/phpmailer ^7.1.");
+  }
+
+  const projectOwnedPhp = [content, mailerContent, exampleContent].join("\n");
+  if (/\bmail\s*\(/i.test(projectOwnedPhp)) {
+    fail("Project-owned quote PHP must not use PHP mail().");
+  }
+  if (/verify_peer\s*['\"]?\s*=>\s*false|allow_self_signed\s*['\"]?\s*=>\s*true/i.test(projectOwnedPhp)) {
+    fail("The quote SMTP boundary must not disable TLS certificate validation.");
+  }
+  if (/K@liteFilo|(?:smtp|mail)[_-]?(?:pass|password)\s*['\"]?\s*=>\s*(?!['\"]CHANGE_ME)/i.test(projectOwnedPhp)) {
+    fail("Project-owned quote PHP must not contain a real mail credential.");
   }
 
   for (const publicPath of [
     path.join(repositoryRoot, "public", "forms", "teklif.php"),
     path.join(repositoryRoot, "out", "forms", "teklif.php"),
+    path.join(repositoryRoot, "public", "forms", "quote-mailer.php"),
+    path.join(repositoryRoot, "out", "forms", "quote-mailer.php"),
+    path.join(repositoryRoot, "server", "forms", "kalite-filo-mail.php"),
   ]) {
     if (existsSync(publicPath)) {
       fail("PHP source must remain outside public/ and the raw static export.");

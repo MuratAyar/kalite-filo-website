@@ -39,28 +39,26 @@ Date: 2026-08-22
 - The PHP 8.5 source lives at `server/forms/teklif.php`, outside `public/` and
   `out/`. It performs method, size, content-type, origin, honeypot, rate-limit,
   field, integer, telephone, email, company URL, tax-number, and T.C. identity
-  checks before calling the hosting mail transport.
+  checks before calling the focused PHPMailer authenticated-SMTP boundary.
 - Development access from `192.168.1.122`, `192.168.1.157`, and `172.20.10.8` is explicitly
   allowlisted through Next.js `allowedDevOrigins`; this changes development
   resource access only and does not alter production origins.
-- The sender and recipient addresses are fixed server-side. No mail credential
-  is stored in the repository or exposed to the browser.
+- SMTP username, From, and recipient are independently configurable only in a
+  private PHP config outside both document roots. Visitor email is Reply-To
+  only. No mail credential is stored in the repository or exposed to the browser.
 
 ## Deployment boundary
 
-The static export does not execute PHP. During controlled cPanel release
-assembly, `server/forms/teklif.php` must be copied to the document-root path
-`/forms/teklif.php`. `npm run release:production` now creates the deployable
-`release/production/` cPanel package with the static export and this endpoint.
+The static export does not execute PHP. Controlled cPanel release assembly
+copies the endpoint, `quote-mailer.php`, locked Composer metadata, and the local
+PHPMailer `vendor/` runtime into `/forms/`. The private SMTP config is excluded.
 The raw PHP source must never be copied into a generic
 static preview artifact.
 
-The local machine has no PHP CLI, so PHP syntax and real delivery cannot be
-proved locally. Before release, staging must verify PHP 8.5 syntax, both form
+Local PHP syntax and config-contract tests are part of the quality gate. Before
+release, staging must still verify both form
 variants, invalid submissions, throttling, Turkish character encoding,
-`Reply-To`, spam handling, and actual delivery. A successful `mail()` return
-only means the local mail system accepted the message; it does not prove inbox
-delivery.
+`Reply-To`, spam handling, TLS/SMTP compatibility, and actual inbox delivery.
 
 ## Deferred blockers
 

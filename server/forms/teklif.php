@@ -1,8 +1,8 @@
 <?php
 declare(strict_types=1);
 
-const QUOTE_RECIPIENT = 'teklif@kalitefilo.com.tr';
-const QUOTE_SENDER = 'noreply@kalitefilo.com.tr';
+require_once __DIR__ . '/quote-mailer.php';
+
 const MAX_BODY_BYTES = 32768;
 const RATE_LIMIT_WINDOW_SECONDS = 600;
 const RATE_LIMIT_MAX_ATTEMPTS = 5;
@@ -272,36 +272,40 @@ if (
 }
 
 $quoteNumber = create_quote_number();
-$rows = [
-    email_row('Teklif numarası', $quoteNumber),
-    email_row('Teklif türü', $isCorporate ? 'Kurumsal' : 'Bireysel'),
-    email_row('Ad soyad', $firstName . ' ' . $lastName),
-    email_row('Telefon', '+' . $countryCode . ' ' . $phoneDigits),
-    email_row('E-posta', $email),
+$emailFields = [
+    ['Teklif numarası', $quoteNumber],
+    ['Teklif türü', $isCorporate ? 'Kurumsal' : 'Bireysel'],
+    ['Ad soyad', $firstName . ' ' . $lastName],
+    ['Telefon', '+' . $countryCode . ' ' . $phoneDigits],
+    ['E-posta', $email],
 ];
 
 if ($isCorporate) {
-    $rows[] = email_row('Unvan', $title !== '' ? $title : 'Belirtilmedi');
-    $rows[] = email_row('İl / İlçe', $city . ' / ' . $district);
-    $rows[] = email_row('Firma web sitesi', $companyWebsite !== '' ? $companyWebsite : 'Belirtilmedi');
-    $rows[] = email_row('Şirket tipi', $companyType);
-    $rows[] = email_row('Şirket unvanı', $companyTitle);
-    $rows[] = email_row('Vergi dairesi', $taxCity . ' / ' . $taxOffice);
-    $rows[] = email_row('Vergi numarası', $taxNumber);
+    $emailFields[] = ['Unvan', $title !== '' ? $title : 'Belirtilmedi'];
+    $emailFields[] = ['İl / İlçe', $city . ' / ' . $district];
+    $emailFields[] = ['Firma web sitesi', $companyWebsite !== '' ? $companyWebsite : 'Belirtilmedi'];
+    $emailFields[] = ['Şirket tipi', $companyType];
+    $emailFields[] = ['Şirket unvanı', $companyTitle];
+    $emailFields[] = ['Vergi dairesi', $taxCity . ' / ' . $taxOffice];
+    $emailFields[] = ['Vergi numarası', $taxNumber];
 } else {
-    $rows[] = email_row('T.C. kimlik numarası', $identityNumber);
+    $emailFields[] = ['T.C. kimlik numarası', $identityNumber];
 }
 
-$rows[] = email_row('Araç markası', $vehicleMake);
-$rows[] = email_row('Araç modeli', $vehicleModel);
-$rows[] = email_row('Araç sayısı', (string) $vehicleCount);
-$rows[] = email_row('Kiralama süresi', (string) $duration . ' ay');
-$rows[] = email_row('Yıllık kilometre', number_format($annualDistance, 0, ',', '.') . ' km');
-$rows[] = email_row('Not', $note !== '' ? $note : 'Belirtilmedi');
+$emailFields[] = ['Araç markası', $vehicleMake];
+$emailFields[] = ['Araç modeli', $vehicleModel];
+$emailFields[] = ['Araç sayısı', (string) $vehicleCount];
+$emailFields[] = ['Kiralama süresi', (string) $duration . ' ay'];
+$emailFields[] = ['Yıllık kilometre', number_format($annualDistance, 0, ',', '.') . ' km'];
+$emailFields[] = ['Not', $note !== '' ? $note : 'Belirtilmedi'];
 if (!$isCorporate) {
-    $rows[] = email_row('Kampanya kodu', $campaignCode !== '' ? $campaignCode : 'Belirtilmedi');
+    $emailFields[] = ['Kampanya kodu', $campaignCode !== '' ? $campaignCode : 'Belirtilmedi'];
 }
 
+$rows = array_map(
+    static fn (array $field): string => email_row($field[0], $field[1]),
+    $emailFields,
+);
 $body = '<!doctype html><html lang="tr"><body style="margin:0;padding:24px;background:#f4f6f8;font-family:Arial,sans-serif">'
     . '<table role="presentation" style="width:100%;max-width:680px;margin:0 auto;border-collapse:collapse;background:#fff;border:1px solid #e5e7eb">'
     . '<tr><td style="padding:24px;background:#14213d;color:#fff"><h1 style="margin:0;font-size:22px">Yeni teklif talebi</h1>'
@@ -311,15 +315,19 @@ $body = '<!doctype html><html lang="tr"><body style="margin:0;padding:24px;backg
     . '</table></td></tr></table></body></html>';
 
 $subjectText = 'Yeni teklif talebi ' . $quoteNumber . ' - ' . $firstName . ' ' . $lastName;
-$subject = '=?UTF-8?B?' . base64_encode($subjectText) . '?=';
-$headers = [
-    'From' => 'Kalite Filo <' . QUOTE_SENDER . '>',
-    'Reply-To' => $email,
-    'MIME-Version' => '1.0',
-    'Content-Type' => 'text/html; charset=UTF-8',
-    'Content-Transfer-Encoding' => '8bit',
-    'X-Mailer' => 'Kalite Filo Quote Form',
-];
+$plainBody = "Yeni teklif talebi\nKalite Filo web sitesi\n\n" . implode(
+    "\n",
+    array_map(
+        static fn (array $field): string => $field[0] . ': ' . $field[1],
+        $emailFields,
+    ),
+);
 
-$sent = mail(QUOTE_RECIPIENT, $subject, $body, $headers);
+$sent = kalite_filo_send_quote_email([
+    'subject' => $subjectText,
+    'html_body' => $body,
+    'text_body' => $plainBody,
+    'reply_to_address' => $email,
+    'reply_to_name' => $firstName . ' ' . $lastName,
+]);
 respond_result($sent ? 'basarili' : 'gonderilemedi', $sent ? $quoteNumber : null);

@@ -10,49 +10,93 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 const allowedTargets = new Set(["production", "staging"]);
-const target = process.argv[2];
+const scriptPath = fileURLToPath(import.meta.url);
+const defaultRepositoryRoot = fileURLToPath(new URL("..", import.meta.url));
 
-if (!allowedTargets.has(target)) {
-  throw new Error(
-    `Release target must be one of: ${Array.from(allowedTargets).join(", ")}.`,
-  );
-}
-
-const repositoryRoot = fileURLToPath(new URL("..", import.meta.url));
-const staticOutput = path.resolve(repositoryRoot, "out");
-const releaseBase = path.resolve(repositoryRoot, "release");
-const releaseRoot = path.resolve(releaseBase, target);
-const phpSource = path.resolve(repositoryRoot, "server", "forms", "teklif.php");
-
-if (!releaseRoot.startsWith(`${releaseBase}${path.sep}`)) {
-  throw new Error("Resolved release path escaped the project release directory.");
-}
-
-if (!existsSync(path.join(staticOutput, "index.html"))) {
-  throw new Error("Static output is missing. Run the matching build before assembly.");
-}
-
-if (!existsSync(phpSource)) {
-  throw new Error("The reviewed quote form PHP source is missing.");
-}
-
-rmSync(releaseRoot, { force: true, recursive: true });
-mkdirSync(releaseRoot, { recursive: true });
-cpSync(staticOutput, releaseRoot, { recursive: true });
-
-const formsDirectory = path.join(releaseRoot, "forms");
-mkdirSync(formsDirectory, { recursive: true });
-copyFileSync(phpSource, path.join(formsDirectory, "teklif.php"));
-
-function assertNoSecrets(directory) {
-  for (const entry of readdirSync(directory, { withFileTypes: true })) {
-    const resolved = path.join(directory, entry.name);
-    if (entry.name === ".env" || entry.name.startsWith(".env.")) {
-      throw new Error(`Secret-bearing environment file found in release: ${resolved}`);
-    }
-    if (entry.isDirectory()) assertNoSecrets(resolved);
+export function assertComposerRuntimeExists(formsSource) {
+  const autoloadPath = path.join(formsSource, "vendor", "autoload.php");
+  if (!existsSync(autoloadPath)) {
+    throw new Error(
+      "PHPMailer runtime is missing at server/forms/vendor/autoload.php. "
+        + "Run: composer --working-dir=server/forms install --no-dev --prefer-dist "
+        + "--optimize-autoloader --no-interaction",
+    );
   }
 }
 
-assertNoSecrets(releaseRoot);
-console.log(`cPanel ${target} release assembled at ${releaseRoot}`);
+export function assertNoReleaseSecrets(directory) {
+  for (const entry of readdirSync(directory, { withFileTypes: true })) {
+    const resolved = path.join(directory, entry.name);
+    const lowerName = entry.name.toLowerCase();
+    if (
+      lowerName === ".env"
+      || lowerName.startsWith(".env.")
+      || lowerName === "kalite-filo-mail.php"
+    ) {
+      throw new Error(`Secret-bearing runtime configuration found in release: ${resolved}`);
+    }
+    if (entry.isDirectory()) assertNoReleaseSecrets(resolved);
+  }
+}
+
+export function assembleCpanelRelease(target, repositoryRoot = defaultRepositoryRoot) {
+  if (!allowedTargets.has(target)) {
+    throw new Error(
+      `Release target must be one of: ${Array.from(allowedTargets).join(", ")}.`,
+    );
+  }
+
+  const staticOutput = path.resolve(repositoryRoot, "out");
+  const releaseBase = path.resolve(repositoryRoot, "release");
+  const releaseRoot = path.resolve(releaseBase, target);
+  const formsSource = path.resolve(repositoryRoot, "server", "forms");
+
+  if (!releaseRoot.startsWith(`${releaseBase}${path.sep}`)) {
+    throw new Error("Resolved release path escaped the project release directory.");
+  }
+
+  if (!existsSync(path.join(staticOutput, "index.html"))) {
+    throw new Error("Static output is missing. Run the matching build before assembly.");
+  }
+
+  for (const requiredFile of [
+    "teklif.php",
+    "quote-mailer.php",
+    "composer.json",
+    "composer.lock",
+  ]) {
+    if (!existsSync(path.join(formsSource, requiredFile))) {
+      throw new Error(`Required quote-form release source is missing: server/forms/${requiredFile}`);
+    }
+  }
+  assertComposerRuntimeExists(formsSource);
+  assertNoReleaseSecrets(staticOutput);
+  assertNoReleaseSecrets(path.join(formsSource, "vendor"));
+
+  rmSync(releaseRoot, { force: true, recursive: true });
+  mkdirSync(releaseRoot, { recursive: true });
+  cpSync(staticOutput, releaseRoot, { recursive: true });
+
+  const formsDirectory = path.join(releaseRoot, "forms");
+  mkdirSync(formsDirectory, { recursive: true });
+  for (const runtimeFile of [
+    "teklif.php",
+    "quote-mailer.php",
+    "composer.json",
+    "composer.lock",
+  ]) {
+    copyFileSync(path.join(formsSource, runtimeFile), path.join(formsDirectory, runtimeFile));
+  }
+  cpSync(path.join(formsSource, "vendor"), path.join(formsDirectory, "vendor"), {
+    recursive: true,
+  });
+
+  assertNoReleaseSecrets(releaseRoot);
+  return releaseRoot;
+}
+
+const invokedPath = process.argv[1] ? path.resolve(process.argv[1]) : "";
+if (invokedPath === path.resolve(scriptPath)) {
+  const releaseRoot = assembleCpanelRelease(process.argv[2]);
+  console.log(`cPanel ${process.argv[2]} release assembled at ${releaseRoot}`);
+}

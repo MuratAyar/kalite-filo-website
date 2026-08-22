@@ -15,7 +15,7 @@
     "typecheck": "tsc --noEmit --incremental false",
     "validate": "node scripts/validate-foundation.mjs",
     "verify:output": "node scripts/validate-foundation.mjs --output",
-    "test": "node --test scripts/*.test.mjs"
+    "test": "node --test scripts/*.test.mjs && php server/forms/tests/quote-mailer-config.test.php"
   },
   "dependencies": {
     "next": "16.2.11",

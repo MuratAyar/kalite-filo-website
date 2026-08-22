@@ -1,38 +1,57 @@
-# Teklif formu PHP endpoint'i
+# Teklif formu SMTP sınırı
 
-`teklif.php`, statik Next.js çıktısından ayrı bir çalışma zamanı sınırıdır.
-Kaynak dosyası `public/` altında tutulmaz; genel amaçlı statik ön izleme
-sunucularının PHP kaynağını düz metin olarak yayımlaması bu şekilde önlenir.
+`teklif.php`, statik Next.js sitesinden ayrı çalışan PHP 8.5 form sınırıdır.
+Tarayıcı aynı origin üzerindeki `/forms/teklif.php` adresine URL-encoded POST
+gönderir; endpoint doğrulama ve kötüye kullanım kontrollerinden sonra
+`quote-mailer.php` üzerinden PHPMailer ile kimlik doğrulamalı SMTP kullanır.
+Uygulamada PHP `mail()` yedeği yoktur.
 
-Kontrollü release artifact hazırlanırken dosya document root içindeki
-`/forms/teklif.php` konumuna kopyalanmalıdır. `npm run release:production`
-statik çıktıyı üretir ve PHP dosyasını yalnızca cPanel'e yüklenecek
-`release/production/` paketine ekler. Bu paket genel amaçlı bir statik önizleme
-sunucusunda çalıştırılmamalıdır; PHP kaynak kodunu düz metin olarak sunabilir.
+## Composer ve release
 
-Endpoint PHP 8.5 için yazılmıştır
-ve `mail()` işlevinin hosting tarafından doğru gönderici alan adıyla
-yapılandırılmış olmasını bekler. Depoda ya da dışa aktarılan artifact içinde
-posta hesabı parolası bulunmaz.
+PHPMailer yalnızca geliştirme/release makinesinde Composer ile kurulur:
 
-Gönderim aynı cPanel hesabındaki yerel posta aktarımına bırakılır. Bu nedenle
-mailbox veya SMTP parolası Next.js `.env` dosyasına, istemci paketine, PHP
-kaynağına ya da release artifact'ine yazılmamalıdır. Hosting `mail()` çağrısını
-reddederse önce cPanel Email Accounts > Connect Devices ekranındaki sunucu
-ayarları ve hosting posta kayıtları doğrulanmalı; kimlik doğrulamalı SMTP ancak
-ayrı bir güvenlik incelemesiyle ve document root dışındaki sunucu yapılandırması
-üzerinden eklenmelidir.
+```sh
+composer --working-dir=server/forms install --no-dev --prefer-dist --optimize-autoloader --no-interaction
+```
 
-Yayına almadan önce staging üzerinde en az şu kontroller yapılmalıdır:
+`composer.json` ve `composer.lock` Git'e girer; `server/forms/vendor/` Git'e
+girmez. cPanel'de Composer gerekmez. Release assembler statik çıktıyla birlikte
+`teklif.php`, `quote-mailer.php`, Composer manifest/lock ve `vendor/` çalışma
+zamanını `release/<target>/forms/` altına kopyalar. `vendor/autoload.php` yoksa
+paketleme açıklayıcı hatayla durur.
 
-- `php -l server/forms/teklif.php`;
-- geçerli Kurumsal ve Bireysel gönderim;
-- Kurumsal vergi numarası ve Bireysel T.C. kimlik numarası doğrulaması;
-- on iki aydan kısa kiralama süresinin reddedilmesi;
-- eksik/geçersiz alan, hatalı origin, honeypot ve hız sınırı yanıtları;
-- alıcıya ulaşan Türkçe metnin karakter kodlaması ve `Reply-To` davranışı;
-- başarısız posta tesliminde kullanıcıya genel hata durumu dönmesi;
-- hosting posta kayıtları ve spam klasörü kontrolü.
+## Özel SMTP yapılandırması
 
-PHP `mail()` dönüş değeri iletinin yalnızca posta sistemine kabul edildiğini
-gösterir; gerçek teslimat staging üzerinde ayrıca doğrulanmalıdır.
+Gerçek yapılandırma her iki document root'un dışında tutulur. Mailer önce
+`KALITE_FILO_MAIL_CONFIG` ortam değişkenindeki mutlak ve okunabilir dosyayı,
+değişken yoksa aşağıdaki cPanel hesabı ortak yolunu kullanır:
+
+```text
+dirname(__DIR__, 2)/private/kalite-filo-mail.php
+```
+
+Endpoint `<document-root>/forms/` altında olduğundan iki üst dizin hem
+`public_html/forms/` hem `staging.kalitefilo.com.tr/forms/` için cPanel hesap
+home dizinine ulaşır. Dosya yoksa veya geçersizse işlem kapalı biçimde başarısız
+olur; yol ve hata ayrıntısı ziyaretçiye açıklanmaz.
+
+Sözleşmenin güvenli örneği `kalite-filo-mail.example.php` dosyasındadır. Bu
+örnek otomatik yüklenmez ve parola içermez. Yapılandırma yalnızca şu çiftleri
+kabul eder:
+
+- `smtps` + 465 (`PHPMailer::ENCRYPTION_SMTPS`)
+- `starttls` + 587 (`PHPMailer::ENCRYPTION_STARTTLS`)
+
+Sunucu `smtp.turkticaret.net` olarak yapılandırılabilir; SMTP authentication her
+zaman açıktır ve TLS sertifika doğrulaması kapatılamaz. SMTP kullanıcı adı,
+From ve recipient birbirinden bağımsız özel yapılandırma alanlarıdır. Ziyaretçi
+e-postası yalnızca doğrulanmış `Reply-To` olur; From/To/SMTP kimliği olamaz.
+
+Staging'de önce sağlayıcının aynı-mailbox temel senaryosu
+(`teklif` auth/From/recipient), sonra yalnızca özel config değiştirilerek istenen
+`noreply` auth/From → `teklif` recipient senaryosu sınanmalıdır. Otomatik kimlik
+fallback'i yoktur. Ayrıntılı kontrol listesi: `docs/smtp-staging-test.md`.
+
+Release paketi PHP çalıştıran cPanel document root'una yüklenmelidir. Genel
+statik önizleme sunucuları PHP kaynağını düz metin gösterebileceğinden bu paket
+onlarda yayımlanmamalıdır.
