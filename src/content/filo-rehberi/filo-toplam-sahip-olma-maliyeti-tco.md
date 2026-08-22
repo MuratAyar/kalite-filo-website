@@ -108,4 +108,4 @@ Kalite Filo'da araç ve kiralama alternatifleri değerlendirilirken amaç yalnı
 
 ### Filonuzun gerçek maliyetini birlikte değerlendirelim.
 
-**Buton:** `Teklif Al`
+[Filo ihtiyacınız için teklif alın](/teklif-al/).

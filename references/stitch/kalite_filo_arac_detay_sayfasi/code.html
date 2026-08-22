@@ -1,0 +1,310 @@
+<!DOCTYPE html><html lang="tr" style=""><head><meta charset="utf-8"><meta content="width=device-width, initial-scale=1.0" name="viewport"><style>@layer base{html,body{margin:0;padding:0;}body{overscroll-behavior:none;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config={theme:{extend:{"colors":{"tertiary-container":"#321d00","primary":"#020a1e","navy-deep":"#182136","on-primary-fixed-variant":"#3e465d","surface-variant":"#e1e2e4","outline-variant":"#c6c6cd","surface-container":"#edeef0","secondary-fixed":"#d8e2ff","on-background":"#191c1e","on-tertiary-container":"#bd7b00","error":"#ba1a1a","orange-light":"#FCD8B6","surface-container-highest":"#e1e2e4","navy-secondary":"#172750","on-primary-fixed":"#121b30","on-surface":"#191c1e","accent-orange":"#FFA726","on-primary":"#ffffff","on-error-container":"#93000a","surface-dim":"#d9dadc","inverse-primary":"#bdc6e2","outline":"#76777d","on-secondary-container":"#003881","primary-container":"#182136","on-secondary-fixed":"#001a43","on-tertiary-fixed":"#2a1800","on-tertiary":"#ffffff","on-secondary":"#ffffff","tertiary-fixed-dim":"#ffb957","secondary-fixed-dim":"#aec6ff","on-tertiary-fixed-variant":"#643f00","corporate-blue":"#014499","tertiary":"#130900","inverse-surface":"#2e3132","surface-container-lowest":"#ffffff","surface":"#f8f9fb","surface-bright":"#f8f9fb","error-container":"#ffdad6","on-error":"#ffffff","primary-fixed-dim":"#bdc6e2","background":"#f8f9fb","inverse-on-surface":"#f0f1f3","text-primary":"#182136","secondary-container":"#79a4ff","primary-fixed":"#d9e2ff","on-secondary-fixed-variant":"#004397","surface-container-low":"#f2f4f6","on-surface-variant":"#45464d","secondary":"#2a5cb1","orange-dark":"#D47504","on-primary-container":"#8088a2","surface-tint":"#555e76","tertiary-fixed":"#ffddb5","text-secondary":"#5E6675","border-subtle":"#E6E8EC","surface-container-high":"#e7e8ea"},"borderRadius":{"DEFAULT":"0.25rem","lg":"0.5rem","xl":"0.75rem","full":"9999px"},"spacing":{"margin-desktop":"40px","stack-gap":"16px","gutter":"24px","section-v-space":"100px","max-content-width":"1360px","card-padding":"24px"},"fontFamily":{"headline-xl":["Plus Jakarta Sans"],"headline-lg":["Plus Jakarta Sans"],"body-md":["Plus Jakarta Sans"],"headline-xl-mobile":["Plus Jakarta Sans"],"label-bold":["Plus Jakarta Sans"],"headline-md":["Plus Jakarta Sans"],"headline-lg-mobile":["Plus Jakarta Sans"],"body-lg":["Plus Jakarta Sans"]},"fontSize":{"headline-xl":["64px",{"lineHeight":"1.1","letterSpacing":"-0.02em","fontWeight":"700"}],"headline-lg":["44px",{"lineHeight":"1.2","letterSpacing":"-0.01em","fontWeight":"600"}],"body-md":["16px",{"lineHeight":"1.5","fontWeight":"400"}],"headline-xl-mobile":["40px",{"lineHeight":"1.1","fontWeight":"700"}],"label-bold":["14px",{"lineHeight":"1","fontWeight":"600"}],"headline-md":["30px",{"lineHeight":"1.3","fontWeight":"600"}],"headline-lg-mobile":["32px",{"lineHeight":"1.2","fontWeight":"600"}],"body-lg":["18px",{"lineHeight":"1.6","fontWeight":"400"}]}}}}</script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@100..900&amp;display=swap" rel="stylesheet"></head><body class="bg-surface font-body-md text-on-surface"><header class="fixed top-0 w-full z-50 bg-surface/90 backdrop-blur-xl shadow-[0_1px_8px_rgba(0,0,0,0.04)]"><div class="h-20 max-w-[1360px] mx-auto px-margin-desktop flex items-center justify-between"><div class="flex items-center gap-12"><div class="flex flex-col"><span class="text-primary font-headline-md text-headline-md leading-none tracking-tight">KALİTE</span><span class="text-accent-orange font-label-bold text-label-bold tracking-widest">FİLO</span></div><nav class="hidden lg:flex items-center gap-gutter" data-active-classes="text-primary font-bold"><a class="text-body-md font-body-md text-on-surface-variant hover:text-primary transition-colors" data-path="binek-araclar" href="#">Binek Araçlar</a><a class="text-body-md font-body-md text-on-surface-variant hover:text-primary transition-colors" data-path="ticari-araclar" href="#">Ticari Araçlar</a><a class="text-body-md font-body-md text-on-surface-variant hover:text-primary transition-colors" data-path="hizmetlerimiz" href="#">Hizmetlerimiz</a><a class="text-body-md font-body-md text-on-surface-variant hover:text-primary transition-colors" data-path="filo-yonetimi" href="#">Filo Yönetimi</a><a class="text-body-md font-body-md text-on-surface-variant hover:text-primary transition-colors" data-path="filo-rehberi" href="#">Filo Rehberi</a></nav></div><div class="flex items-center gap-6"><a class="flex items-center gap-2 text-on-surface-variant hover:text-primary transition-all" data-path="musteri-portali" href="#"><span class="material-symbols-outlined text-[20px]">account_circle</span><span class="text-label-bold font-label-bold uppercase">Müşteri Portalı</span></a><button class="bg-accent-orange text-primary px-6 h-[54px] rounded-lg font-label-bold text-label-bold uppercase hover:bg-orange-dark transition-all">Teklif Al</button></div></div></header><main class="w-full pt-20"><div class="flex flex-col w-full min-h-screen pb-section-v-space">
+<!-- Breadcrumb & Title Area -->
+<div class="w-full py-6 px-margin-desktop mb-8 bg-surface">
+<div class="max-w-max-content-width mx-auto flex flex-col gap-4">
+<nav class="flex items-center gap-2 text-on-primary-container text-label-bold font-label-bold"><a class="hover:text-accent-orange transition-colors text-text-primary" href="#">Ana Sayfa</a><span class="material-symbols-outlined text-[16px] text-text-secondary">chevron_right</span><a class="hover:text-accent-orange transition-colors text-text-primary" href="#">Araç Listesi</a><span class="material-symbols-outlined text-[16px] text-text-secondary">chevron_right</span><span class="text-text-primary">Audi A5 Sedan TFSI QUATTRO 150 KW S TRONIC Benzin EU8 MILD HIBRID</span></nav>
+<div class="flex flex-col gap-2"><h1 class="text-text-primary font-headline-lg text-headline-lg m-0 p-0">Audi A5</h1></div>
+</div>
+</div>
+<!-- Main Content Container -->
+<div class="max-w-max-content-width mx-auto px-margin-desktop w-full grid grid-cols-1 lg:grid-cols-12 gap-gutter relative">
+<!-- Left Column: Gallery & Specs (Spans 8 cols) -->
+<div class="lg:col-span-8 flex flex-col gap-12">
+<!-- Hero Gallery -->
+<div class="flex flex-col gap-4 bg-surface-container-lowest rounded-xl border border-border-subtle p-6 shadow-sm">
+<div class="w-full aspect-[16/9] rounded-lg overflow-hidden relative group">
+<img class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" data-alt="A pristine white Audi A5 Sedan parked in a modern, minimalist studio setting with soft, diffused overhead lighting reflecting off its sleek curves. The background is a subtle, high-end corporate gray. The image exudes premium quality and precision engineering, fitting a high-end B2B fleet catalog." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBk6XvFENT69A66vnuO0bbQrCAmDGiQUHGXH5VqzDREOCee0wpav54nVz6s_LSnFbemsdSclWA4OUFGnMhEr_OhBJNtcVhACf-O-3NTexsCtFIeEp517kzT1bP-rxNhHr-O6WtKkXTlbpuNvijCrMp7TQdbGVP19tJIiCAZS7V1NiDCWAeM7GzlHldzwNtYm8bbCgjuuaUiFAXEYldblctv3AqBtZqjXsotij4IPxlLYZ2kGStzb654">
+<div class="absolute bottom-4 right-4 bg-primary/80 backdrop-blur-md px-4 py-2 rounded-full text-on-primary font-label-bold text-label-bold flex items-center gap-2">
+<span class="material-symbols-outlined text-[18px]">photo_library</span>
+                        1 / 5
+                    </div>
+</div>
+<!-- Thumbnails -->
+<div class="grid grid-cols-5 gap-4">
+<div class="aspect-video rounded-md overflow-hidden cursor-pointer ring-2 ring-corporate-blue">
+<img class="w-full h-full object-cover" data-alt="Thumbnail showing front three-quarter view of the white Audi A5 Sedan, studio lighting." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDPsVwnDRpkqclfirB0aHQURuu-orwkNPY7YonKZvDpxcfVh3v2W8KyhYytaTTmbaCBlc8owk6wYqDFWrgtJ0A-oj35PKJMo-9GSs9IfE-Iiw2xpGIhQw-QPvw5fvJS1gDhzTG5AwT9Juta16FET24yr3heXsyOaMjPdYE20G-i99u7qx5Izhzepwm_hHbAcp14oJ1_ISIuG9BQeiU9Q7tfOQiECRTFiTea5aK48mdqcDH28dFSvc-t">
+</div>
+<div class="aspect-video rounded-md overflow-hidden cursor-pointer hover:ring-2 hover:ring-outline-variant transition-all opacity-70 hover:opacity-100">
+<img class="w-full h-full object-cover" data-alt="Thumbnail showing side profile of the white Audi A5 Sedan, emphasizing its sleek silhouette." src="https://lh3.googleusercontent.com/aida-public/AB6AXuA7Bz3V5t5HvlJGdyW7hqUl4koPztYyJZqn5_q759-4H7kIGyedMsp40E_ZW7B-FlMMj67IUyb84Pd3irLc2wgeEP4DHqch0uUl1ABeqhrPAmU243Z6tyEPGoLMBf-V-8SlILpchZUWURB3DfHd3fDEgjsIBOxu0KzkR2EdgrmOmMyhdM37S9zaE2MwFa8IDF4MKfkEhILbNZ4fwSFL9hqZfGNFNEHyo7gxeByD025oI6i2a8nnUFdM">
+</div>
+<div class="aspect-video rounded-md overflow-hidden cursor-pointer hover:ring-2 hover:ring-outline-variant transition-all opacity-70 hover:opacity-100">
+<img class="w-full h-full object-cover" data-alt="Thumbnail showing interior dashboard of the Audi A5, focusing on premium materials and digital displays." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDJuXPWym3X_SnfrQhHawCZ81R4n7vxeJCdm-1CvjKLPm27Msr68gjEmqyqKP_k0XO7w6tPOaatrGg99LiTjAUul2QlyH-XHgeEd6tLeMPikWdGqJQshBUskIzl51iO6mvQ3zGageFtxT0pYqYc6lRCelMg8XHOSG-5xkSh5O_crzczq2kDMGvpNdJXqkhKQQwoEQAZgyAAHr1q9uhSHbDWbT2AB_SSa8uFUe7zxarGO1v_-bkrHajg">
+</div>
+<div class="aspect-video rounded-md overflow-hidden cursor-pointer hover:ring-2 hover:ring-outline-variant transition-all opacity-70 hover:opacity-100">
+<img class="w-full h-full object-cover" data-alt="Thumbnail showing rear view of the white Audi A5 Sedan, highlighting taillight design." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAa06XMV7c1KkJk9uJEgMH7HIGUKjPmLmL06ciJ7gDVdzBvenRiuFjeTQ_FstkZTw845IqR-csmmd3iQhw9ez_JooqW7mAcEbt7vASKJTEDHRbNZGeEhMg0BKJqS6bgOkhCM86MMyx-cyM8mBwiHGpgdBUpACnVxAQaHCuISKuoK8m1YzN6S2uXtXR2ULLaGOHOUm-VcZOfZNU3LEUj-woJwh6c3qgsH4AQQuUYCyy7S_tVRu-tAQxy">
+</div>
+<div class="aspect-video rounded-md overflow-hidden cursor-pointer hover:ring-2 hover:ring-outline-variant transition-all opacity-70 hover:opacity-100 relative">
+<img class="w-full h-full object-cover" data-alt="Thumbnail showing close-up of the Audi alloy wheels." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAMG2tBcmJXmPYa7d_Hsf_6pU13RJfzgblwJbQS4fb5XgBoHBHn5VXFmfsJG1HeLCNhrei97Lo-FtB42SwOlGo99Q1B66JXAThtwkgRuKRqs3qVVoQZkefR67XOCxnqkl9BoZ7gFaj8FPV6EKRTuG36Bf4hjyzaR17B6eJ-yC4lcnGkyX5uzbOf7Djc4fgEWB6YKkzaxLhuxco8zEUwLDMVl5lNPLnrmNk0Np8Ryzv9WyROCXK6H3O7">
+<div class="absolute inset-0 bg-primary/50 flex items-center justify-center text-on-primary font-label-bold text-label-bold">
+                             +1
+                         </div>
+</div>
+</div>
+<p class="text-text-secondary font-body-md text-sm mt-2 italic">*Araç görselleri temsilidir, donanım özellikleri farklılık gösterebilir.</p>
+</div>
+<!-- Quick Overview Grid -->
+<div class="grid grid-cols-3 gap-6">
+<div class="bg-surface-container-low p-6 rounded-xl border border-border-subtle flex flex-col gap-2">
+<div class="flex items-center gap-3 text-corporate-blue mb-2">
+<span class="material-symbols-outlined text-[24px]">local_gas_station</span>
+<span class="font-label-bold text-label-bold text-text-secondary uppercase">Yakıt Tipi</span>
+</div>
+<span class="font-headline-md text-text-primary">Hibrit</span>
+</div>
+<div class="bg-surface-container-low p-6 rounded-xl border border-border-subtle flex flex-col gap-2">
+<div class="flex items-center gap-3 text-corporate-blue mb-2">
+<span class="material-symbols-outlined text-[24px]">settings</span>
+<span class="font-label-bold text-label-bold text-text-secondary uppercase">Vites Tipi</span>
+</div>
+<span class="font-headline-md text-text-primary">Otomatik</span>
+</div>
+<div class="bg-surface-container-low p-6 rounded-xl border border-border-subtle flex flex-col gap-2">
+<div class="flex items-center gap-3 text-corporate-blue mb-2">
+<span class="material-symbols-outlined text-[24px]">directions_car</span>
+<span class="font-label-bold text-label-bold text-text-secondary uppercase">Kasa Tipi</span>
+</div>
+<span class="font-headline-md text-text-primary">Sedan</span>
+</div>
+</div>
+<!-- Detailed Technical Specs -->
+<div class="bg-surface-container-lowest rounded-xl border border-border-subtle p-8 shadow-sm">
+<h3 class="font-headline-md text-text-primary mb-8 pb-4 border-b border-border-subtle">Teknik Özellikler</h3>
+<div class="grid grid-cols-2 gap-y-6 gap-x-12">
+<div class="flex justify-between items-center py-2 border-b border-surface-container-high">
+<span class="font-body-md text-text-secondary">Motor Hacmi</span>
+<span class="font-label-bold text-text-primary">1984 cc</span>
+</div>
+<div class="flex justify-between items-center py-2 border-b border-surface-container-high">
+<span class="font-body-md text-text-secondary">Maksimum Güç</span>
+<span class="font-label-bold text-text-primary">150 kW (204 hp)</span>
+</div>
+<div class="flex justify-between items-center py-2 border-b border-surface-container-high">
+<span class="font-body-md text-text-secondary">Maksimum Tork</span>
+<span class="font-label-bold text-text-primary">320 Nm</span>
+</div>
+<div class="flex justify-between items-center py-2 border-b border-surface-container-high">
+<span class="font-body-md text-text-secondary">0-100 km/s Hızlanma</span>
+<span class="font-label-bold text-text-primary">7.3 sn</span>
+</div>
+<div class="flex justify-between items-center py-2 border-b border-surface-container-high">
+<span class="font-body-md text-text-secondary">Maksimum Hız</span>
+<span class="font-label-bold text-text-primary">210 km/s</span>
+</div>
+<div class="flex justify-between items-center py-2 border-b border-surface-container-high">
+<span class="font-body-md text-text-secondary">Ortalama Yakıt Tüketimi</span>
+<span class="font-label-bold text-text-primary">6.1 lt/100km</span>
+</div>
+<div class="flex justify-between items-center py-2 border-b border-surface-container-high">
+<span class="font-body-md text-text-secondary">Bagaj Hacmi</span>
+<span class="font-label-bold text-text-primary">465 lt</span>
+</div>
+<div class="flex justify-between items-center py-2 border-b border-surface-container-high">
+<span class="font-body-md text-text-secondary">Çekiş Sistemi</span>
+<span class="font-label-bold text-text-primary">Quattro (Dört Teker)</span>
+</div>
+</div>
+</div>
+<!-- Why Operational Leasing -->
+<!-- Process Infographic -->
+</div>
+<!-- Right Column: Floating Conversion Panel (Spans 4 cols) -->
+<div class="lg:col-span-4 relative">
+<div class="sticky top-[104px] bg-surface-container-lowest border border-border-subtle rounded-xl shadow-xl p-8 flex flex-col gap-8">
+<!-- Configure Lease -->
+<div class="flex flex-col gap-6 border-b border-border-subtle pb-8">
+<h2 class="font-headline-md text-text-primary m-0">Kiralama Teklifi Alın</h2>
+<div class="flex flex-col gap-2">
+<label class="font-body-md text-text-secondary text-sm">Ön Ödeme Tutarı</label>
+<div class="relative">
+<input class="w-full h-12 px-4 rounded-lg border border-border-subtle bg-surface-container-lowest font-body-md text-text-primary focus:outline-none focus:border-corporate-blue focus:ring-1 focus:ring-corporate-blue transition-all" placeholder="Örn: 50.000 TL" type="text">
+</div>
+</div><div class="flex flex-col gap-4">
+</div>
+<div class="flex flex-col gap-2 mt-2">
+<label class="font-body-md text-text-secondary text-sm">Kiralama Süresi (Ay)*</label>
+<div class="relative">
+<select class="w-full h-12 px-4 rounded-lg border border-border-subtle bg-surface-container-lowest font-body-md text-text-primary appearance-none focus:outline-none focus:border-corporate-blue focus:ring-1 focus:ring-corporate-blue transition-all cursor-pointer">
+<option>12 Ay</option>
+<option>24 Ay</option>
+<option selected="">36 Ay</option>
+<option>48 Ay</option>
+</select>
+<span class="material-symbols-outlined absolute right-4 top-1/2 -translate-y-1/2 text-text-secondary pointer-events-none">expand_more</span>
+</div>
+</div>
+<div class="flex flex-col gap-2">
+<label class="font-body-md text-text-secondary text-sm">Yıllık Kilometre*</label>
+<div class="relative">
+<select class="w-full h-12 px-4 rounded-lg border border-border-subtle bg-surface-container-lowest font-body-md text-text-primary appearance-none focus:outline-none focus:border-corporate-blue focus:ring-1 focus:ring-corporate-blue transition-all cursor-pointer">
+<option>15.000 KM</option>
+<option>20.000 KM</option>
+<option selected="">30.000 KM</option>
+<option>40.000 KM</option>
+</select>
+<span class="material-symbols-outlined absolute right-4 top-1/2 -translate-y-1/2 text-text-secondary pointer-events-none">expand_more</span>
+</div>
+</div>
+</div>
+<!-- Price & Action -->
+<div class="flex flex-col gap-6">
+<div class="flex items-end justify-between px-4 py-6 bg-surface-container-low rounded-lg border border-border-subtle">
+<div class="flex flex-col">
+<span class="font-body-md text-text-secondary text-sm">Öngörülen Aylık Kiralama</span>
+<div class="flex items-baseline gap-1 text-corporate-blue">
+<span class="font-headline-lg text-4xl m-0">150.666</span>
+<span class="font-headline-md m-0">₺</span>
+<span class="font-body-md text-text-secondary">/aylık</span>
+</div>
+</div>
+<div class="bg-surface-container-lowest px-2 py-1 rounded text-xs font-label-bold text-text-secondary border border-border-subtle">
+                            + %20 KDV
+                        </div>
+</div>
+<button class="w-full h-[54px] bg-accent-orange text-primary font-label-bold text-label-bold uppercase rounded-lg hover:bg-orange-dark transition-all flex items-center justify-center gap-2 shadow-md">
+                        Hemen Teklif İste
+                        <span class="material-symbols-outlined text-[20px]">send</span>
+</button>
+<button class="w-full h-[48px] bg-transparent border-2 border-primary text-primary font-label-bold text-label-bold uppercase rounded-lg hover:bg-surface-container-low transition-all">Araç Sepetine Ekle</button>
+</div>
+</div>
+</div>
+</div>
+<!-- Alternative Vehicles -->
+<div class="w-full mt-20 pt-12 border-t border-border-subtle relative">
+<div class="flex flex-col gap-8 max-w-max-content-width mx-auto px-margin-desktop">
+<div class="flex justify-between items-end mb-4">
+<h3 class="text-[36px] md:text-headline-lg font-headline-lg text-navy-deep m-0">İlginizi Çekebilecek Diğer Araçlar</h3>
+<div class="flex items-center gap-4">
+<a class="text-accent-orange font-label-bold hover:text-orange-dark transition-colors flex items-center gap-2" href="#">3/15</a>
+<div class="hidden md:flex gap-2">
+<button class="w-12 h-12 rounded-full border border-border-subtle flex items-center justify-center hover:border-accent-orange hover:text-accent-orange transition-colors bg-white shadow-sm">
+<span class="material-symbols-outlined">arrow_back</span>
+</button>
+<button class="w-12 h-12 rounded-full border border-border-subtle flex items-center justify-center hover:border-accent-orange hover:text-accent-orange transition-colors bg-white shadow-sm">
+<span class="material-symbols-outlined">arrow_forward</span>
+</button>
+</div>
+</div>
+</div>
+<div class="overflow-hidden">
+<div class="flex gap-6 w-[125%] transition-transform duration-300">
+<!-- Vehicle Card 1 -->
+<div class="w-1/4 bg-white rounded-2xl overflow-hidden shadow-lg border border-border-subtle group flex-shrink-0">
+<div class="relative h-56 bg-surface-container overflow-hidden">
+<img alt="BMW 3 Serisi" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAEZ4nUGHOrfja9cp6SUn32lY6BaOMoQFf1HAm-l-4c5lOhtolSctpv9rDGG54ZnexaYsbvmGntd3fD71o5CQRp0oLtwqwtcAQ_WqCQqm_3ktMLx3FhnXiTYgo6Rzn6-X2bs0Mic-_FMbpoW8e2kX1zaVQttLlZbpVwx3K7hfw-d2mQmrs4GAJUl0SPDqwMs6nm6vOv54hYKPX8a4AmiGaJlx5UinKY3Hcq61OM5L1leXP1cs3QCWHv">
+
+</div>
+<div class="p-6">
+<h3 class="text-xl font-bold text-navy-deep mb-1">BMW 3 Serisi</h3>
+<p class="text-text-secondary text-sm mb-4 line-clamp-1">320i Sedan M Sport Otomatik Benzinli</p>
+<div class="grid grid-cols-2 gap-4 mb-6">
+<div class="flex items-center gap-2 text-sm text-text-secondary">
+<span class="material-symbols-outlined text-[18px]">local_gas_station</span> Benzin
+</div>
+<div class="flex items-center gap-2 text-sm text-text-secondary">
+<span class="material-symbols-outlined text-[18px]">settings</span> Otomatik
+</div>
+</div>
+<div class="flex justify-between items-center pt-4 border-t border-border-subtle">
+<div>
+<span class="block text-xs text-text-secondary">Aylık Başlangıç</span>
+<span class="text-lg font-bold text-navy-deep">₺24.500<span class="text-xs font-normal text-text-secondary">/ay</span></span>
+</div>
+<button class="bg-accent-orange text-navy-deep font-bold px-4 py-2 rounded-lg hover:bg-orange-dark hover:text-white transition-colors text-sm">Teklif Al</button>
+</div>
+</div>
+</div>
+<!-- Vehicle Card 2 -->
+<div class="w-1/4 bg-white rounded-2xl overflow-hidden shadow-lg border border-border-subtle group flex-shrink-0">
+<div class="relative h-56 bg-surface-container overflow-hidden">
+<img alt="Mercedes-Benz C-Serisi" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" src="https://lh3.googleusercontent.com/aida-public/AB6AXuChhaykPnZsFUnvuFryTIJKdCr113etYaJ6RQQ61-isErlKgvSX0d9sM4xlVfzI4rAnlYg9kbdfUGFIcYMi2wpCqhp_HHXN7LXyArd3Si69SeFc-Dc0jZeyxC94suGYKSu_Uh1dm6ZGBEyuGGEyhwG_b6hoysQemluXFG4hZxKD-VoQdtFTqlyRJ0d0Lc_dbnvLDEXvbg4gQwQuMe6uBDHDhpN487Qm5NZ8PMIDZ1Mo7hxnVQwqftLF">
+
+</div>
+<div class="p-6">
+<h3 class="text-xl font-bold text-navy-deep mb-1">Mercedes C-Serisi</h3>
+<p class="text-text-secondary text-sm mb-4 line-clamp-1">C 200 4MATIC AMG Otomatik Mild Hybrid Benzinli</p>
+<div class="grid grid-cols-2 gap-4 mb-6">
+<div class="flex items-center gap-2 text-sm text-text-secondary">
+<span class="material-symbols-outlined text-[18px]">electric_car</span> Mild Hybrid
+</div>
+<div class="flex items-center gap-2 text-sm text-text-secondary">
+<span class="material-symbols-outlined text-[18px]">settings</span> Otomatik
+</div>
+</div>
+<div class="flex justify-between items-center pt-4 border-t border-border-subtle">
+<div>
+<span class="block text-xs text-text-secondary">Aylık Başlangıç</span>
+<span class="text-lg font-bold text-navy-deep">₺28.000<span class="text-xs font-normal text-text-secondary">/ay</span></span>
+</div>
+<button class="bg-accent-orange text-navy-deep font-bold px-4 py-2 rounded-lg hover:bg-orange-dark hover:text-white transition-colors text-sm">Teklif Al</button>
+</div>
+</div>
+</div>
+<!-- Vehicle Card 3 -->
+<div class="w-1/4 bg-white rounded-2xl overflow-hidden shadow-lg border border-border-subtle group flex-shrink-0">
+<div class="relative h-56 bg-surface-container overflow-hidden">
+<img alt="Volvo S60" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD8vXtImNr7f-7xkxVJ397F-HAAJiSf5qAxzlqP9bwLwAlWw4vNiB6e9COvICCa-JF-kNXL8jecM_AxDxzFc1vXJRWtxLCfp_kV0nccJWf_JRbjU0g4__PNhffbAKxBOsqjSqbbxbRBu1QjUk16oEEvUS_Tuogae6KAsWx4dZuCwncu4BUChIJBlaQcoWjbWQIv5_1CXk6Ax8OWs-TSZPbAS7hzC-zwq06ScTE4d3NKRCVMDSvoAbKq">
+
+</div>
+<div class="p-6">
+<h3 class="text-xl font-bold text-navy-deep mb-1">Volvo S60</h3>
+<p class="text-text-secondary text-sm mb-4 line-clamp-1">B5 AWD Plus Dark Otomatik Mild Hybrid Benzinli</p>
+<div class="grid grid-cols-2 gap-4 mb-6">
+<div class="flex items-center gap-2 text-sm text-text-secondary">
+<span class="material-symbols-outlined text-[18px]">electric_car</span> Mild Hybrid
+</div>
+<div class="flex items-center gap-2 text-sm text-text-secondary">
+<span class="material-symbols-outlined text-[18px]">settings</span> Otomatik
+</div>
+</div>
+<div class="flex justify-between items-center pt-4 border-t border-border-subtle">
+<div>
+<span class="block text-xs text-text-secondary">Aylık Başlangıç</span>
+<span class="text-lg font-bold text-navy-deep">₺30.500<span class="text-xs font-normal text-text-secondary">/ay</span></span>
+</div>
+<button class="bg-accent-orange text-navy-deep font-bold px-4 py-2 rounded-lg hover:bg-orange-dark hover:text-white transition-colors text-sm">Teklif Al</button>
+</div>
+</div>
+</div>
+<!-- Vehicle Card 4 -->
+<div class="w-1/4 bg-white rounded-2xl overflow-hidden shadow-lg border border-border-subtle group flex-shrink-0">
+<div class="relative h-56 bg-surface-container overflow-hidden">
+<img alt="Audi A5" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBriFEeAqX-gd5XrtFLy3wrfa1uYQpsv_l9wHrLqcaVTcIm-qBnF4FRJnfQGVeSmTMp2_6RWpVGJPs1c_5bcugRCCpYVQI7SJq8XN-6XHiG5sIDgR4unN2LZJQS-Y7tcYlnUxgkNAbsCFkBbD0gHG86YFG7_kWQPxVwgvRKwaGkfCuFClD1mTXGA4s2kGYn5ss4ITWRFA3DoUxdiRK0HgZVopYxAmfM9oA0CfF5sU8VSJkqpVxNep0n">
+<div class="absolute top-4 left-4 bg-navy-deep text-white px-3 py-1 rounded-full text-sm font-bold">Executive</div>
+</div>
+<div class="p-6">
+<h3 class="text-xl font-bold text-navy-deep mb-1">Audi A4</h3>
+<p class="text-text-secondary text-sm mb-4 line-clamp-1">40 TDI Quattro S Line Otomatik</p>
+<div class="grid grid-cols-2 gap-4 mb-6">
+<div class="flex items-center gap-2 text-sm text-text-secondary">
+<span class="material-symbols-outlined text-[18px]">local_gas_station</span> Dizel
+</div>
+<div class="flex items-center gap-2 text-sm text-text-secondary">
+<span class="material-symbols-outlined text-[18px]">settings</span> Otomatik
+</div>
+</div>
+<div class="flex justify-between items-center pt-4 border-t border-border-subtle">
+<div>
+<span class="block text-xs text-text-secondary">Aylık Başlangıç</span>
+<span class="text-lg font-bold text-navy-deep">₺29.000<span class="text-xs font-normal text-text-secondary">/ay</span></span>
+</div>
+<button class="bg-accent-orange text-navy-deep font-bold px-4 py-2 rounded-lg hover:bg-orange-dark hover:text-white transition-colors text-sm">Teklif Al</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="flex justify-center gap-2 mt-6">
+<button class="w-2.5 h-2.5 rounded-full bg-navy-deep transition-colors"></button>
+<button class="w-2.5 h-2.5 rounded-full bg-border-subtle hover:bg-outline-variant transition-colors"></button>
+<button class="w-2.5 h-2.5 rounded-full bg-border-subtle hover:bg-outline-variant transition-colors"></button>
+</div>
+</div>
+</div>
+</div>
+</main><footer class="w-full bg-navy-deep text-on-primary pt-section-v-space pb-12"><div class="max-w-[1360px] mx-auto px-margin-desktop"><div class="grid grid-cols-1 md:grid-cols-4 gap-gutter mb-20"><div class="flex flex-col gap-6"><div class="flex flex-col"><span class="text-on-primary font-headline-md text-headline-md leading-none">KALİTE</span><span class="text-accent-orange font-label-bold text-label-bold tracking-widest uppercase">FİLO</span></div><p class="text-on-primary-container font-body-md text-body-md max-w-xs">B2B lojistik çözümlerinde profesyonel filo yönetimi ve operasyonel kiralama ortağınız.</p></div><div class="flex flex-col gap-4"><h4 class="text-on-primary font-label-bold text-label-bold uppercase mb-2">Hızlı Linkler</h4><a class="text-on-primary-container font-body-md text-body-md hover:text-accent-orange" href="#">Araç Listesi</a><a class="text-on-primary-container font-body-md text-body-md hover:text-accent-orange" href="#">Kampanyalar</a><a class="text-on-primary-container font-body-md text-body-md hover:text-accent-orange" href="#">Teklif Formu</a></div><div class="flex flex-col gap-4"><h4 class="text-on-primary font-label-bold text-label-bold uppercase mb-2">Kurumsal</h4><a class="text-on-primary-container font-body-md text-body-md hover:text-accent-orange" href="#">Hakkımızda</a><a class="text-on-primary-container font-body-md text-body-md hover:text-accent-orange" href="#">İnsan Kaynakları</a><a class="text-on-primary-container font-body-md text-body-md hover:text-accent-orange" href="#">Sürdürülebilirlik</a></div><div class="flex flex-col gap-6"><h4 class="text-on-primary font-label-bold text-label-bold uppercase">E-Bülten</h4><div class="flex h-[48px]"><input class="flex-1 px-4 rounded-l-lg bg-primary border-none text-on-primary placeholder:text-on-primary-container focus:ring-1 focus:ring-accent-orange" placeholder="E-posta adresiniz" type="email"><button class="bg-accent-orange text-primary px-4 rounded-r-lg font-label-bold"><span class="material-symbols-outlined">arrow_forward</span></button></div><div class="flex gap-4 mt-2"><span class="material-symbols-outlined text-on-primary-container hover:text-accent-orange cursor-pointer">public</span><span class="material-symbols-outlined text-on-primary-container hover:text-accent-orange cursor-pointer">chat</span></div></div></div><div class="border-t border-on-primary-fixed-variant pt-8 flex justify-between items-center text-sm text-on-primary-container font-body-md"><span class="">© 2024 Kalite Filo. Tüm Hakları Saklıdır.</span><div class="flex gap-6"><span class="">KVKK Aydınlatma Metni</span><span class="">Çerez Politikası</span></div></div></div></footer>
+
+
+</body></html>

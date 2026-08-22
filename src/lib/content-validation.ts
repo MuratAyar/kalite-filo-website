@@ -1,5 +1,6 @@
 import { APPROVED_ROUTES } from "@/config/routes";
 import {
+  aboutPageContent,
   articleCategories,
   articles,
   contactInformation,
@@ -141,12 +142,143 @@ function validateHomeCopy(): void {
   }
 }
 
+function validateAboutCopy(): void {
+  const copyFields = [
+    ["About metadata description", aboutPageContent.metadata.description],
+    ["About hero eyebrow", aboutPageContent.hero.eyebrow],
+    ["About hero title lead", aboutPageContent.hero.titleLead],
+    ["About hero title accent", aboutPageContent.hero.titleAccent],
+    ["About hero body", aboutPageContent.hero.body],
+    ["About hero primary action", aboutPageContent.hero.primaryAction],
+    ["About hero secondary action", aboutPageContent.hero.secondaryAction],
+    ["About vision and mission title", aboutPageContent.visionMissionValues.title],
+    ["About vision title", aboutPageContent.visionMissionValues.vision.title],
+    ["About vision body", aboutPageContent.visionMissionValues.vision.body],
+    ["About mission title", aboutPageContent.visionMissionValues.mission.title],
+    ["About mission body", aboutPageContent.visionMissionValues.mission.body],
+    ["About values title", aboutPageContent.visionMissionValues.values.title],
+    ["About values eyebrow", aboutPageContent.visionMissionValues.values.eyebrow],
+    ["About operational title", aboutPageContent.operational.title],
+    ["About operational intro", aboutPageContent.operational.intro],
+    ["About network title", aboutPageContent.network.title],
+    ["About network intro", aboutPageContent.network.intro],
+    ["About why title", aboutPageContent.why.title],
+    ["About why intro", aboutPageContent.why.intro],
+    ["About editorial title", aboutPageContent.editorial.title],
+    ["About editorial intro", aboutPageContent.editorial.intro],
+    ["About editorial action", aboutPageContent.editorial.allAction.label],
+  ] as const;
+
+  for (const [fieldName, value] of copyFields) {
+    assertNonEmptyString(value, fieldName);
+  }
+
+  assertUniqueBy(
+    aboutPageContent.hero.statistics,
+    (statistic) => statistic.id,
+    "About statistic ids",
+  );
+  for (const statistic of aboutPageContent.hero.statistics) {
+    asEntityId(statistic.id, "About statistic id");
+    assertNonEmptyString(statistic.value, `About statistic ${statistic.id} value`);
+    assertNonEmptyString(statistic.label, `About statistic ${statistic.id} label`);
+  }
+
+  const visionMissionStatements = [
+    aboutPageContent.visionMissionValues.vision,
+    aboutPageContent.visionMissionValues.mission,
+  ] as const;
+  assertUniqueBy(
+    visionMissionStatements,
+    (statement) => statement.id,
+    "About vision and mission ids",
+  );
+  for (const statement of visionMissionStatements) {
+    asEntityId(statement.id, "About vision and mission id");
+    assertNonEmptyString(statement.icon, `About ${statement.id} icon`);
+  }
+
+  assertUniqueBy(
+    aboutPageContent.visionMissionValues.values.items,
+    (value) => value.id,
+    "About value ids",
+  );
+  for (const value of aboutPageContent.visionMissionValues.values.items) {
+    asEntityId(value.id, "About value id");
+    assertNonEmptyString(value.icon, `About value ${value.id} icon`);
+    assertNonEmptyString(value.title, `About value ${value.id} title`);
+  }
+
+  const aboutItemGroups: readonly [
+    string,
+    readonly {
+      readonly id: string;
+      readonly icon: string;
+      readonly title: string;
+      readonly body: string;
+    }[],
+  ][] = [
+    ["operational", aboutPageContent.operational.items],
+    ["network", aboutPageContent.network.items],
+    ["why", aboutPageContent.why.items],
+  ];
+  for (const [groupName, items] of aboutItemGroups) {
+    assertUniqueBy(items, (item) => item.id, `About ${groupName} ids`);
+    for (const item of items) {
+      asEntityId(item.id, `About ${groupName} item id`);
+      assertNonEmptyString(item.title, `About ${groupName} ${item.id} title`);
+      assertNonEmptyString(item.body, `About ${groupName} ${item.id} body`);
+      assertNonEmptyString(item.icon, `About ${groupName} ${item.id} icon`);
+    }
+  }
+
+  if (
+    aboutPageContent.publicationStatus !== "draft" &&
+    aboutPageContent.publicationStatus !== "approved"
+  ) {
+    throw new ContentValidationError(
+      "About copy has an unsupported publication status.",
+    );
+  }
+
+  assertUniqueBy(
+    aboutPageContent.editorial.articleIds,
+    (articleId) => articleId,
+    "About editorial article ids",
+  );
+  const articleIds = new Set<string>(articles.map(({ id }) => id));
+  for (const articleId of aboutPageContent.editorial.articleIds) {
+    asEntityId(articleId, "About editorial article id");
+    if (!articleIds.has(articleId)) {
+      throw new ContentValidationError(
+        `About editorial references unknown article ${articleId}.`,
+      );
+    }
+  }
+
+  const aboutRoute = APPROVED_ROUTES.find((route) => route.id === "about");
+  if (!aboutRoute) {
+    throw new ContentValidationError(
+      "The approved route registry is missing About.",
+    );
+  }
+  if (
+    aboutRoute.status === "published" &&
+    String(aboutPageContent.publicationStatus) !== "approved"
+  ) {
+    throw new ContentValidationError(
+      "About cannot be published while its page copy remains draft.",
+    );
+  }
+}
+
 /**
  * Runs when the static root layout is evaluated. It deliberately validates only
  * structural facts that can be proven from repository-owned build-time data.
  */
 export function validateFoundationContent(): void {
   validateHomeCopy();
+  validateAboutCopy();
   validateSlugs(vehicles, "vehicle");
   validateSlugs(vehiclePortfolio, "vehicle portfolio");
   validateSlugs(articleCategories, "article category");
@@ -156,8 +288,25 @@ export function validateFoundationContent(): void {
   validateIds(legalPages, "legal page");
 
   const articleCategoryIds = new Set(articleCategories.map(({ id }) => id));
+  if (articles.length !== 18) {
+    throw new ContentValidationError(
+      "The approved Filo Rehberi source must contain exactly 18 articles.",
+    );
+  }
+  if (articles.filter((article) => article.featured).length !== 1) {
+    throw new ContentValidationError(
+      "The approved Filo Rehberi source must contain exactly one featured article.",
+    );
+  }
   for (const category of articleCategories) {
     assertNonEmptyString(category.label, `article category ${category.id} label`);
+    if (
+      articles.filter((article) => article.categoryId === category.id).length !== 3
+    ) {
+      throw new ContentValidationError(
+        `Article category ${category.id} must contain exactly three supplied articles.`,
+      );
+    }
   }
   for (const article of articles) {
     if (!articleCategoryIds.has(article.categoryId)) {
@@ -165,7 +314,9 @@ export function validateFoundationContent(): void {
         `Article ${article.id} references an unknown category.`,
       );
     }
-    assertMediaAsset(article.coverImage, `article ${article.id} cover image`);
+    if (article.coverImage) {
+      assertMediaAsset(article.coverImage, `article ${article.id} cover image`);
+    }
     assertNonEmptyString(article.title, `article ${article.id} title`);
     assertNonEmptyString(article.excerpt, `article ${article.id} excerpt`);
     asEntityId(article.contentKey, `article ${article.id} contentKey`);
@@ -360,6 +511,9 @@ export function validateFoundationContent(): void {
   }
 
   const faqCategoryIds = new Set(faqCategories.map(({ id }) => id));
+  for (const category of faqCategories) {
+    assertNonEmptyString(category.label, `FAQ category ${category.id} label`);
+  }
   for (const entry of faqEntries) {
     if (!faqCategoryIds.has(entry.categoryId)) {
       throw new ContentValidationError(
@@ -367,6 +521,14 @@ export function validateFoundationContent(): void {
       );
     }
     assertNonEmptyString(entry.question, `FAQ entry ${entry.id} question`);
+    if (entry.answerParagraphs.length === 0) {
+      throw new ContentValidationError(
+        `FAQ entry ${entry.id} must contain at least one answer paragraph.`,
+      );
+    }
+    for (const paragraph of entry.answerParagraphs) {
+      assertNonEmptyString(paragraph, `FAQ entry ${entry.id} answer paragraph`);
+    }
     if (!Number.isInteger(entry.order) || entry.order < 0) {
       throw new ContentValidationError(
         `FAQ entry ${entry.id} order must be a non-negative integer.`,

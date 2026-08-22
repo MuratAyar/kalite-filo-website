@@ -105,4 +105,4 @@ Kalite Filo ile teklif sürecinde kullanım profilinizi ve yıllık kilometre be
 
 ## CTA
 
-**Buton:** `Filo İhtiyacınız İçin Teklif Alın`
+[Filo ihtiyacınız için teklif alın](/teklif-al/).

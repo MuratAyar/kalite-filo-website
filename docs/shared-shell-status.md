@@ -43,7 +43,7 @@ The root layout owns exactly one shared header and one shared footer around ever
 
 Installed Next.js 16.2.11 documentation states that layouts cannot read pathname and identifies a small Client Component using `usePathname()` as the active-link pattern. `PrimaryNavigation` is therefore the only shell `use client` boundary. It imports no site/environment/server-only module: approved navigation items and action styling are computed by Server Components and passed as serializable props.
 
-The dependency-free `navigation-route-matching.mjs` helper removes query/fragment text, normalizes trailing slashes, and maps exact static paths to their navigation owner. Future `/araclar/<slug>/` paths belong to Araçlar, and future `/filo-rehberi/<slug>/` paths belong to Filo Rehberi. Home and unknown paths return no ordinary navigation item. Contact is not a header item, but its existing footer link receives current-page state. Desktop, mobile, and footer lists share the same helper and emit `aria-current="page"` on only the matching link.
+The dependency-free `navigation-route-matching.mjs` helper removes query/fragment text, normalizes trailing slashes, and maps exact static paths to their navigation owner. `/arac-listesi/<slug>/` paths belong to Araç Listesi, and future `/filo-rehberi/<slug>/` paths belong to Filo Rehberi. Home and unknown paths return no ordinary navigation item. Contact is not a header item, but its existing footer link receives current-page state. Desktop, mobile, and footer lists share the same helper and emit `aria-current="page"` on only the matching link.
 
 The mobile disclosure uses ordinary document-navigation anchors. That deliberately resets native `details` state when navigating between exported documents, avoiding a hydration island solely to close the menu after an App Router client transition.
 
@@ -81,7 +81,7 @@ The opaque blue portion averages approximately RGB 2/34/75 and has only about 1.
 
 Except for Home, each inner skeleton contains only a route-owned `main`, the shared `PageHeader`, its approved H1, an “Ana Sayfa” breadcrumb link, and the unlinked current breadcrumb item. The three legal skeletons contain no legal body text. No intro, eyebrow, invented legal sentence, placeholder form, statistic, or company claim was added to them.
 
-No `/araclar/[slug]/` or `/filo-rehberi/[slug]/` source route exists yet.
+The `/arac-listesi/[slug]/` source route now statically generates all 32 vehicle details. Filo Rehberi also statically generates six category routes under `/filo-rehberi/[category]/` and 18 article routes under `/filo-rehberi/[category]/[slug]/`.
 
 ## Responsive decisions
 
@@ -194,7 +194,7 @@ Still unresolved and intentionally absent:
 - a separately approved inverse/footer logo, dedicated favicon/brand mark, licensed font files, photography, and remaining image rights;
 - company legal identity, address, hours, social URLs, copyright wording, claims, statistics, service guarantees, and any contact details beyond the supplied phone/email;
 - publication review for the 32 supplied vehicle records, imagery for the remaining 29 vehicles, pricing, availability, terms, full vehicle listing/detail UI, and dynamic detail pages;
-- final editorial review, missing author/reviewer decisions, Filo Rehberi index/detail UI, and dynamic detail pages; six supplied Markdown articles and matching local images are now present;
+- final editorial review, missing author/reviewer decisions, and Filo Rehberi detail UI; 18 supplied Markdown articles and six matching local images are now present on the implemented, unpublished index;
 - FAQ answers;
 - contact/quote forms, legal/consent copy, PHP endpoints, mail delivery, validation, and result states;
 - legal body content for the three implemented noindex skeletons;

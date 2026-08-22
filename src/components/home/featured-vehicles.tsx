@@ -10,17 +10,16 @@ import {
   VehicleCardFacts,
   VehicleListPrice,
 } from "@/components/vehicles/vehicle-card-details";
+import { getVehicleDetailPath } from "@/lib/paths";
 
 export type FeaturedVehiclesProps = {
   content: HomeFeaturedVehiclesCopy;
-  quoteHref: InternalPath;
   vehicles: readonly VehiclePortfolioRecord[];
   vehiclesHref: InternalPath;
 };
 
 export function FeaturedVehicles({
   content,
-  quoteHref,
   vehicles,
   vehiclesHref,
 }: FeaturedVehiclesProps) {
@@ -64,6 +63,7 @@ export function FeaturedVehicles({
             {featuredVehicles.map((vehicle) => (
               <li
                 className="min-w-0"
+                data-vehicle-card={vehicle.slug}
                 data-monthly-list-net-price-try={
                   vehicle.listPrice.amountMinor / 100
                 }
@@ -71,10 +71,10 @@ export function FeaturedVehicles({
                 key={vehicle.id}
               >
                 <a
-                  aria-label={`${vehicle.make} ${vehicle.model} için teklif al`}
+                  aria-label={`${vehicle.make} ${vehicle.model} araç detayını incele`}
                   className="group flex h-full flex-col overflow-hidden rounded-card border border-border-subtle bg-surface-card text-inherit no-underline shadow-[0_0.5rem_1.5rem_rgb(24_33_54_/_0.05)] transition-[border-color,box-shadow] hover:border-corporate-blue hover:shadow-[0_0.75rem_1.75rem_rgb(24_33_54_/_0.12)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus motion-reduce:transition-none"
                   data-vehicle-card-link="true"
-                  href={quoteHref}
+                  href={getVehicleDetailPath(vehicle.slug)}
                 >
                   <div
                     className="relative aspect-[4/3] overflow-hidden bg-surface-muted"
@@ -112,7 +112,7 @@ export function FeaturedVehicles({
                         className="inline-flex min-h-11 w-full shrink-0 items-center justify-center rounded-control bg-accent-orange px-4 text-label font-semibold text-brand-navy transition-colors group-hover:bg-orange-dark group-focus-visible:bg-orange-dark motion-reduce:transition-none 2xl:w-auto"
                         data-vehicle-card-cta="true"
                       >
-                        Teklif Al
+                        Aracı İncele
                       </span>
                     </div>
                   </div>

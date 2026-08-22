@@ -116,8 +116,8 @@ The following facts are closed and should no longer be treated as implementation
 | Staging | `https://staging.kalitefilo.com.tr`, separate document root, DNS and Let's Encrypt SSL configured, HTTPS forced |
 | Home | Canonical path `/` |
 | About | Canonical path `/hakkimizda/` |
-| Vehicles | Index `/arac-listesi/`, detail family `/araclar/[slug]/` |
-| Fleet content | Label “Filo Rehberi”, index `/filo-rehberi/`, article family `/filo-rehberi/[slug]/` |
+| Vehicles | Index `/arac-listesi/`, detail family `/arac-listesi/[slug]/` |
+| Fleet content | Label “Filo Rehberi”, index `/filo-rehberi/`, category family `/filo-rehberi/[category]/`, article family `/filo-rehberi/[category]/[slug]/` |
 | FAQ | Label “Sıkça Sorulan Sorular”, route `/sikca-sorulan-sorular/` |
 | Contact | Canonical path `/iletisim/` |
 | Quote | CTA label “Teklif Al”, route `/teklif-al/` |
@@ -260,7 +260,7 @@ Components must receive those values as props rather than repeating phone number
 
 ### Vehicle routes
 
-The vehicle listing is static HTML at the approved `/arac-listesi/` path. Each approved vehicle receives a static detail route in the canonical `/araclar/[slug]/` family, implemented later as `app/araclar/[slug]/page.tsx`.
+The vehicle listing is static HTML at the approved `/arac-listesi/` path. Each owner-supplied vehicle now receives a static detail route in the canonical `/arac-listesi/[slug]/` family through `app/arac-listesi/[slug]/page.tsx`, exhaustive `generateStaticParams()`, and `dynamicParams = false`. Publication, indexability, and sitemap inclusion remain separate registry decisions; the implemented family is still unpublished and noindex.
 
 That route must:
 
@@ -282,7 +282,7 @@ The first approach is preferred where categories deserve search landing pages. T
 
 ### Filo Rehberi routes
 
-Use `/filo-rehberi/` for the index and `/filo-rehberi/[slug]/` for article details. Do not create a duplicate `/blog/` family. Category pages and pagination are generated only for approved content that exists. Each article detail route must enumerate its slug with `generateStaticParams()` and generate its metadata from the same record used for its body.
+Use `/filo-rehberi/` for the index, `/filo-rehberi/[category]/` for category pages, and `/filo-rehberi/[category]/[slug]/` for article details. Do not create a duplicate `/blog/` family. Category pages and pagination are generated only for approved content that exists. Each article detail route must enumerate both category and slug with `generateStaticParams()` and generate its metadata from the same record used for its body.
 
 Article dates must be real ISO dates in data and human-readable Turkish dates in the UI. Tax, legal, financial, or regulatory claims require a source and content-owner approval. An updated date is shown only when a substantive reviewed update exists.
 
@@ -626,7 +626,7 @@ Release requires named approval for:
 3. Replace starter assets and build the Turkish metadata foundation, shared shell, navigation, footer, breadcrumbs, accessibility primitives, and branded 404.
 4. Implement the home, about, contact-information, FAQ, and approved legal pages using only verified content.
 5. Implement the typed vehicle inventory, static list/category experience, and all vehicle detail pages with complete `generateStaticParams()` coverage.
-6. Implement the typed Filo Rehberi index at `/filo-rehberi/`, real category/pagination routes, and all `/filo-rehberi/[slug]/` article pages with complete `generateStaticParams()` coverage.
+6. Maintain the typed Filo Rehberi index at `/filo-rehberi/`, the six `/filo-rehberi/[category]/` pages, and all `/filo-rehberi/[category]/[slug]/` article pages with complete `generateStaticParams()` coverage.
 7. Add only the approved, measured client islands for mobile navigation, filtering, or copy-link behavior; preserve the no-JavaScript baseline.
 8. Implement and security-test the PHP contact, quote, and—only if fully approved—newsletter workflows without a database, CRM, Server Actions, or Next API routes.
 9. Complete per-route SEO, sitemap, robots, structured data from verified facts, static result-page indexing rules, and social assets.

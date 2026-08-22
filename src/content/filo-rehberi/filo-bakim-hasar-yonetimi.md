@@ -111,6 +111,4 @@ Operasyonel kiralama modeli de şirketlerin bu süreçlerdeki idari yükünün �
 
 ### Araçlarınız değil, işiniz hareket halinde kalsın.
 
-Kalite Filo ile uzun dönem araç kiralama çözümlerini inceleyin ve filo operasyonunuz için uygun hizmet kapsamını birlikte belirleyin.
-
-**Buton:** `Teklif Al`
+Kalite Filo [araç portföyünü inceleyin](/arac-listesi/) ve filo operasyonunuz için uygun hizmet kapsamını birlikte belirlemek üzere [teklif alın](/teklif-al/).

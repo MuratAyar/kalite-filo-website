@@ -10,8 +10,9 @@ This addendum supersedes only the affected gap statements below; the original au
 
 - The project owner has now verified `05317158068` and `info@kalitefilo.com.tr` for public contact use. Address, company legal identity, support/call-centre channels, business hours, social URLs, and other contact roles remain unresolved.
 - The approved registry now contains 12 decisions: 10 static routes and the two existing vehicle/article detail families. `/kvkk-ve-guvenlik/`, `/cerez-politikasi/`, and `/kullanim-kosullari/` have neutral static skeletons in `canonical-path` state. They remain unpublished, noindex, and outside the sitemap; legal body text, version, effective date, owner, and application/contact details are still missing.
-- The 32 owner-supplied portfolio records are preserved in local typed data and now render in the unpublished `/arac-listesi/` catalogue. On 14 August 2026, the project owner explicitly approved the `Portföy_32` `Önerilen Liste Net` values for display as monthly TRY net list prices with `KDV hariç`; the same source supplies the three Home-card amounts. This does not establish `Nihai Yayın Net`, VAT-inclusive totals, binding offers, availability promises, approved duration/kilometre assumptions, validity, service scope, contract terms, technical/editorial completeness, or vehicle-detail publication readiness. Twenty-eight representative model-family images have been individually licence/visual-match reviewed and promoted to local assets with attribution; `KF-015`, `KF-026`, `KF-030`, and `KF-031` deliberately remain image-less because the available candidates materially mismatched the records. Final per-record publication approval, galleries, crops, and alt review remain blocked.
-- Six owner-supplied Markdown articles and their local WebP assets are integrated for the current Home editorial presentation. Article authors, reviewers, citations/sources, final editorial metadata, and `/filo-rehberi/[slug]/` detail rendering remain unresolved.
+- The 32 owner-supplied portfolio records are preserved in local typed data and now render in the unpublished `/arac-listesi/` catalogue and 32 statically generated `/arac-listesi/[slug]/` detail pages. On 14 August 2026, the project owner explicitly approved the `Portföy_32` `Önerilen Liste Net` values for display as monthly TRY net list prices with `KDV hariç`; the same source supplies the Home-card amounts. This does not establish `Nihai Yayın Net`, VAT-inclusive totals, binding offers, availability promises, approved duration/kilometre assumptions, validity, service scope, contract terms, or final publication readiness. Twenty-eight representative model-family images have been individually licence/visual-match reviewed and promoted to local assets; `KF-015`, `KF-026`, `KF-030`, and `KF-031` deliberately remain image-less because the available candidates materially mismatched the records. Final per-record publication approval, multi-image galleries, crops, active quote/basket workflows, and alt review remain blocked.
+- Eighteen owner-supplied Markdown articles are integrated through category-aware static detail pages; six have local WebP assets. Article authors, reviewers, citations/sources, final editorial review, and publication approval remain unresolved.
+- The unpublished `/filo-rehberi/` index now presents all 18 supplied records across six approved categories, with one featured item and a real six-items-per-page client pagination control. Six records have matched local covers; the other 12 use an honest non-photographic fallback because no additional images were supplied. It does not fabricate detail links; article authors, reviewers, citations/sources, final editorial metadata, article-detail rendering, and publication approval remain unresolved.
 - Home remains registry status `foundation`, emits noindex behavior, and is excluded from the still-empty sitemap.
 
 ## Outcome
@@ -42,7 +43,7 @@ The following infrastructure and naming facts were verified after the original a
 - production PHP `8.5.8`, SAPI `cgi-fcgi`, reserved for later approved form endpoints;
 - forced HTTPS on production;
 - staging origin `https://staging.kalitefilo.com.tr`, with a separate document root, working DNS, Let's Encrypt SSL, and forced HTTPS;
-- public fleet-content name **Filo Rehberi**, index `/filo-rehberi/`, and article family `/filo-rehberi/[slug]/`;
+- public fleet-content name **Filo Rehberi**, index `/filo-rehberi/`, category family `/filo-rehberi/[category]/`, and article family `/filo-rehberi/[category]/[slug]/`;
 - FAQ label **Sıkça Sorulan Sorular** at `/sikca-sorulan-sorular/`;
 - quote CTA label **Teklif Al** at `/teklif-al/`.
 
@@ -102,7 +103,12 @@ Customer-login notices and authentication policies are not Phase 1 work because 
 
 ### Forms and processing contract
 
-There is no PHP handler, external form processor, field contract, destination mailbox, privacy-retention decision, spam strategy, or user-facing result copy.
+The quote workflow now has an approved native field contract, fixed sender and
+recipient mailboxes, user-facing result copy, and a secret-free PHP 8.5 handler
+under `server/forms/teklif.php`. The handler includes server-side validation,
+same-origin checks, a honeypot, and a small hashed-IP rate limit. Real cPanel
+mail delivery, privacy/retention decisions, counsel-approved disclosure and
+consent wording, and staging abuse testing remain unresolved launch gates.
 
 Before forms can be implemented, provide:
 
@@ -145,7 +151,7 @@ Where a claim is valid only for specified contracts, vehicles, regions, time per
 
 | Topic | Conflict | Status / required action |
 | --- | --- | --- |
-| Guide name | Navigation/breadcrumbs say “Blog”; index H1 says “Filo Rehberi” | **Resolved:** use “Filo Rehberi”, `/filo-rehberi/`, and `/filo-rehberi/[slug]/`; do not create a duplicate `/blog/` family |
+| Guide name | Navigation/breadcrumbs say “Blog”; index H1 says “Filo Rehberi” | **Resolved:** use “Filo Rehberi”, `/filo-rehberi/`, `/filo-rehberi/[category]/`, and `/filo-rehberi/[category]/[slug]/`; do not create a duplicate `/blog/` family |
 | FAQ name | “SSS,” “Sık Sorulan Sorular,” and “Sıkça Sorulan Sorular” all appear | **Resolved:** use “Sıkça Sorulan Sorular” and `/sikca-sorulan-sorular/` |
 | Quote name | CTA says “Teklif Al”; page says “Araç Fiyat Teklif Formu” | **Resolved for navigation:** use “Teklif Al” and `/teklif-al/`; final page copy still requires approval |
 | Corporate email | `info@kalitefilo.com.tr` versus `destek@kalitefilo.com` | Verify channels and use cases |
@@ -214,7 +220,7 @@ For every vehicle that will appear, supply and verify:
 - included/excluded services and qualifications;
 - SEO title and description.
 
-Vehicle detail has no design. It still needs an approved content hierarchy for gallery, summary, technical data, rental options, included services, price/quote disclosure, related vehicles, FAQ, and quote CTA.
+Vehicle detail now has a production-design-system composition for the supplied summary, available technical facts, list-net price disclosure, inert quote/basket controls, and four same-category related vehicles. Multi-image galleries, approved rental options, included-service claims, FAQ content, binding quote behavior, basket behavior, and final publication approval remain unresolved.
 
 The owner-approved monthly KDV-excluded net list amounts may be shown with explicit `Aylık Liste Net`, `₺…/ay`, and `KDV hariç` labels. Do not turn them into stock claims, VAT-inclusive totals, `Nihai Yayın Net`, or a binding offer, and do not publish the workbook's template duration/kilometre values as approved terms.
 
@@ -240,16 +246,15 @@ The current detail article lacks author, date, update, and sources, and contains
 
 ### FAQ
 
-Only four design answers exist for six visible categories. None is established as officially approved operational guidance.
+The production page now contains six claim-safe answers in four categories. They are limited to service definitions and the operational flow already recorded in `references/approved-content/company.md`; the Stitch-only hotline, term ranges, tax statements, service-inclusion promises, replacement-vehicle guarantees, and feedback controls were not adopted.
 
 Required work:
 
-- verify every answer with operations/legal teams;
-- remove the fake emergency number;
+- verify any future procedural answer with operations/legal teams;
 - qualify contract-dependent service inclusions and replacement vehicles;
-- approve categories and enough questions to avoid empty category filters;
+- expand categories only when approved questions exist; the current navigation contains no empty category;
 - add approved content on contract, payment, vehicle use, kilometre excess, maintenance/tyres, incidents, returns, availability, pricing, and privacy as applicable;
-- decide whether feedback collection is removed or connected to an approved non-database processor.
+- decide whether feedback collection remains omitted or is connected to an approved privacy-respecting processor.
 
 Do not invent answers to make the design look populated.
 
@@ -306,7 +311,7 @@ Before launch, supply or approve:
 
 - Turkish site name and default title template;
 - unique title and description for every index, detail, form, and legal page;
-- filter/query URL indexing and canonicalization policy; the main Filo Rehberi route family is already fixed at `/filo-rehberi/` and `/filo-rehberi/[slug]/`;
+- filter/query URL indexing and canonicalization policy; the main Filo Rehberi route family is already fixed at `/filo-rehberi/`, `/filo-rehberi/[category]/`, and `/filo-rehberi/[category]/[slug]/`;
 - social titles/descriptions/images;
 - index/noindex decisions for filter states and any form result pages;
 - Organization details only after official facts are verified;
@@ -331,7 +336,8 @@ Do not mark content ready until:
 - [ ] Every published article has full body, dates, owner/reviewer, and sources where needed.
 - [ ] FAQ answers and emergency/support channels are operationally approved.
 - [ ] Legal pages and form notices are supplied by counsel.
-- [ ] PHP/external form contracts and all result messages are defined.
+- [x] The quote PHP contract and result messages are defined; contact and any
+  newsletter processing remain unresolved.
 - [ ] Newsletter/marketing is either compliant end to end or deferred.
 - [ ] Logo, font, image rights, crops, and alt-text intent are supplied.
 - [ ] Footer copyright, contact links, and every CTA destination are resolved.

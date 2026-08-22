@@ -105,11 +105,4 @@ Ancak doğru sonuç için araç modeli kadar sözleşme süresi, kilometre limit
 
 ### Şirketiniz için doğru filo modelini birlikte belirleyelim.
 
-Araç ihtiyacınızı, kullanım sürenizi ve kilometre beklentinizi paylaşın. Kalite Filo ekibi şirketinize uygun uzun dönem araç kiralama alternatiflerini değerlendirsin.
-
-**Buton:** `Teklif Al`
-
-## İç Link Önerileri
-
-- `Araç Listesi → /arac-listesi/`
-- `Teklif Al → /teklif-al/`
+Araç ihtiyacınızı, kullanım sürenizi ve kilometre beklentinizi paylaşın. Kalite Filo ekibi şirketinize uygun uzun dönem araç kiralama alternatiflerini değerlendirsin; siz de [teklif alın](/teklif-al/).

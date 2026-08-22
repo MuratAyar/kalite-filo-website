@@ -41,7 +41,6 @@ export default function Home() {
       />
       <FeaturedVehicles
         content={homePageCopy.featuredVehicles}
-        quoteHref={quoteRoute.path}
         vehicles={vehiclePortfolio}
         vehiclesHref={vehiclesRoute.path}
       />

@@ -111,6 +111,4 @@ Görev, kilometre, sürücü profili, segment, yakıt veya enerji tüketimi ve t
 
 ### Şirketiniz için doğru araç grubunu oluşturun.
 
-Kalite Filo araç portföyünü inceleyin veya kullanım senaryonuzu paylaşarak şirketinize uygun alternatifler için teklif alın.
-
-**Butonlar:** `Araçları İncele` · `Teklif Al`
+Kalite Filo [araç portföyünü inceleyin](/arac-listesi/) veya kullanım senaryonuzu paylaşarak şirketinize uygun alternatifler için [teklif alın](/teklif-al/).

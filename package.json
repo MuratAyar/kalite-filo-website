@@ -9,6 +9,8 @@
     "dev": "next dev",
     "build": "npm run validate && node scripts/build-static.mjs production",
     "build:staging": "npm run validate && node scripts/build-static.mjs staging",
+    "release:production": "npm run build && node scripts/assemble-cpanel-release.mjs production",
+    "release:staging": "npm run build:staging && node scripts/assemble-cpanel-release.mjs staging",
     "lint": "eslint",
     "typecheck": "tsc --noEmit --incremental false",
     "validate": "node scripts/validate-foundation.mjs",

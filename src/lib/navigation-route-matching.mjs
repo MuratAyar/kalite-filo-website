@@ -40,7 +40,7 @@ export function getCurrentPublicNavigationRouteId(pathname) {
     return exactOwner;
   }
 
-  if (normalizedPath.startsWith("/araclar/")) {
+  if (normalizedPath.startsWith("/arac-listesi/")) {
     return "vehicles";
   }
 

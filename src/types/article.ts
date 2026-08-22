@@ -40,7 +40,8 @@ export interface Article {
   readonly updatedAt?: IsoDate;
   readonly readingMinutes: number;
   readonly featured: boolean;
-  readonly coverImage: MediaAsset;
+  /** Present only when a locally approved, rights-cleared cover is available. */
+  readonly coverImage?: MediaAsset;
   readonly sources: readonly ArticleSource[];
   readonly contentKey: EntityId;
   readonly seo: SeoMetadata;

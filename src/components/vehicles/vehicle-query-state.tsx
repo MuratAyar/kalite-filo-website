@@ -2,7 +2,7 @@
 
 import { useSearchParams } from "next/navigation";
 
-import type { InternalPath, VehiclePortfolioRecord } from "@/types";
+import type { VehiclePortfolioRecord } from "@/types";
 import type { VehicleCatalogueCandidateFilters } from "@/lib/vehicle-catalogue-filters.mjs";
 
 import {
@@ -14,13 +14,11 @@ import {
 import { VehicleCatalogueView } from "./vehicle-catalogue-view";
 
 export type VehicleQueryStateProps = {
-  quoteHref: InternalPath;
   records: readonly VehiclePortfolioRecord[];
 };
 
 /** The only query-aware boundary for the statically exported vehicle index. */
 export function VehicleQueryState({
-  quoteHref,
   records,
 }: VehicleQueryStateProps) {
   const searchParams = useSearchParams();
@@ -44,7 +42,6 @@ export function VehicleQueryState({
     <VehicleCatalogueView
       filters={filters}
       onFiltersChange={replaceFilters}
-      quoteHref={quoteHref}
       records={records}
     />
   );

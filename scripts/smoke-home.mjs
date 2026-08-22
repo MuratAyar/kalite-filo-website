@@ -263,6 +263,13 @@ try {
       const editorialCardHeadings = [...document.querySelectorAll(
         'section[aria-labelledby="editorial-preview-title"] h3'
       )].map((heading) => heading.textContent.trim());
+      const editorialLinks = [...document.querySelectorAll(
+        'a[data-editorial-preview-article-link="true"]'
+      )];
+      editorialLinks[0]?.focus();
+      const editorialFocusedBorderColor = editorialLinks[0]
+        ? getComputedStyle(editorialLinks[0].closest('li')).borderColor
+        : null;
       const footer = document.querySelector('footer');
       const whyLayout = document.querySelector(
         'section[aria-labelledby="why-kalite-filo-title"] [data-why-layout]'
@@ -322,6 +329,10 @@ try {
           '[data-vehicle-image-credits="true"]'
         ).length,
         editorialCardHeadings,
+        editorialArticleHrefs: editorialLinks.map((link) =>
+          new URL(link.href).pathname
+        ),
+        editorialFocusedBorderColor,
         footer: footer ? {
           hasPhone: Boolean(footer.querySelector('a[href="tel:+905317158068"]')),
           hasEmail: Boolean(footer.querySelector('a[href="mailto:info@kalitefilo.com.tr"]')),
@@ -692,6 +703,12 @@ try {
       ) ||
       report.vehicleImageCreditComponentCount !== 0 ||
       report.editorialCardHeadings.length !== 4 ||
+      report.editorialArticleHrefs.length !== 4 ||
+      report.editorialArticleHrefs.some(
+        (href) => !/^\/filo-rehberi\/[a-z0-9-]+\/[a-z0-9-]+\/$/.test(href),
+      ) ||
+      report.editorialFocusedBorderColor?.replace(/\s/g, "") !==
+        "rgb(255,179,67)" ||
       !report.footer?.hasPhone ||
       !report.footer?.hasEmail ||
       !report.footer?.hasPrivacySecurity ||

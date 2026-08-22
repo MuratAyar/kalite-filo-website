@@ -29,8 +29,8 @@
   {
     "id": "vehicle-detail",
     "kind": "family",
-    "path": "/araclar/[slug]/",
-    "label": "Araçlar",
+    "path": "/arac-listesi/[slug]/",
+    "label": "Araç Listesi",
     "status": "canonical-path",
     "indexable": false,
     "sitemap": false
@@ -45,9 +45,18 @@
     "sitemap": false
   },
   {
+    "id": "fleet-guide-category",
+    "kind": "family",
+    "path": "/filo-rehberi/[category]/",
+    "label": "Filo Rehberi",
+    "status": "canonical-path",
+    "indexable": false,
+    "sitemap": false
+  },
+  {
     "id": "fleet-guide-article",
     "kind": "family",
-    "path": "/filo-rehberi/[slug]/",
+    "path": "/filo-rehberi/[category]/[slug]/",
     "label": "Filo Rehberi",
     "status": "canonical-path",
     "indexable": false,

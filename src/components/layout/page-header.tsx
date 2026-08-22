@@ -1,4 +1,4 @@
-import type { ComponentPropsWithoutRef } from "react";
+import type { ComponentPropsWithoutRef, ReactNode } from "react";
 
 import {
   Breadcrumbs,
@@ -7,7 +7,7 @@ import {
 import { SectionHeading } from "@/components/ui/section-heading";
 
 import { PageContainer } from "./page-container";
-import { Section } from "./section";
+import { Section, type SectionSpacing } from "./section";
 import { Stack } from "./stack";
 
 export type PageHeaderVariant = "standard" | "high-emphasis";
@@ -17,9 +17,11 @@ export type PageHeaderProps = Omit<
   "children" | "title"
 > & {
   breadcrumbs?: readonly BreadcrumbItem[];
+  children?: ReactNode;
   eyebrow?: string;
   headingId?: string;
   intro?: string;
+  spacing?: SectionSpacing;
   title: string;
   variant?: PageHeaderVariant;
 };
@@ -27,10 +29,12 @@ export type PageHeaderProps = Omit<
 /** The sole H1-bearing heading region for a standard public page. */
 export function PageHeader({
   breadcrumbs,
+  children,
   className,
   eyebrow,
   headingId = "page-title",
   intro,
+  spacing = "compact",
   title,
   variant = "standard",
   ...props
@@ -39,7 +43,7 @@ export function PageHeader({
     <Section
       aria-labelledby={headingId}
       className={className}
-      spacing="compact"
+      spacing={spacing}
       surface="page"
       {...props}
     >
@@ -54,6 +58,7 @@ export function PageHeader({
             size={variant === "high-emphasis" ? "display" : "large"}
             title={title}
           />
+          {children}
         </Stack>
       </PageContainer>
     </Section>

@@ -35,7 +35,7 @@ Do not implement or scaffold customer login, a customer portal, authentication, 
 
 - Production origin: `https://kalitefilo.com.tr`, deployed at the domain root on TURKTICARET Web Eko Linux shared hosting with cPanel. HTTPS is enabled and forced.
 - Staging origin: `https://staging.kalitefilo.com.tr`, with a separate document root. DNS, Let's Encrypt SSL, and forced HTTPS are configured.
-- Use the public label “Filo Rehberi” with `/filo-rehberi/` and `/filo-rehberi/[slug]/`.
+- Use the public label “Filo Rehberi” with `/filo-rehberi/`, category routes at `/filo-rehberi/[category]/`, and article routes at `/filo-rehberi/[category]/[slug]/`.
 - Use the label “Sıkça Sorulan Sorular” with `/sikca-sorulan-sorular/`.
 - Use the CTA label “Teklif Al” with `/teklif-al/`.
 - Customer login remains completely excluded from Phase 1.

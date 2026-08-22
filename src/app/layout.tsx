@@ -35,7 +35,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="tr">
+    <html data-scroll-behavior="smooth" lang="tr">
       <body className="flex min-h-svh flex-col bg-page font-sans text-foreground antialiased">
         <SkipLink />
         <SiteHeader />

@@ -8,15 +8,15 @@ The neutral Phase 1 foundation was implemented and verified as a Next.js static 
 
 The artifact measurements and command results below record the foundation checkpoint. The current `out/` directory may reflect the later shared-shell checkpoint. Production and staging artifacts remain intentionally target-specific because their origins, crawler policy, and environment-level metadata constraints are frozen at build time.
 
-## Current-state reconciliation — 2026-08-13
+## Current-state reconciliation — 2026-08-17
 
 The sections and metrics below remain the historical 2026-08-09 foundation checkpoint. Current repository facts that supersede its empty-data and nine-route statements are:
 
-- the route registry now has 12 decisions: 10 static routes plus `/araclar/[slug]/` and `/filo-rehberi/[slug]/`;
+- the route registry now has 13 decisions: 10 static routes plus `/arac-listesi/[slug]/`, `/filo-rehberi/[category]/`, and `/filo-rehberi/[category]/[slug]/`;
 - `/kvkk-ve-guvenlik/`, `/cerez-politikasi/`, and `/kullanim-kosullari/` now have minimal static skeletons in `canonical-path` state, with no legal body, version, effective date, or publication approval;
 - the project owner has verified `05317158068` and `info@kalitefilo.com.tr`, now stored as typed contact data;
 - 32 owner-supplied vehicle records are preserved locally; 28 representative model-family images have completed licence/visual-match review and local promotion, while four records deliberately remain image-less;
-- six owner-supplied Markdown articles and local WebPs are integrated, while author/reviewer/source approval and article-detail rendering remain deferred; and
+- 18 owner-supplied Markdown articles are integrated and statically rendered through category-aware detail routes; six have matched local WebPs, while author/reviewer/source and publication approval remain deferred; and
 - Home remains `foundation` and noindex, every route remains outside the sitemap, and the sitemap remains empty.
 
 No current artifact-size or final command metric is asserted by this addendum; the original measurements below must not be read as the current integrated output.
@@ -53,7 +53,7 @@ the catalogue remain noindex and outside the empty sitemap.
   - `/` as the unpublished foundation route;
   - `/hakkimizda/`;
   - `/arac-listesi/`;
-  - `/araclar/[slug]/`;
+  - `/arac-listesi/[slug]/`;
   - `/filo-rehberi/`;
   - `/filo-rehberi/[slug]/`;
   - `/sikca-sorulan-sorular/`;
@@ -128,7 +128,10 @@ The following remain deliberately unresolved and must not be represented as veri
 - article/FAQ/legal body content, authors, reviewers, dates, sources, and approved SEO descriptions;
 - final logo, favicon, social image, photos, image rights, alt text, crops, and optimized variants;
 - licensed local Plus Jakarta Sans WOFF2 files with Turkish coverage and font-rights confirmation;
-- form fields/contracts, recipients, mail transport, consent/legal copy, retention, spam controls, validation/error states, and PHP endpoints;
+- contact/newsletter form contracts and every workflow's consent/legal copy,
+  retention and mail-delivery validation; the quote form and its secret-free
+  PHP source now exist, but cPanel execution/delivery and legal approval remain
+  release blockers;
 - analytics, cookie classification/consent, social links, and third-party integrations;
 - project-owned Apache rules, 404 mapping/status behavior, cache/compression/security headers, artifact assembly, upload, rollback, and cPanel staging verification;
 - manual responsive, keyboard, zoom/reflow, screen-reader, browser, accessibility, and visual-comparison testing for real pages.

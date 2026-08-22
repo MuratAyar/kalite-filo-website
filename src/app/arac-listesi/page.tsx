@@ -47,15 +47,11 @@ export default function VehiclesPage() {
           <Suspense
             fallback={
               <VehicleCatalogueStaticFallback
-                quoteHref={quoteRoute.path}
                 records={vehiclePortfolio}
               />
             }
           >
-            <VehicleQueryState
-              quoteHref={quoteRoute.path}
-              records={vehiclePortfolio}
-            />
+            <VehicleQueryState records={vehiclePortfolio} />
           </Suspense>
         </PageContainer>
       </Section>

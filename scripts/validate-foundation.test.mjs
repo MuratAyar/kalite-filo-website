@@ -9,12 +9,19 @@ import {
   isValidInternalPath,
   routeToOutputFile,
   routeToSourcePageFile,
+  validateAboutOutput,
+  validateArticleDetailOutput,
+  validateEditorialPreviewLinks,
+  validateFaqOutput,
+  validateFleetGuideOutput,
   validateHomeFeaturedVehiclePrices,
   validateHomeInteractionLayouts,
   validateHomeMainLinks,
   validateHomeVehicleFinder,
+  validateQuoteFormOutput,
   validateRoutes,
   validateVehicleCatalogueOutput,
+  validateVehicleDetailOutput,
 } from "./validate-foundation.mjs";
 import {
   getCurrentPublicNavigationRouteId,
@@ -51,20 +58,171 @@ test("accepts canonical directory-style internal paths", () => {
   assert.equal(isValidInternalPath("/filo-rehberi/"), true);
 });
 
-test("accepts both approved dynamic route families", () => {
+test("validates the claim-safe About output contract", () => {
+  const validAbout = `
+    <main data-content-status="draft">
+      <section data-about-section="hero">
+        <img src="/images/home/commercial-fleet.jpg">
+        <img src="/images/home/hero-fleet-highway.jpg">
+        <button>Kilometre Taşlarımız</button><button>Vizyonumuz</button>
+        <p>300+ Araç Filosu</p><p>%98 Müşteri Memnuniyeti</p>
+      </section>
+      <section data-about-section="vision-mission-values">
+        <img src="/images/about/volvo-xc90-vision-mission.png">
+        <h3>Vizyonumuz</h3><h3>Misyonumuz</h3><h3>Değerlerimiz</h3>
+        <p>Güven Kalite Liderlik Müşteri Odaklılık Operasyonel Mükemmellik Yenilikçilik Sorumluluk Sürdürülebilirlik Sürekli Gelişim</p>
+      </section>
+      <section data-about-section="operational-excellence"></section>
+      <section data-about-section="service-network">
+        <img src="/images/home/fleet-campus.jpg">
+      </section>
+      <section data-about-section="why-kalite-filo"></section>
+      <section><h2 id="conversion-banner-title">Teklif Al</h2>
+        <img src="/images/home/quote-operations.jpg">
+      </section>
+      <section><h2 id="editorial-preview-title">Filo Dünyası</h2></section>
+    </main>`;
+
+  assert.deepEqual(validateAboutOutput(validAbout), { sectionCount: 7 });
+  assert.throws(() =>
+    validateAboutOutput(validAbout.replace("1200", "1200+").concat("1200+")),
+  );
+  assert.throws(() =>
+    validateAboutOutput(
+      validAbout.replace('data-about-section="service-network"', ""),
+    ),
+  );
+});
+
+test("validates the static native FAQ output contract", () => {
+  const items = Array.from(
+    { length: 6 },
+    (_, index) =>
+      `<details data-faq-item="true"${index === 0 ? " open" : ""}><summary>Soru ${index + 1}</summary><p>Yanıt</p></details>`,
+  ).join("");
+  const validFaq = `<main>
+    <div data-faq-category-filter="true">
+      ${Array.from({ length: 5 }, () => '<button data-faq-category-control="true"></button>').join("")}
+    </div>
+    ${items}
+    <aside data-faq-contact="true"><a href="/iletisim/">İletişime Geçin</a></aside>
+    <section><h2 id="editorial-preview-title">Filo Dünyası</h2></section>
+  </main>`;
+
+  assert.deepEqual(validateFaqOutput(validFaq), { itemCount: 6 });
+  assert.throws(() => validateFaqOutput(validFaq.replace("<details", "<div")));
+  assert.throws(() =>
+    validateFaqOutput(
+      validFaq.replace(
+        '<button data-faq-category-control="true"></button>',
+        '<a data-faq-category-control="true" href="#faq-list"></a>',
+      ),
+    ),
+  );
+  assert.throws(() =>
+    validateFaqOutput(validFaq.replace("/iletisim/", "/teklif-al/")),
+  );
+  assert.throws(() =>
+    validateFaqOutput(
+      validFaq.replace("</main>", "Bu cevap faydalı oldu mu?</main>"),
+    ),
+  );
+});
+
+test("validates the Filo Rehberi index output contract", () => {
+  const categoryPaths = [
+    "/filo-rehberi/",
+    "/filo-rehberi/uzun-donem-kiralama/",
+    "/filo-rehberi/maliyet-ve-finans/",
+    "/filo-rehberi/arac-rehberi/",
+    "/filo-rehberi/filo-yonetimi/",
+    "/filo-rehberi/elektrikli-araclar/",
+    "/filo-rehberi/bakim-ve-hasar/",
+  ];
+  const controls = categoryPaths
+    .map(
+      (href) =>
+        `<a data-fleet-guide-category-control="true" href="${href}"></a>`,
+    )
+    .join("");
+  const articles = Array.from({ length: 7 }, (_, index) => `
+    <article data-fleet-guide-article="true"${index === 0 ? ' data-fleet-guide-featured="true"' : ""}>
+      <a data-fleet-guide-article-link="true" href="/filo-rehberi/uzun-donem-kiralama/makale-${index + 1}/">
+        ${index < 6
+          ? `<img src="/images/filo-rehberi/0${index + 1}-article.webp" alt="Kapak">`
+          : '<div data-fleet-guide-cover-placeholder="true" role="img"></div>'}
+      </a>
+    </article>
+  `).join("");
+  const validFleetGuide = `<main>
+    <h1>Filo Rehberi</h1>
+    <div data-fleet-guide-listing="true" data-fleet-guide-page-count="3" data-fleet-guide-page-size="6" data-fleet-guide-record-count="18">
+      <div data-fleet-guide-category-filter="true">${controls}</div>
+      ${articles}
+      <nav data-fleet-guide-pagination="true">
+        <button data-fleet-guide-page-control="previous"></button>
+        <button data-fleet-guide-page-control="1"></button>
+        <button data-fleet-guide-page-control="2"></button>
+        <button data-fleet-guide-page-control="3"></button>
+        <button data-fleet-guide-page-control="next"></button>
+      </nav>
+    </div>
+  </main>`;
+
+  assert.deepEqual(validateFleetGuideOutput(validFleetGuide), {
+    articleCount: 7,
+    categoryControlCount: 7,
+    pageCount: 3,
+    recordCount: 18,
+  });
+  assert.throws(() =>
+    validateFleetGuideOutput(
+      validFleetGuide.replace('data-fleet-guide-featured="true"', ""),
+    ),
+  );
+  assert.throws(() =>
+    validateFleetGuideOutput(validFleetGuide.replace("Filo Rehberi", "Blog")),
+  );
+  assert.throws(() =>
+    validateFleetGuideOutput(
+      validFleetGuide.replace(
+        "/filo-rehberi/uzun-donem-kiralama/makale-1/",
+        "/filo-rehberi/makale-1/",
+      ),
+    ),
+  );
+  assert.throws(() =>
+    validateFleetGuideOutput(
+      validFleetGuide.replace('data-fleet-guide-page-size="6"', 'data-fleet-guide-page-size="9"'),
+    ),
+  );
+  assert.throws(() =>
+    validateFleetGuideOutput(
+      validFleetGuide.replace('data-fleet-guide-page-control="next"', 'data-page-control="next"'),
+    ),
+  );
+});
+
+test("accepts every approved dynamic route family", () => {
   assert.doesNotThrow(() =>
     validateRoutes([
       {
         ...validRoute,
         id: "vehicle-detail",
         kind: "family",
-        path: "/araclar/[slug]/",
+        path: "/arac-listesi/[slug]/",
+      },
+      {
+        ...validRoute,
+        id: "fleet-guide-category",
+        kind: "family",
+        path: "/filo-rehberi/[category]/",
       },
       {
         ...validRoute,
         id: "fleet-guide-article",
         kind: "family",
-        path: "/filo-rehberi/[slug]/",
+        path: "/filo-rehberi/[category]/[slug]/",
       },
     ]),
   );
@@ -248,7 +406,7 @@ test("matches every approved static destination to its navigation owner", () => 
 
 test("assigns approved future detail paths to their parent navigation item", () => {
   assert.equal(
-    getCurrentPublicNavigationRouteId("/araclar/example-slug/"),
+    getCurrentPublicNavigationRouteId("/arac-listesi/example-slug/"),
     "vehicles",
   );
   assert.equal(
@@ -519,6 +677,59 @@ test("requires the Home vehicle finder to use the local static GET route", () =>
   }
 });
 
+test("requires the quote page to use the approved local PHP form boundary", () => {
+  const fields = [
+    "form_turu",
+    "website",
+    "ad",
+    "soyad",
+    "ulke_kodu",
+    "telefon",
+    "eposta",
+    "unvan",
+    "il",
+    "ilce",
+    "firma_web_sitesi",
+    "sirket_tipi",
+    "sirket_unvani",
+    "vergi_dairesi_ili",
+    "vergi_dairesi",
+    "vergi_numarasi",
+    "kiralama_suresi",
+    "arac_sayisi",
+    "arac_markasi",
+    "arac_modeli",
+    "yillik_km",
+    "not",
+  ]
+    .map((name) => `<input name="${name}">`)
+    .join("");
+  const valid = `<main>
+    <form action="/forms/teklif.php" method="post">
+      <button aria-pressed="true" type="button">Kurumsal</button>
+      <button aria-pressed="false" type="button">Bireysel</button>
+      ${fields}
+    </form>
+    <a href="tel:+905317158068">05317158068</a>
+    <a href="mailto:info@kalitefilo.com.tr">info</a>
+    <a href="/filo-rehberi/filo-yonetimi/ornek-makale/"><img src="/images/filo-rehberi/ornek.webp"></a>
+  </main>`;
+
+  assert.deepEqual(validateQuoteFormOutput(valid), { formCount: 1 });
+  assert.throws(
+    () => validateQuoteFormOutput(valid.replace("/forms/teklif.php", "https://example.com/send")),
+    /approved local PHP endpoint/,
+  );
+  assert.throws(
+    () => validateQuoteFormOutput(valid.replace('name="eposta"', 'name="email"')),
+    /eposta field/,
+  );
+  assert.throws(
+    () => validateQuoteFormOutput(valid.replace("</main>", "<p>noreply@kalitefilo.com.tr</p></main>")),
+    /must not leak/,
+  );
+});
+
 const approvedVehicleListPrices = JSON.parse(
   readFileSync(
     path.join(repositoryRoot, "src", "data", "vehicle-list-prices.json"),
@@ -578,7 +789,7 @@ function createVehicleCatalogueFixture() {
         ? `<div data-vehicle-media="true"><img alt="Araç ${position}" height="540" src="/images/vehicles/arac-${position}.jpg" width="960"></div>`
         : `<div data-vehicle-media="true"><div aria-label="Araç ${position} için doğrulanmış araç görseli mevcut değil" role="img">Doğrulanmış araç görseli mevcut değil</div></div>`;
 
-      return `<article data-vehicle-card="arac-${position}" data-monthly-list-net-price-try="${amountMinor / 100}" data-vehicle-source-id="${sourceId}"><a class="group" data-vehicle-card-link="true" href="/teklif-al/">${media}${createVehicleFactsMarkup()}${createVehiclePriceMarkup(amountMinor)}<span class="group-hover:bg-orange-dark" data-vehicle-card-cta="true">Teklif Al</span></a></article>`;
+      return `<article data-vehicle-card="arac-${position}" data-monthly-list-net-price-try="${amountMinor / 100}" data-vehicle-source-id="${sourceId}"><a class="group" data-vehicle-card-link="true" href="/arac-listesi/arac-${position}/">${media}${createVehicleFactsMarkup()}${createVehiclePriceMarkup(amountMinor)}<span class="group-hover:bg-orange-dark" data-vehicle-card-cta="true">Aracı İncele</span></a></article>`;
     },
   ).join("");
 
@@ -609,7 +820,8 @@ test("locks Home featured vehicle prices to the approved source", () => {
   const cards = ["KF-001", "KF-002", "KF-003", "KF-004"]
     .map((sourceId) => {
       const amountMinor = approvedVehicleListPrices[sourceId];
-      return `<li data-monthly-list-net-price-try="${amountMinor / 100}" data-vehicle-source-id="${sourceId}"><a class="group" data-vehicle-card-link="true" href="/teklif-al/"><div data-vehicle-media="true"><img alt="Araç" height="540" src="/images/vehicles/${sourceId}.jpg" width="960"></div>${createVehicleFactsMarkup()}${createVehiclePriceMarkup(amountMinor)}<span class="group-hover:bg-orange-dark" data-vehicle-card-cta="true">Teklif Al</span></a></li>`;
+      const slug = sourceId.toLowerCase();
+      return `<li data-vehicle-card="${slug}" data-monthly-list-net-price-try="${amountMinor / 100}" data-vehicle-source-id="${sourceId}"><a class="group" data-vehicle-card-link="true" href="/arac-listesi/${slug}/"><div data-vehicle-media="true"><img alt="Araç" height="540" src="/images/vehicles/${sourceId}.jpg" width="960"></div>${createVehicleFactsMarkup()}${createVehiclePriceMarkup(amountMinor)}<span class="group-hover:bg-orange-dark" data-vehicle-card-cta="true">Aracı İncele</span></a></li>`;
     })
     .join("");
   const html = `<main><section aria-labelledby="featured-vehicles-title"><a class="featured-vehicles-action h-control-primary" data-featured-vehicles-action="true" href="/arac-listesi/">Araçları Görüntüle</a>${cards}</section></main>`;
@@ -636,7 +848,7 @@ test("locks the exported vehicle catalogue to prices and 28/4 media coverage", (
   });
 });
 
-test("rejects incomplete, duplicated, mispriced, or detail-linked vehicle output", () => {
+test("rejects incomplete, duplicated, mispriced, or incorrectly linked vehicle output", () => {
   const valid = createVehicleCatalogueFixture();
 
   assert.throws(
@@ -671,18 +883,101 @@ test("rejects incomplete, duplicated, mispriced, or detail-linked vehicle output
     () =>
       validateVehicleCatalogueOutput(
         valid.replace(
-          'href="/teklif-al/"',
-          'href="/araclar/ornek/"',
+          'href="/arac-listesi/arac-1/"',
+          'href="/arac-listesi/yanlis-arac/"',
         ),
       ),
-    /full-card quote links|unimplemented vehicle detail routes/,
+    /full-card detail links/,
   );
   assert.throws(
     () =>
       validateVehicleCatalogueOutput(
         valid.replace('data-vehicle-card-link="true"', 'data-card-link="false"'),
       ),
-    /full-card quote links/,
+    /full-card detail links/,
+  );
+});
+
+test("validates inert vehicle-detail actions and a controlled same-category vehicle track", () => {
+  const vehicle = {
+    slug: "ana-arac",
+    categoryLabel: "Binek",
+    featureLabels: ["352 L bagaj", "Kompakt ölçüler"],
+    summary: "Tekrarlanan araç özeti",
+    listPrice: { amountMinor: 4_020_000 },
+  };
+  const related = [1, 2, 3, 4].map((position) => ({
+    slug: `ilgili-${position}`,
+    categoryLabel: "Binek",
+  }));
+  const relatedMarkup = related
+    .map(
+      (record) =>
+        `<article data-related-vehicle="${record.slug}"><a href="/arac-listesi/${record.slug}/">Araç</a></article>`,
+    )
+    .join("");
+  const specifications = Array.from(
+    { length: 5 },
+    (_, index) => `<div data-vehicle-technical-specification="true">Özellik ${index + 1}</div>`,
+  ).join("");
+  const html = `<main><section data-vehicle-detail="ana-arac"><div data-vehicle-technical-section="true">${specifications}<div>Bagaj hacmi</div><div>352 L</div><p>Aylık Liste Net</p><p>KDV hariç</p><p>₺40.200</p></div><button data-vehicle-detail-action="quote">Hemen Teklif İste</button><button data-vehicle-detail-action="basket">Araç Sepetine Ekle</button><button data-related-vehicles-control="previous">Önceki</button><button data-related-vehicles-control="next">Sonraki</button><ul data-related-vehicles-track="true">${relatedMarkup}</ul><section><h2 id="editorial-preview-title">Filo Dünyası'nı Keşfedin</h2></section></section></main>`;
+
+  assert.deepEqual(
+    validateVehicleDetailOutput(html, vehicle, [vehicle, ...related]),
+    {
+      actionCount: 2,
+      relatedControlCount: 2,
+      relatedVehicleCount: 4,
+      technicalSpecificationCount: 5,
+    },
+  );
+  assert.throws(() =>
+    validateVehicleDetailOutput(
+      html.replace('data-related-vehicle="ilgili-4"', ""),
+      vehicle,
+      [vehicle, ...related],
+    ),
+  );
+  assert.throws(() =>
+    validateVehicleDetailOutput(
+      html.replace(
+        '<button data-vehicle-detail-action="quote">',
+        '<a data-vehicle-detail-action="quote">',
+      ),
+      vehicle,
+      [vehicle, ...related],
+    ),
+  );
+  assert.throws(() =>
+    validateVehicleDetailOutput(
+      html.replace('data-related-vehicles-control="next"', ""),
+      vehicle,
+      [vehicle, ...related],
+    ),
+  );
+  assert.throws(() =>
+    validateVehicleDetailOutput(
+      html.replace(
+        '<div data-vehicle-technical-section="true">',
+        '<div data-vehicle-technical-section="true"><h2>Araç Hakkında</h2>',
+      ),
+      vehicle,
+      [vehicle, ...related],
+    ),
+  );
+  assert.throws(() =>
+    validateVehicleDetailOutput(
+      html.replace("Bagaj hacmi", vehicle.summary),
+      vehicle,
+      [vehicle, ...related],
+    ),
+  );
+  assert.throws(() =>
+    validateVehicleDetailOutput(
+      html.replace('id="editorial-preview-title"', 'id="removed-editorial"'),
+      vehicle,
+      [vehicle, ...related],
+    ),
   );
 });
 
@@ -738,5 +1033,121 @@ test("rejects repeated card credits, category badges, stacked facts, or a body f
         ),
       ),
     /must use only Manuel, Otomatik or Yarı Otomatik/,
+  );
+});
+
+test("validates category-aware shared editorial preview links", () => {
+  const valid = `
+    <section>
+      <a data-editorial-preview-article-link="true" href="/filo-rehberi/filo-yonetimi/birinci-yazi/"></a>
+      <a data-editorial-preview-article-link="true" href="/filo-rehberi/bakim-ve-hasar/ikinci-yazi/"></a>
+    </section>`;
+
+  assert.deepEqual(validateEditorialPreviewLinks(valid, 2), {
+    articleLinkCount: 2,
+  });
+  assert.throws(() =>
+    validateEditorialPreviewLinks(
+      valid.replace(
+        "/filo-rehberi/bakim-ve-hasar/ikinci-yazi/",
+        "/filo-rehberi/ikinci-yazi/",
+      ),
+      2,
+    ),
+  );
+  assert.throws(() =>
+    validateEditorialPreviewLinks(
+      valid.replace(
+        "/filo-rehberi/bakim-ve-hasar/ikinci-yazi/",
+        "/filo-rehberi/filo-yonetimi/birinci-yazi/",
+      ),
+      2,
+    ),
+  );
+});
+
+test("validates article contents targets and rejects source-only scaffolding", () => {
+  const valid = `
+    <main>
+      <ul data-article-header-meta="true"><li>Kategori</li></ul>
+      <aside class="sticky top-28" data-article-sidebar="true">
+        <section data-article-table-of-contents="true">
+          <a data-article-toc-link="true" href="#ilk-bolum">İlk bölüm</a>
+          <a data-article-toc-link="true" href="#ikinci-bolum">İkinci bölüm</a>
+        </section>
+        <section data-article-share-panel="true">
+          <div data-article-share-actions="true">
+            <dialog data-article-share-dialog="true">
+              <button data-share-copy="true">Bağlantıyı kopyala</button>
+              <a data-share-x="true" href="https://x.com/intent/tweet?url=ornek">X'te paylaş</a>
+              <a data-share-whatsapp="true" href="https://api.whatsapp.com/send/?text=ornek">WhatsApp'ta paylaş</a>
+            </dialog>
+          </div>
+        </section>
+        <a data-article-related="true" href="/filo-rehberi/bakim-ve-hasar/ikinci-yazi/">İlgili yazı</a>
+      </aside>
+      <article data-article-content="true">
+        <a data-article-cta-link="true" href="/teklif-al/">teklif alın</a>
+        <aside data-article-key-takeaway="true">Önemli çıkarım</aside>
+        <h2 data-article-section="true" id="ilk-bolum">İlk bölüm</h2>
+        <h2 data-article-section="true" id="ikinci-bolum">İkinci bölüm</h2>
+      </article>
+    </main>`;
+
+  assert.deepEqual(validateArticleDetailOutput(valid), {
+    articleCtaLinkCount: 1,
+    headerMetaCount: 1,
+    keyTakeawayCount: 1,
+    relatedArticleCount: 1,
+    shareActionsCount: 1,
+    shareDialogCount: 1,
+    sidebarCount: 1,
+    tocItemCount: 2,
+  });
+  assert.throws(() =>
+    validateArticleDetailOutput(
+      valid.replace('href="#ikinci-bolum"', 'href="#yanlis-bolum"'),
+    ),
+  );
+  assert.throws(() =>
+    validateArticleDetailOutput(
+      valid.replace("teklif alın</a>", "Buton: Teklif Al</a>"),
+    ),
+  );
+  assert.throws(() =>
+    validateArticleDetailOutput(
+      valid.replace(' data-article-share-dialog="true"', ""),
+    ),
+  );
+  assert.throws(() =>
+    validateArticleDetailOutput(
+      valid.replace("</article>", "<h2>İç Link Önerileri</h2></article>"),
+    ),
+  );
+  assert.throws(() =>
+    validateArticleDetailOutput(
+      valid.replace("</article>", "<p>Araç Listesi → /araclar/</p></article>"),
+    ),
+  );
+  assert.throws(() =>
+    validateArticleDetailOutput(
+      valid.replace(' data-article-share-actions="true"', ""),
+    ),
+  );
+  assert.throws(() =>
+    validateArticleDetailOutput(valid.replace("sticky top-28", "max-h-screen overflow-y-auto")),
+  );
+  assert.throws(() =>
+    validateArticleDetailOutput(
+      valid.replace(' data-article-key-takeaway="true"', ""),
+    ),
+  );
+  assert.throws(() =>
+    validateArticleDetailOutput(
+      valid.replace(
+        "/filo-rehberi/bakim-ve-hasar/ikinci-yazi/",
+        "/filo-rehberi/ikinci-yazi/",
+      ),
+    ),
   );
 });

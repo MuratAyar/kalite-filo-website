@@ -12,7 +12,7 @@ The Phase 1 Home page follows the supplied updated Stitch composition with a pho
 
 Home remains deliberately unpublished: route status `foundation`, `indexable: false`, and `sitemap: false`. The production export therefore keeps canonical `https://kalitefilo.com.tr/` and page-level `noindex, nofollow`; the sitemap remains empty.
 
-The owner-supplied vehicle workbook and Filo Rehberi packages are now represented by local typed data and local assets. This does not publish Home or either detail-route family. No dependency, vehicle/article detail route, form processor, PHP handler, Apache rule, customer login, portal, authentication, database, ORM, CRM, CMS, or admin feature was added.
+The owner-supplied vehicle workbook and Filo Rehberi packages are now represented by local typed data and local assets. Their static detail routes remain unpublished and noindex. No dependency, form processor, PHP handler, Apache rule, customer login, portal, authentication, database, ORM, CRM, CMS, or admin feature was added.
 
 ## Design evidence and safety boundary
 
@@ -25,7 +25,7 @@ Current content authority is explicit:
 - 32 vehicle rows come from the owner-supplied `Kalite_Filo_32_Arac_Portfoyu_2026.xlsx` workbook and are held locally;
 - the four visible Home vehicles are Renault Clio, Hyundai i20, Opel Corsa, and Fiat Egea, with their owner-approved monthly net list prices (`₺40.200`, `₺39.000`, `₺43.200`, and `₺40.200`, respectively), shown per month and KDV excluded;
 - the four visible vehicle images are local derivatives with per-image source/licence provenance retained internally in `public/images/vehicles/LICENSES.md` and typed attribution metadata; no licence-ledger link is rendered in the website UI;
-- six Filo Rehberi Markdown files and their six matched 1600×900 WebP images come from the owner-supplied packages and are held locally under `src/content/filo-rehberi/` and `public/images/filo-rehberi/`; and
+- 18 Filo Rehberi Markdown files come from the owner-supplied packages and are held locally under `src/content/filo-rehberi/`; six of those records have matched 1600×900 WebP images under `public/images/filo-rehberi/`; and
 - no author was invented where the supplied article frontmatter did not identify one.
 
 ## Implemented behavior
@@ -37,7 +37,7 @@ Current content authority is explicit:
 - Commercial and Why sections use local representative photography with intrinsic dimensions and claim-safe draft copy.
 - Fleet Solution card actions retain real approved destinations and explicitly suppress the ordinary inline-link underline while preserving focus indication and an arrow cue.
 - The shared `ConversionBanner` uses a local operations image with a right-side reveal and right-to-left navy fade.
-- Editorial Preview renders four of the six supplied article records in the reference card rhythm, using their supplied categories, titles, dates, reading times, alt text, and local WebP images. Cards are deliberately noninteractive until detail routes exist; the real `/filo-rehberi/` index action remains available.
+- Editorial Preview renders four supplied article records that have verified local covers in the reference card rhythm, using their supplied categories, titles, dates, reading times, alt text, and local WebP images. The complete 18-record corpus and category-aware static detail routes are available under `/filo-rehberi/`.
 - The newsletter strip demonstrates the requested interaction without pretending to subscribe anyone. Native email validation runs locally; submission is prevented, no request or browser storage occurs, the input is cleared, and an accessible native dialog explicitly confirms that the address was neither sent nor saved. The input’s former blue selected-state frame is replaced by a visible orange focus treatment; keyboard focus is not removed. A real provider, endpoint, consent lifecycle, and storage remain unresolved.
 - The global footer retains the responsive brand / Hızlı Linkler / Kurumsal / Bize Ulaşın structure. It now shows the owner-verified phone `05317158068` and email `info@kalitefilo.com.tr`, uses the compact footer label `SSS`, and links to three approved noindex skeletons: KVKK ve Güvenlik, Çerez Politikası, and Kullanım Koşulları. No address, legal body text, legal company title, or copyright claim was invented.
 - Header navigation is geometrically centered from 1024px upward and follows the requested order: Hakkımızda, Araç Listesi, Sıkça Sorulan Sorular, Filo Rehberi. Mobile uses the same order. Customer login remains absent because it is categorically excluded from Phase 1 by the permanent project guardrails.
@@ -190,7 +190,7 @@ That checkpoint’s static route report was:
 
 - business/content approval for every draft Home string;
 - publication review of the 32 supplied vehicle records; approved representative images for the four deliberately image-less records (`KF-015`, `KF-026`, `KF-030`, and `KF-031`); availability, duration/kilometre, validity, service-scope and binding-offer policy; and implemented vehicle detail routes. The approved monthly KDV-excluded net list amounts are no longer a blocker;
-- article author/reviewer decisions, final editorial/legal review, and implemented Filo Rehberi detail routes (the six supplied Markdown bodies and images are local but detail pages do not yet exist);
+- article author/reviewer decisions, final editorial/legal review, and publication approval; 18 supplied Markdown bodies now have category-aware static detail pages but remain noindex;
 - explicit production approval and provenance record for each newly generated Home image;
 - verified company identity, address, remaining contact channels, legal body texts, copyright wording, claims, and service levels; the supplied phone/email and three legal route names alone do not resolve these items;
 - approved newsletter provider, legal basis/consent, retention, double opt-in, unsubscribe, and result behavior before controls can be enabled;

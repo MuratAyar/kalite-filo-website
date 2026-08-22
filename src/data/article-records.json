@@ -1,0 +1,429 @@
+[
+  {
+    "id": "operasyonel-arac-kiralama-nedir",
+    "slug": "operasyonel-arac-kiralama-nedir",
+    "title": "Operasyonel Araç Kiralama Nedir? Şirketler İçin Kapsamlı Rehber",
+    "excerpt": "Şirket araçlarını satın almak yerine uzun dönem kiralamanın nasıl çalıştığını; maliyet, operasyon, bakım ve ikinci el riski açısından sunduğu avantajlarla birlikte inceleyin.",
+    "categoryId": "uzun-donem-kiralama",
+    "tagIds": [
+      "operasyonel-kiralama",
+      "uzun-donem-kiralama",
+      "filo-yonetimi",
+      "kurumsal-arac-kiralama"
+    ],
+    "publishedAt": "2026-08-13",
+    "readingMinutes": 7,
+    "featured": true,
+    "coverImage": {
+      "src": "/images/filo-rehberi/01-operasyonel-arac-kiralama.webp",
+      "alt": "Havadan çekilmiş, sıralar halinde park edilmiş otomobiller",
+      "width": 1600,
+      "height": 900
+    },
+    "contentKey": "operasyonel-arac-kiralama-nedir",
+    "seo": {
+      "title": "Operasyonel Araç Kiralama Nedir? Şirketler İçin Rehber | Kalite Filo",
+      "description": "Operasyonel araç kiralamanın nasıl çalıştığını, satın almadan farklarını, şirketlere sağladığı operasyonel avantajları ve doğru kiralama modelinin nasıl seçileceğini öğrenin."
+    }
+  },
+  {
+    "id": "filo-toplam-sahip-olma-maliyeti-tco",
+    "slug": "filo-toplam-sahip-olma-maliyeti-tco",
+    "title": "Filo Maliyetleri Nasıl Hesaplanır? TCO ile Gerçek Araç Maliyetini Görmek",
+    "excerpt": "Bir şirket aracının maliyeti satın alma veya kira bedelinden ibaret değildir. TCO yaklaşımıyla filonuzun gerçek maliyetini oluşturan kalemleri inceleyin.",
+    "categoryId": "maliyet-ve-finans",
+    "tagIds": [
+      "tco",
+      "filo-maliyeti",
+      "maliyet-analizi",
+      "operasyonel-kiralama"
+    ],
+    "publishedAt": "2026-08-11",
+    "readingMinutes": 8,
+    "featured": false,
+    "coverImage": {
+      "src": "/images/filo-rehberi/02-filo-tco-maliyet.webp",
+      "alt": "Hesap makinesi, ABD doları banknotları ve otomobil anahtarı",
+      "width": 1600,
+      "height": 900
+    },
+    "contentKey": "filo-toplam-sahip-olma-maliyeti-tco",
+    "seo": {
+      "title": "Filo TCO Hesaplama: Şirket Araçlarının Gerçek Maliyeti | Kalite Filo",
+      "description": "Filo toplam sahip olma maliyeti TCO nedir? Yakıt, bakım, değer kaybı, finansman ve operasyon maliyetleriyle şirket araçlarının gerçek maliyetini hesaplayın."
+    }
+  },
+  {
+    "id": "kurumsal-filoda-dogru-arac-secimi",
+    "slug": "kurumsal-filoda-dogru-arac-secimi",
+    "title": "Kurumsal Filoda Doğru Araç Nasıl Seçilir?",
+    "excerpt": "Sedan, SUV veya hafif ticari araç arasında karar verirken yalnızca marka ve fiyatı değil; görev, kilometre, sürücü ve toplam maliyeti birlikte değerlendirin.",
+    "categoryId": "arac-rehberi",
+    "tagIds": [
+      "arac-secimi",
+      "kurumsal-filo",
+      "arac-rehberi",
+      "filo-politikasi"
+    ],
+    "publishedAt": "2026-08-09",
+    "readingMinutes": 7,
+    "featured": false,
+    "coverImage": {
+      "src": "/images/filo-rehberi/03-dogru-arac-secimi.webp",
+      "alt": "Otoparkta sıralanmış SUV araçlar",
+      "width": 1600,
+      "height": 900
+    },
+    "contentKey": "kurumsal-filoda-dogru-arac-secimi",
+    "seo": {
+      "title": "Şirket Filosu İçin Doğru Araç Nasıl Seçilir? | Kalite Filo",
+      "description": "Şirket araç filosu oluştururken segment, motor, kilometre, kullanım amacı, sürücü profili ve TCO kriterlerine göre doğru araç seçiminin püf noktaları."
+    }
+  },
+  {
+    "id": "filo-kiralama-kilometre-limiti-nasil-belirlenir",
+    "slug": "filo-kiralama-kilometre-limiti-nasil-belirlenir",
+    "title": "Filo Kiralamada Kilometre Limiti Nasıl Belirlenir?",
+    "excerpt": "Kiralama sözleşmesindeki kilometreyi tahmin etmek yerine gerçek kullanım verileriyle planlamak, dönem sonu maliyetlerini kontrol altında tutmanıza yardımcı olabilir.",
+    "categoryId": "filo-yonetimi",
+    "tagIds": [
+      "kilometre-limiti",
+      "filo-yonetimi",
+      "uzun-donem-kiralama",
+      "filo-planlama"
+    ],
+    "publishedAt": "2026-08-07",
+    "readingMinutes": 6,
+    "featured": false,
+    "coverImage": {
+      "src": "/images/filo-rehberi/04-kilometre-limiti.webp",
+      "alt": "86490 kilometreyi gösteren otomobil gösterge paneli",
+      "width": 1600,
+      "height": 900
+    },
+    "contentKey": "filo-kiralama-kilometre-limiti-nasil-belirlenir",
+    "seo": {
+      "title": "Araç Kiralamada Kilometre Limiti Nasıl Belirlenir? | Kalite Filo",
+      "description": "Uzun dönem araç kiralamada yıllık kilometre limiti nasıl hesaplanır? Geçmiş kullanım, çalışan profili ve sözleşme süresine göre doğru kilometre planlaması."
+    }
+  },
+  {
+    "id": "elektrikli-araclar-sirket-filosu-gecis-rehberi",
+    "slug": "elektrikli-araclar-sirket-filosu-gecis-rehberi",
+    "title": "Elektrikli Araçlar Şirket Filoları İçin Mantıklı mı?",
+    "excerpt": "Elektrikli araçlara geçişte yalnızca araç fiyatını değil; günlük rota, şarj altyapısı, enerji maliyeti ve operasyon gereksinimlerini birlikte değerlendirin.",
+    "categoryId": "elektrikli-araclar",
+    "tagIds": [
+      "elektrikli-arac",
+      "elektrikli-filo",
+      "sarj-altyapisi",
+      "surdurulebilir-filo"
+    ],
+    "publishedAt": "2026-08-05",
+    "readingMinutes": 8,
+    "featured": false,
+    "coverImage": {
+      "src": "/images/filo-rehberi/05-elektrikli-filo.webp",
+      "alt": "Supercharger istasyonunda şarj edilen beyaz Tesla otomobil",
+      "width": 1600,
+      "height": 900
+    },
+    "contentKey": "elektrikli-araclar-sirket-filosu-gecis-rehberi",
+    "seo": {
+      "title": "Elektrikli Araçlar Şirket Filoları İçin Mantıklı mı? | Kalite Filo",
+      "description": "Kurumsal filolarda elektrikli araçlara geçiş nasıl planlanır? Şarj altyapısı, kullanım profili, menzil, operasyon ve TCO açısından elektrikli filo rehberi."
+    }
+  },
+  {
+    "id": "filo-bakim-hasar-yonetimi",
+    "slug": "filo-bakim-hasar-yonetimi",
+    "title": "Filo Bakım ve Hasar Yönetimi: Araçların Yolda Kalmasını Değil, İşte Kalmasını Sağlayın",
+    "excerpt": "Periyodik bakım, lastik, hasar ve servis süreçlerini doğru planlayarak araçların operasyon dışında kaldığı süreyi azaltmanın yollarını inceleyin.",
+    "categoryId": "bakim-ve-hasar",
+    "tagIds": [
+      "bakim-ve-hasar",
+      "filo-bakimi",
+      "hasar-yonetimi",
+      "filo-operasyonu"
+    ],
+    "publishedAt": "2026-08-03",
+    "readingMinutes": 7,
+    "featured": false,
+    "coverImage": {
+      "src": "/images/filo-rehberi/06-bakim-hasar-yonetimi.webp",
+      "alt": "Servis atölyesinde otomobil üzerinde çalışan teknisyen",
+      "width": 1600,
+      "height": 900
+    },
+    "contentKey": "filo-bakim-hasar-yonetimi",
+    "seo": {
+      "title": "Filo Bakım ve Hasar Yönetimi Rehberi | Kalite Filo",
+      "description": "Şirket araçlarında periyodik bakım, servis, hasar, lastik ve ikame araç süreçlerini doğru yöneterek operasyon kaybını ve filo maliyetlerini azaltın."
+    }
+  },
+  {
+    "id": "uzun-donem-kiralama-sozlesmesinde-dikkat-edilecekler",
+    "slug": "uzun-donem-kiralama-sozlesmesinde-dikkat-edilecekler",
+    "title": "Uzun Dönem Araç Kiralama Sözleşmesinde Dikkat Edilmesi Gereken 12 Madde",
+    "excerpt": "Aylık kira bedeli sözleşmenin yalnızca görünen kısmıdır. Kilometre, bakım, lastik, hasar, ikame araç, erken çıkış ve iade koşullarını doğru okumak toplam kiralama maliyetini doğrudan etkiler.",
+    "categoryId": "uzun-donem-kiralama",
+    "tagIds": [
+      "uzun-donem-kiralama",
+      "kiralama-sozlesmesi",
+      "operasyonel-kiralama",
+      "filo-yonetimi"
+    ],
+    "publishedAt": "2026-08-01",
+    "readingMinutes": 9,
+    "featured": false,
+    "coverImage": null,
+    "contentKey": "uzun-donem-kiralama-sozlesmesinde-dikkat-edilecekler",
+    "seo": {
+      "title": "Uzun Dönem Araç Kiralama Sözleşmesinde Dikkat Edilecek 12 Madde | Kalite Filo",
+      "description": "Uzun dönem araç kiralama sözleşmesini imzalamadan önce kilometre, bakım, lastik, hasar, erken çıkış, ikame araç ve iade koşullarında dikkat edilmesi gerekenleri inceleyin."
+    }
+  },
+  {
+    "id": "satin-almak-mi-uzun-donem-kiralamak-mi",
+    "slug": "satin-almak-mi-uzun-donem-kiralamak-mi",
+    "title": "Şirket Aracı Satın Almak mı, Uzun Dönem Kiralamak mı? Karar Rehberi",
+    "excerpt": "Araç sahibi olmak ile kullanım hizmeti satın almak aynı şey değildir. Sermaye, operasyon, risk, esneklik ve toplam maliyet açısından iki modeli birlikte değerlendirin.",
+    "categoryId": "uzun-donem-kiralama",
+    "tagIds": [
+      "uzun-donem-kiralama",
+      "arac-satin-alma",
+      "operasyonel-kiralama",
+      "filo-karari"
+    ],
+    "publishedAt": "2026-07-29",
+    "readingMinutes": 8,
+    "featured": false,
+    "coverImage": null,
+    "contentKey": "satin-almak-mi-uzun-donem-kiralamak-mi",
+    "seo": {
+      "title": "Şirket Aracı Satın Almak mı Kiralamak mı? Karar Rehberi | Kalite Filo",
+      "description": "Şirket aracı satın alma ve uzun dönem kiralama modellerini sermaye kullanımı, operasyon, risk, esneklik ve toplam maliyet açısından karşılaştırın."
+    }
+  },
+  {
+    "id": "filo-butcesi-nasil-hazirlanir",
+    "slug": "filo-butcesi-nasil-hazirlanir",
+    "title": "Filo Bütçesi Nasıl Hazırlanır? 12 Aylık Planlama Rehberi",
+    "excerpt": "Gerçekçi bir filo bütçesi yalnızca araç kira bedellerini toplamak değildir. Yakıt, bakım, lastik, hasar, ikame, operasyon ve beklenmeyen giderleri birlikte planlayın.",
+    "categoryId": "maliyet-ve-finans",
+    "tagIds": [
+      "filo-butcesi",
+      "maliyet-ve-finans",
+      "filo-maliyeti",
+      "butce-planlama"
+    ],
+    "publishedAt": "2026-07-26",
+    "readingMinutes": 9,
+    "featured": false,
+    "coverImage": null,
+    "contentKey": "filo-butcesi-nasil-hazirlanir",
+    "seo": {
+      "title": "Filo Bütçesi Nasıl Hazırlanır? 12 Aylık Planlama Rehberi | Kalite Filo",
+      "description": "Araç kirası, yakıt, bakım, lastik, hasar ve operasyon giderlerini kapsayan gerçekçi bir filo bütçesinin nasıl hazırlanacağını adım adım öğrenin."
+    }
+  },
+  {
+    "id": "filo-butcesinde-gizli-maliyetler",
+    "slug": "filo-butcesinde-gizli-maliyetler",
+    "title": "Filo Bütçesinde Görünmeyen 8 Maliyet: Sadece Kira Bedeline Bakmayın",
+    "excerpt": "Bir filonun en pahalı kalemi her zaman faturada görünen kalem değildir. Operasyon kaybı, fazla kilometre, sürücü davranışı ve yönetim zamanı toplam maliyeti sessizce büyütebilir.",
+    "categoryId": "maliyet-ve-finans",
+    "tagIds": [
+      "filo-maliyeti",
+      "gizli-maliyetler",
+      "tco",
+      "maliyet-ve-finans"
+    ],
+    "publishedAt": "2026-07-23",
+    "readingMinutes": 8,
+    "featured": false,
+    "coverImage": null,
+    "contentKey": "filo-butcesinde-gizli-maliyetler",
+    "seo": {
+      "title": "Filo Bütçesinde Görünmeyen 8 Maliyet | Kalite Filo",
+      "description": "Downtime, çalışan zamanı, fazla kilometre, hasar, yakıt verimsizliği ve ikinci el riski gibi filo bütçesinde gözden kaçan maliyetleri keşfedin."
+    }
+  },
+  {
+    "id": "sedan-suv-hafif-ticari-hangi-arac",
+    "slug": "sedan-suv-hafif-ticari-hangi-arac",
+    "title": "Sedan mı, SUV mu, Hafif Ticari mi? Şirket Filosu İçin Doğru Araç Tipi",
+    "excerpt": "Her çalışan için aynı araç tipi doğru değildir. Sedan, SUV ve hafif ticari araçları görev, rota, yük ihtiyacı, çalışan profili ve toplam maliyet açısından karşılaştırın.",
+    "categoryId": "arac-rehberi",
+    "tagIds": [
+      "arac-rehberi",
+      "sedan",
+      "suv",
+      "hafif-ticari",
+      "kurumsal-filo"
+    ],
+    "publishedAt": "2026-07-20",
+    "readingMinutes": 8,
+    "featured": false,
+    "coverImage": null,
+    "contentKey": "sedan-suv-hafif-ticari-hangi-arac",
+    "seo": {
+      "title": "Sedan mı SUV mu Hafif Ticari mi? Şirket Filosu Araç Rehberi | Kalite Filo",
+      "description": "Şirket filonuz için sedan, SUV ve hafif ticari araçları kullanım amacı, bagaj, konfor, maliyet ve saha gereksinimleri açısından karşılaştırın."
+    }
+  },
+  {
+    "id": "yuksek-kilometre-icin-sirket-araci-secimi",
+    "slug": "yuksek-kilometre-icin-sirket-araci-secimi",
+    "title": "Yüksek Kilometre Yapan Şirketler İçin Araç Seçimi: Nelere Dikkat Edilmeli?",
+    "excerpt": "Yılda 40–50 bin kilometre ve üzeri kullanımda küçük tüketim ve konfor farkları büyük sonuçlar yaratabilir. Yüksek kilometreli filo araçlarını doğru kriterlerle seçin.",
+    "categoryId": "arac-rehberi",
+    "tagIds": [
+      "arac-rehberi",
+      "yuksek-kilometre",
+      "saha-ekibi",
+      "filo-araci"
+    ],
+    "publishedAt": "2026-07-17",
+    "readingMinutes": 8,
+    "featured": false,
+    "coverImage": null,
+    "contentKey": "yuksek-kilometre-icin-sirket-araci-secimi",
+    "seo": {
+      "title": "Yüksek Kilometre İçin Şirket Aracı Nasıl Seçilir? | Kalite Filo",
+      "description": "Yılda yüksek kilometre yapan satış ve saha ekipleri için yakıt tüketimi, konfor, bakım, güvenlik ve toplam maliyet kriterleriyle araç seçimi rehberi."
+    }
+  },
+  {
+    "id": "kurumsal-filo-politikasi-nasil-hazirlanir",
+    "slug": "kurumsal-filo-politikasi-nasil-hazirlanir",
+    "title": "Kurumsal Filo Politikası Nasıl Hazırlanır? Şirketler İçin Örnek Çerçeve",
+    "excerpt": "Kim hangi aracı kullanabilir, bakım ve hasar nasıl bildirilir, yakıt ve özel kullanım nasıl yönetilir? Şirket filonuzu standart kurallarla yönetmek için kapsamlı bir politika çerçevesi oluşturun.",
+    "categoryId": "filo-yonetimi",
+    "tagIds": [
+      "filo-yonetimi",
+      "filo-politikasi",
+      "arac-kullanim-politikasi",
+      "kurumsal-filo"
+    ],
+    "publishedAt": "2026-07-14",
+    "readingMinutes": 10,
+    "featured": false,
+    "coverImage": null,
+    "contentKey": "kurumsal-filo-politikasi-nasil-hazirlanir",
+    "seo": {
+      "title": "Kurumsal Filo Politikası Nasıl Hazırlanır? | Kalite Filo",
+      "description": "Araç tahsisi, kullanım kuralları, yakıt, bakım, hasar, ceza, güvenlik ve araç iadesini kapsayan şirket filo politikası için kapsamlı bir çerçeve."
+    }
+  },
+  {
+    "id": "telematik-ve-surucu-davranisi-filo-verimliligi",
+    "slug": "telematik-ve-surucu-davranisi-filo-verimliligi",
+    "title": "Telematik ve Sürücü Davranışı ile Filo Verimliliği Nasıl Artırılır?",
+    "excerpt": "Araçlardan gelen kilometre, rota, rölanti ve sürüş verileri doğru yorumlandığında yakıt tüketiminden bakım planına kadar birçok filo kararını iyileştirebilir.",
+    "categoryId": "filo-yonetimi",
+    "tagIds": [
+      "filo-yonetimi",
+      "telematik",
+      "surucu-davranisi",
+      "filo-verimliligi"
+    ],
+    "publishedAt": "2026-07-11",
+    "readingMinutes": 9,
+    "featured": false,
+    "coverImage": null,
+    "contentKey": "telematik-ve-surucu-davranisi-filo-verimliligi",
+    "seo": {
+      "title": "Telematik ile Filo Verimliliği ve Sürücü Davranışı | Kalite Filo",
+      "description": "Kilometre, rölanti, rota, yakıt tüketimi ve sürüş davranışlarını doğru KPI'larla izleyerek filonuzun verimliliğini nasıl artırabileceğinizi öğrenin."
+    }
+  },
+  {
+    "id": "elektrikli-filo-sarj-altyapisi-planlama",
+    "slug": "elektrikli-filo-sarj-altyapisi-planlama",
+    "title": "Şirket Filosu İçin Şarj Altyapısı Nasıl Planlanır?",
+    "excerpt": "Elektrikli araç filosunda şarj altyapısı, aracın kendisi kadar önemlidir. Araç sayısından önce günlük enerji ihtiyacını ve araçların parkta kalma süresini hesaplayın.",
+    "categoryId": "elektrikli-araclar",
+    "tagIds": [
+      "elektrikli-araclar",
+      "sarj-altyapisi",
+      "elektrikli-filo",
+      "filo-yonetimi"
+    ],
+    "publishedAt": "2026-07-08",
+    "readingMinutes": 9,
+    "featured": false,
+    "coverImage": null,
+    "contentKey": "elektrikli-filo-sarj-altyapisi-planlama",
+    "seo": {
+      "title": "Şirket Filosu İçin Elektrikli Araç Şarj Altyapısı Planlama | Kalite Filo",
+      "description": "Elektrikli şirket araçları için şarj noktası sayısı, AC/DC tercihi, araç park süresi, enerji kapasitesi ve kullanım senaryosuna göre şarj altyapısı planlama rehberi."
+    }
+  },
+  {
+    "id": "elektrikli-hibrit-icten-yanmali-filo-karsilastirmasi",
+    "slug": "elektrikli-hibrit-icten-yanmali-filo-karsilastirmasi",
+    "title": "Elektrikli, Hibrit veya İçten Yanmalı: Şirket Filosu İçin Hangisi?",
+    "excerpt": "Filo dönüşümünde tek bir güç aktarma teknolojisi bütün araçlar için doğru olmayabilir. Elektrikli, hibrit ve geleneksel araçları kullanım senaryosuna göre karşılaştırın.",
+    "categoryId": "elektrikli-araclar",
+    "tagIds": [
+      "elektrikli-araclar",
+      "hibrit",
+      "filo-karsilastirmasi",
+      "arac-rehberi"
+    ],
+    "publishedAt": "2026-07-05",
+    "readingMinutes": 9,
+    "featured": false,
+    "coverImage": null,
+    "contentKey": "elektrikli-hibrit-icten-yanmali-filo-karsilastirmasi",
+    "seo": {
+      "title": "Elektrikli mi Hibrit mi Benzinli/Dizel mi? Filo Karşılaştırması | Kalite Filo",
+      "description": "Elektrikli, hibrit ve içten yanmalı araçları rota, kilometre, şarj, kullanım esnekliği ve toplam maliyet açısından şirket filoları için karşılaştırın."
+    }
+  },
+  {
+    "id": "kaza-sonrasi-filo-hasar-yonetimi",
+    "slug": "kaza-sonrasi-filo-hasar-yonetimi",
+    "title": "Şirket Aracıyla Kaza Sonrası Hasar Yönetimi: Filo Yöneticileri İçin Süreç Rehberi",
+    "excerpt": "Kaza sonrası ilk dakikalardan aracın tekrar operasyona dönmesine kadar geçen süreci standartlaştırmak hem çalışan güvenini hem filo sürekliliğini artırır.",
+    "categoryId": "bakim-ve-hasar",
+    "tagIds": [
+      "bakim-ve-hasar",
+      "hasar-yonetimi",
+      "kaza",
+      "filo-operasyonu"
+    ],
+    "publishedAt": "2026-07-02",
+    "readingMinutes": 9,
+    "featured": false,
+    "coverImage": null,
+    "contentKey": "kaza-sonrasi-filo-hasar-yonetimi",
+    "seo": {
+      "title": "Şirket Aracı Kaza Sonrası Hasar Yönetimi Rehberi | Kalite Filo",
+      "description": "Şirket aracıyla kaza sonrasında sürücü bildirimi, belge toplama, servis, sigorta, ikame araç ve onarım takibini standartlaştırmak için filo hasar yönetimi rehberi."
+    }
+  },
+  {
+    "id": "filo-lastik-yonetimi-rehberi",
+    "slug": "filo-lastik-yonetimi-rehberi",
+    "title": "Filo Lastik Yönetimi Rehberi: Güvenlik, Maliyet ve Operasyon",
+    "excerpt": "Lastikler küçük bir bakım kalemi gibi görünse de güvenlik, yakıt tüketimi, sürüş konforu ve araç downtime süresi üzerinde doğrudan etkiye sahiptir.",
+    "categoryId": "bakim-ve-hasar",
+    "tagIds": [
+      "bakim-ve-hasar",
+      "lastik-yonetimi",
+      "filo-bakimi",
+      "guvenlik"
+    ],
+    "publishedAt": "2026-06-29",
+    "readingMinutes": 8,
+    "featured": false,
+    "coverImage": null,
+    "contentKey": "filo-lastik-yonetimi-rehberi",
+    "seo": {
+      "title": "Filo Lastik Yönetimi Rehberi: Güvenlik ve Maliyet | Kalite Filo",
+      "description": "Şirket araçlarında lastik basıncı, diş derinliği, rotasyon, mevsimsel değişim, depolama ve hasar takibini kapsayan filo lastik yönetimi rehberi."
+    }
+  }
+]

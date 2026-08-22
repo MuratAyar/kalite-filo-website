@@ -1,6 +1,6 @@
 # Araçlar implementation status
 
-Date: 2026-08-13
+Date: 2026-08-15
 
 Price reconciliation: 2026-08-14
 
@@ -8,9 +8,9 @@ Vehicle-card presentation reconciliation: 2026-08-14
 
 ## Outcome
 
-The canonical `/arac-listesi/` route now implements the Phase 1 vehicle catalogue composition using the updated local Stitch screen as visual evidence and the 32 owner-supplied portfolio records as its data source. The page keeps the shared public header/footer, a high-emphasis page header, responsive filters, category navigation, active-filter chips, a result count, vehicle cards, the shared quote banner, and the existing no-storage newsletter preview.
+The canonical `/arac-listesi/` route implements the Phase 1 vehicle catalogue, and all 32 owner-supplied records now have statically generated detail pages in `/arac-listesi/[slug]/`. Catalogue and Home vehicle cards link to their matching detail URL. The index keeps the shared public shell, responsive filters, category navigation, active-filter chips, result count, quote banner, and no-storage newsletter preview.
 
-This is still a review build. The registry entry remains `canonical-path`, `indexable: false`, and `sitemap: false`; no vehicle-detail route was created. On 14 August 2026, the project owner explicitly approved all 32 `Portföy_32` `Önerilen Liste Net` values for card display. They are rendered as monthly TRY net list prices with a `KDV hariç` qualification. The page still does not claim stock or availability, approved duration/kilometre terms, price validity, service scope, binding offer terms, VAT-inclusive totals, or generated Stitch vehicle records.
+This is still a review build. Both the index and detail family remain `canonical-path`, `indexable: false`, and `sitemap: false`. On 14 August 2026, the project owner explicitly approved all 32 `Portföy_32` `Önerilen Liste Net` values for display. They are rendered as monthly TRY net list prices with a `KDV hariç` qualification. The pages do not claim stock or availability, approved duration/kilometre terms, price validity, service scope, binding offer terms, or VAT-inclusive totals.
 
 ## Design evidence and deliberate departures
 
@@ -31,7 +31,7 @@ Content that the owner-supplied records do not support was intentionally omitted
 - `Yönetici` and `İkinci El` category tabs were not invented;
 - rental-duration and unverified body-type controls were not invented; the available record taxonomy supports Segment instead;
 - the Stitch demo amounts were not used; each row instead uses its owner-approved workbook `Önerilen Liste Net` value in the `Aylık Liste Net` / `₺…/ay` / `KDV hariç` presentation; and
-- vehicle cards link to `/teklif-al/`, not to unimplemented `/araclar/[slug]/` pages.
+- vehicle cards are single, full-card links to the matching `/arac-listesi/[slug]/` page; the visible action is `Aracı İncele`.
 
 ## Local portfolio and imagery
 
@@ -73,7 +73,7 @@ Supported filters are:
 
 Model remains disabled until Make is selected. Unknown values are discarded, a model is accepted only beneath its selected make, and Turkish label matching is canonicalized without creating filter-result routes. Active filters can be removed individually or reset together. Result changes are announced through an `aria-live` count, and an explicit empty state is provided.
 
-The full 32-card `VehicleCatalogueStaticFallback` is emitted as useful static HTML while the query-aware island resolves. In a no-JavaScript context it retains native `GET /arac-listesi/` filter controls, category links, all records, and quote actions.
+The full 32-card `VehicleCatalogueStaticFallback` is emitted as useful static HTML while the query-aware island resolves. In a no-JavaScript context it retains native `GET /arac-listesi/` filter controls, category links, all records, and detail links.
 
 ## Responsive decisions
 
@@ -82,7 +82,7 @@ The implementation derives conservative behavior from the approved desktop syste
 - below `lg`, filters use a native `<details>` disclosure and the desktop sidebar is absent;
 - from `lg`, the fixed-width filter column sits beside a fluid catalogue column;
 - cards render in one column by default, two from `md`, and three from `xl`;
-- every catalogue card is one semantic `/teklif-al/` link, so its complete surface is clickable without a nested CTA link; card hover and keyboard focus also activate the visible Teklif Al treatment;
+- every catalogue card is one semantic detail link, so its complete surface is clickable without a nested CTA link; card hover and keyboard focus also activate the visible `Aracı İncele` treatment;
 - every card shows only fuel and transmission in a compact two-column row; the transmission fact uses the project-owned cog icon;
 - category controls and active-filter chips wrap instead of forcing horizontal overflow; and
 - filter controls and actions retain minimum touch-friendly heights.
@@ -96,7 +96,7 @@ The staging and production exports are checked in Microsoft Edge at 320, 390, 76
 - Category controls expose the selected state; the static fallback uses `aria-current` and the interactive version uses `aria-pressed`.
 - Result changes use a polite live region, and the zero-result treatment uses a status region.
 - Cards use semantic articles, definition-list labels for fuel/transmission/segment and body, intrinsic image dimensions, and descriptive missing-image alternatives.
-- Image provenance remains available to maintainers in the internal ledger; cards and public page chrome do not render source/licence links. Quote actions remain real links.
+- Image provenance remains available to maintainers in the internal ledger; cards and public page chrome do not render source/licence links. Card actions are real detail links.
 - Existing shared focus-visible styling, skip link, landmarks, and navigation behavior are reused.
 
 ## Static-export and publication boundary
@@ -145,7 +145,8 @@ At that historical checkpoint, centralizing the image credits and simplifying th
 - Business and editorial approval of all 32 owner-supplied vehicle records, including model-year, trim, technical labels, taxonomy, summaries, and features not currently shown on cards.
 - Approved binding-offer, availability, duration/kilometre, contract, service-inclusion, validity, and disclaimer policy. The 32 monthly KDV-excluded net list amounts themselves are no longer a blocker.
 - Correct approved representative images for the four deliberately image-less records, plus any required per-vehicle galleries and final crop/alt review.
-- Vehicle-detail information architecture, publishable record contract, and statically generated `/araclar/[slug]/` pages.
+- Detail-page gallery assets and a verified multi-image interaction; the current page deliberately uses one approved image or the honest missing-image state.
+- Approved quote and basket workflows. The two requested detail actions are intentionally inert and expose explanatory status text.
 - Final page title/intro/metadata review and a publication decision; no description or structured data was invented.
 - Manual keyboard, 200% text/zoom, screen-reader, and broader representative-browser QA beyond the automated Edge checks.
 - Apache/cPanel staging deployment verification for the final deployable site.
@@ -163,3 +164,40 @@ The card and filter presentation now maps the 32 source transmission strings int
 Technical strings such as `7DCT Otomatik`, `DCT Otomatik`, and `X-Tronic Otomatik` are no longer shown on Home or catalogue cards. The shared card contract and static-output validator require one of the three labels above, and the Edge catalogue smoke checks all 32 cards at every supported viewport.
 
 The final production export contains 155 files and 9,343,077 raw bytes: 669,696 JavaScript bytes across 14 files and 67,009 CSS bytes in one file. The authored Client Component count remains four; this reconciliation added no dependency or client boundary.
+
+## 2026-08-15 vehicle-detail reconciliation
+
+- `src/app/arac-listesi/[slug]/page.tsx` statically generates all 32 owner-supplied slugs with `generateStaticParams()` and `dynamicParams = false`.
+- Every detail receives a unique build-time title, supplied summary description, concrete canonical URL, one H1, and registry-driven `noindex, nofollow`; staging also receives `nocache`.
+- The page reuses the production PageHeader, PageContainer, Section, Button, price, facts, shell, surface, radius, focus, and responsive contracts. Stitch was used only for hierarchy evidence.
+- Only one rights-reviewed local image is shown per record; the four unresolved images keep their honest fallback. No fake thumbnails or remote gallery assets were introduced.
+- Technical content is limited to typed owner-supplied fields already present in the local portfolio: model year, category, segment/body, fuel, transmission, power where present, seats where present, summary, and feature labels.
+- The reference's deposit/duration/kilometre calculator was not copied because no approved formula or offer contract exists. The displayed amount remains `Aylık Liste Net`, `/ay`, `KDV hariç`, with a non-binding qualifier.
+- `Hemen Teklif İste` and `Araç Sepetine Ekle` are inert semantic buttons with shared explanatory text; they are neither links nor forms.
+- Every detail renders exactly four other records from the same `Binek`, `SUV`, or `Ticari` category and links each card to its real detail path.
+- Automated Edge smoke passed for Binek, SUV, and Ticari examples. Renault Clio passed at 320, 1440, and 1920 px; the other categories passed at 1440 px. All cases had no horizontal overflow, four unique related vehicles, two inert actions, local-only resources, correct staging canonical metadata, and noindex.
+- Final staging and production checks passed with 43 dependency-free tests, 12 validated route decisions, and four authored Client Components. Both exports generated 47 static pages, including all 32 vehicle details. Production browser smoke repeated the catalogue checks at 320, 390, 768, 1024, 1440, and 1920 px and the representative detail checks above with production canonicals and `noindex, nofollow`.
+- The final production artifact contains 444 files and 18,137,021 raw bytes: 670,293 JavaScript bytes across 14 files, 74,045 CSS bytes in one file, and 8,103,622 image bytes across 48 files. Compared with the immediately preceding About production checkpoint (156 files / 11,121,283 bytes; 669,503 JS bytes; 70,583 CSS bytes), the integrated delta is +288 files, +7,015,738 total bytes, +790 JavaScript bytes, and +3,462 CSS bytes. This task adds no image asset, dependency, or Client Component; the authored Client Component count remains four.
+- A representative production detail emits canonical `https://kalitefilo.com.tr/arac-listesi/renault-clio-evolution-1-0-tce-x-tronic-90/` and robots `noindex, nofollow`. Production `robots.txt` allows crawling, while the sitemap remains a valid empty URL set because no route was published.
+
+## 2026-08-15 vehicle-detail content and related-navigation refinement
+
+- The breadcrumb current item now contains the complete make, model, and trim; the PageHeader keeps the concise make/model H1 and no longer repeats the trim as intro copy.
+- The standalone category tag was removed from the offer panel. The related-vehicle heading no longer repeats the category or the former explanatory sentence.
+- The separate `Araç Hakkında` panel was removed. Its owner-supplied summary and feature list now precede the typed definition list inside the single `Teknik Özellikler` panel.
+- Detail pages now render every other vehicle in the same category: 10 alternatives for a Binek record, 12 for an SUV record, and 7 for a Ticari record. The responsive track shows four cards at desktop width and fewer, readable cards at narrow widths.
+- Two labelled, keyboard-operable 44px controls move the horizontal related-vehicle track and wrap at its ends. Touch and native horizontal scrolling remain available without JavaScript; only the two arrow controls require the new isolated `RelatedVehicleCarouselControls` Client Component.
+- The validator now checks the exact same-category record set, unique real detail links, one related track, both controls, the consolidated technical section, two inert quote/basket actions, and the absence of the retired copy.
+- Staging Edge smoke passed at 320, 1440, and 1920 px for Renault Clio and at 1440 px for SUV and Ticari representatives. It verified complete breadcrumbs, no duplicate intro, consolidated technical content, removed category/copy treatments, no page-level horizontal scrolling, functional next controls, local-only resources, noindex metadata, and target-specific canonicals.
+- This refinement introduces no dependency, image, runtime API, Server Action, Middleware, Proxy, SSR, ISR, database, authentication, or customer-login feature. The authored Client Component count is now five; all page/data/card rendering remains server-side and static-export compatible.
+- Final production verification also passed. Edge repeated the catalogue checks at 320, 390, 768, 1024, 1440, and 1920 px and the representative detail checks at 320, 1440, and 1920 px. The Binek, SUV, and Ticari detail examples exposed respectively 10, 12, and 7 unique same-category alternatives; the next control moved the nested track, while every tested page remained free of page-level horizontal scrolling and remote runtime resources.
+- The final production artifact contains 445 files and 22,573,744 raw bytes: 673,473 JavaScript bytes across 15 files, 74,549 CSS bytes in one file, and 8,103,622 image bytes across 48 files. Compared with the immediately preceding vehicle-detail checkpoint (444 files / 18,137,021 bytes; 670,293 JS bytes; 74,045 CSS bytes), the refinement adds 1 file, 4,436,723 total bytes, 3,180 JavaScript bytes, and 504 CSS bytes; image count and image bytes are unchanged. Most of the total-byte increase is statically exported HTML from rendering every same-category alternative on every vehicle detail page, not browser JavaScript.
+
+## 2026-08-17 vehicle-detail technical-content refinement
+
+- The visible owner-supplied summary paragraph and the full checkmark feature list were removed from the technical panel. The metadata description still uses the supplied summary, but it is no longer repeated as visible page copy.
+- `Teknik Özellikler` now contains one definition-list system only. Existing model year, category, segment/body, fuel, transmission, power, and seating rows remain. Measurable, non-duplicating source values are normalized into the same rows when present: luggage/load volume, torque, WLTP range, battery capacity, energy/fuel consumption, and drivetrain.
+- Non-technical feature labels such as compact dimensions, corporate-use positioning, service-network claims, design descriptions, and use-case recommendations are not rendered on vehicle detail pages. Duplicate power, fuel, transmission, seating, and body-style feature labels are also omitted.
+- The existing Home `EditorialPreview` is reused after related vehicles and immediately before the shared Footer. It renders the same `Filo Dünyası'nı Keşfedin` heading, approved local article records, and canonical Filo Rehberi action without adding another component or Client boundary.
+- Lint, strict typecheck, 43 dependency-free tests, source validation, staging and production builds, and output validation passed. Both target-specific exports generated 47 static pages. Staging and production Edge smoke passed for the catalogue viewports and representative Binek/SUV/Ticari details; it verified no repeated summary, no checkmark list, at least five structured technical rows, exactly one editorial preview, no page-level overflow, no remote resources, and target-correct noindex canonicals.
+- The production artifact contains 445 files and 23,398,004 raw bytes: 678,638 JavaScript bytes across 15 files, 74,549 CSS bytes in one file, and 8,103,622 image bytes across 48 files. Relative to the preceding detail checkpoint this is +824,260 total bytes and +5,165 JavaScript bytes; CSS and image bytes are unchanged. The increase primarily reflects the existing editorial composition being statically included across all 32 detail outputs. Authored Client Component count remains five.

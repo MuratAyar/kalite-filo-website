@@ -1,3 +1,4 @@
+export * from "./about";
 export * from "./articles";
 export * from "./faqs";
 export * from "./home";

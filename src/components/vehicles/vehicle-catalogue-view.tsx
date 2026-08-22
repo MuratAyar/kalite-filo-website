@@ -1,6 +1,6 @@
 import type { ChangeEvent } from "react";
 
-import type { InternalPath, VehiclePortfolioRecord } from "@/types";
+import type { VehiclePortfolioRecord } from "@/types";
 import type {
   VehicleCatalogueCandidateFilters,
   VehicleCatalogueFilters,
@@ -19,11 +19,11 @@ import {
   serializeVehicleCatalogueFilters,
   VEHICLE_CATEGORY_OPTIONS,
 } from "@/lib/vehicle-catalogue-filters.mjs";
+import { getVehicleDetailPath } from "@/lib/paths";
 
 export type VehicleCatalogueViewProps = {
   filters: VehicleCatalogueFilters;
   onFiltersChange?: (filters: VehicleCatalogueCandidateFilters) => void;
-  quoteHref: InternalPath;
   records: readonly VehiclePortfolioRecord[];
 };
 
@@ -287,10 +287,8 @@ function VehicleFilterPanel({
 }
 
 function VehicleCard({
-  quoteHref,
   vehicle,
 }: {
-  quoteHref: InternalPath;
   vehicle: VehiclePortfolioRecord;
 }) {
   return (
@@ -301,10 +299,10 @@ function VehicleCard({
       data-vehicle-source-id={vehicle.sourceId}
     >
       <a
-        aria-label={`${vehicle.make} ${vehicle.model} için teklif al`}
+        aria-label={`${vehicle.make} ${vehicle.model} araç detayını incele`}
         className="group flex h-full min-w-0 flex-col overflow-hidden rounded-card border border-border-subtle bg-surface-card text-inherit no-underline shadow-[0_0.5rem_1.5rem_rgb(24_33_54_/_0.08)] transition-[border-color,box-shadow] hover:border-corporate-blue hover:shadow-[0_0.75rem_1.75rem_rgb(24_33_54_/_0.14)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus motion-reduce:transition-none"
         data-vehicle-card-link="true"
-        href={quoteHref}
+        href={getVehicleDetailPath(vehicle.slug)}
       >
         <div
           className="relative aspect-[16/11] overflow-hidden bg-surface-muted"
@@ -352,7 +350,7 @@ function VehicleCard({
             className="inline-flex min-h-11 w-full shrink-0 items-center justify-center rounded-control bg-accent-orange px-4 text-label font-semibold text-brand-navy transition-colors group-hover:bg-orange-dark group-focus-visible:bg-orange-dark motion-reduce:transition-none sm:w-auto"
             data-vehicle-card-cta="true"
           >
-            Teklif Al
+            Aracı İncele
           </span>
         </div>
         </div>
@@ -364,7 +362,6 @@ function VehicleCard({
 export function VehicleCatalogueView({
   filters,
   onFiltersChange,
-  quoteHref,
   records,
 }: VehicleCatalogueViewProps) {
   const filteredRecords = filterVehicleCatalogue(records, filters);
@@ -512,7 +509,7 @@ export function VehicleCatalogueView({
             <ul className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
               {filteredRecords.map((vehicle) => (
                 <li key={vehicle.id}>
-                  <VehicleCard quoteHref={quoteHref} vehicle={vehicle} />
+                  <VehicleCard vehicle={vehicle} />
                 </li>
               ))}
             </ul>

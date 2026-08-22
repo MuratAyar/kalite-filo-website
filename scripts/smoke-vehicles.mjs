@@ -338,9 +338,10 @@ try {
           '[data-vehicle-card] a[href="/teklif-al/"]'
         ).length ?? 0,
         fullCardLinkCount: vehicleCards.filter((card) =>
-          card.querySelectorAll(
-            ':scope > a[data-vehicle-card-link="true"][href="/teklif-al/"]'
-          ).length === 1
+          [...card.querySelectorAll(':scope > a[data-vehicle-card-link="true"]')]
+            .filter((link) => new URL(link.href).pathname ===
+              '/arac-listesi/' + card.getAttribute('data-vehicle-card') + '/'
+            ).length === 1
         ).length,
         nestedCardLinkCount: vehicleCards.reduce((count, card) => {
           const link = card.querySelector(
@@ -434,8 +435,8 @@ try {
         vehicleLicenseLedgerCount: document.querySelectorAll(
           'a[href="/images/vehicles/LICENSES.md"]'
         ).length,
-        detailLinkCount: [...(main?.querySelectorAll('a[href^="/araclar/"]') ?? [])]
-          .filter((link) => /^\\/araclar\\/[^?/#]+\\/?$/.test(
+        detailLinkCount: [...(main?.querySelectorAll('a[href^="/arac-listesi/"]') ?? [])]
+          .filter((link) => /^\\/arac-listesi\\/[^?/#]+\\/$/.test(
             new URL(link.href).pathname
           )).length,
         hasObsoleteQuoteOnlyPriceCopy: bodyText.includes('Fiyat için teklif alın'),
@@ -487,12 +488,12 @@ try {
       report.imageCount !== 28 ||
       report.uniqueImageCount !== 28 ||
       report.missingImageCount !== 4 ||
-      report.quoteCount !== 32 ||
+      report.quoteCount !== 0 ||
       report.fullCardLinkCount !== 32 ||
       report.nestedCardLinkCount !== 0 ||
       report.cardCtaCount !== 32 ||
       report.cardCtaHoverCount !== 32 ||
-      report.detailLinkCount !== 0 ||
+      report.detailLinkCount !== 32 ||
       report.hasObsoleteQuoteOnlyPriceCopy ||
       report.priceBlockCount !== 32 ||
       report.monthlyListNetLabelCount !== 32 ||
@@ -640,12 +641,195 @@ try {
     );
   }
 
+  const detailCases = [
+    {
+      slug: "renault-clio-evolution-1-0-tce-x-tronic-90",
+      title: "Renault Clio",
+      trim: "Evolution 1.0 TCe X-Tronic 90",
+      relatedCount: 10,
+    },
+    {
+      slug: "skoda-kamiq-1-0-tsi-115-dsg-premium-fl",
+      title: "Škoda Kamiq",
+      trim: "1.0 TSI 115 DSG Premium FL",
+      relatedCount: 12,
+    },
+    {
+      slug: "fiat-doblo-cargo-1-5-bluehdi-100-6mt",
+      title: "Fiat Doblo Cargo",
+      trim: "1.5 BlueHDi 100 6MT",
+      relatedCount: 7,
+    },
+  ];
+  const detailReports = [];
+
+  for (const detailCase of detailCases) {
+    const viewports = detailCase === detailCases[0] ? [320, 1440, 1920] : [1440];
+    for (const width of viewports) {
+      await setViewport(width);
+      await navigate(`${origin}/arac-listesi/${detailCase.slug}/`);
+      await delay(1000);
+      const detailReport = await evaluate(`(() => {
+        const root = document.documentElement;
+        const main = document.querySelector('main');
+        const actionButtons = [...(main?.querySelectorAll(
+          'button[data-vehicle-detail-action]'
+        ) ?? [])];
+        const related = [...(main?.querySelectorAll('[data-related-vehicle]') ?? [])];
+        const relatedTrack = main?.querySelector('[data-related-vehicles-track]');
+        const relatedControls = [...(main?.querySelectorAll(
+          'button[data-related-vehicles-control]'
+        ) ?? [])];
+        window.scrollTo({ left: 10000, top: window.scrollY, behavior: 'instant' });
+        const pageHorizontalScroll = window.scrollX;
+        window.scrollTo({ left: 0, top: window.scrollY, behavior: 'instant' });
+        return {
+          slug: ${JSON.stringify(detailCase.slug)},
+          expectedTitle: ${JSON.stringify(detailCase.title)},
+          viewport: ${width},
+          noHorizontalOverflow: pageHorizontalScroll === 0,
+          h1Count: main?.querySelectorAll('h1').length ?? 0,
+          h1Text: main?.querySelector('h1')?.textContent.trim(),
+          breadcrumbCurrent: main?.querySelector(
+            'nav[aria-label="Sayfa yolu"] [aria-current="page"]'
+          )?.textContent.trim(),
+          pageHeaderHasIntro: Boolean(main?.querySelector('#page-title + p')),
+          detailMarkerCount: main?.querySelectorAll(
+            '[data-vehicle-detail=${JSON.stringify(detailCase.slug)}]'
+          ).length ?? 0,
+          actionCount: actionButtons.length,
+          actionKinds: actionButtons.map((button) =>
+            button.getAttribute('data-vehicle-detail-action')
+          ).sort(),
+          linkedActionCount: main?.querySelectorAll(
+            'a[data-vehicle-detail-action], form[data-vehicle-detail-action]'
+          ).length ?? 0,
+          aboutSectionCount: [...(main?.querySelectorAll('h2') ?? [])]
+            .filter((heading) => heading.textContent.trim() === 'Araç Hakkında').length,
+          technicalSectionCount: main?.querySelectorAll(
+            '[data-vehicle-technical-section="true"]'
+          ).length ?? 0,
+          technicalSpecificationCount: main?.querySelectorAll(
+            '[data-vehicle-technical-specification="true"]'
+          ).length ?? 0,
+          repeatedSummaryPresent: Boolean(
+            main?.querySelector('[data-vehicle-technical-section="true"] p')
+          ),
+          checkmarkFeaturePresent: main?.querySelector(
+            '[data-vehicle-technical-section="true"]'
+          )?.textContent.includes('✓'),
+          editorialPreviewCount: main?.querySelectorAll(
+            '#editorial-preview-title'
+          ).length ?? 0,
+          offerPanelStartsWithHeading: main?.querySelector(
+            '[data-vehicle-offer-panel="true"]'
+          )?.firstElementChild?.tagName === 'H2',
+          relatedOldCopyPresent: main?.innerText.includes(
+            'Aynı araç kategorisindeki diğer portföy seçenekleri.'
+          ),
+          relatedControlCount: relatedControls.length,
+          relatedControlKinds: relatedControls.map((button) =>
+            button.getAttribute('data-related-vehicles-control')
+          ).sort(),
+          relatedTrackOverflow: Boolean(
+            relatedTrack && relatedTrack.scrollWidth > relatedTrack.clientWidth
+          ),
+          relatedCount: related.length,
+          uniqueRelatedCount: new Set(related.map((card) =>
+            card.getAttribute('data-related-vehicle')
+          )).size,
+          invalidRelatedHrefCount: related.filter((card) => {
+            const slug = card.getAttribute('data-related-vehicle');
+            const link = card.querySelector('a[href]');
+            return !link || new URL(link.href).pathname !==
+              '/arac-listesi/' + slug + '/';
+          }).length,
+          priceContext: main?.innerText.includes('Aylık Liste Net') &&
+            main?.innerText.includes('KDV hariç'),
+          robots: document.querySelector('meta[name="robots"]')?.content,
+          canonical: document.querySelector('link[rel="canonical"]')?.href,
+          remoteResources: performance
+            .getEntriesByType('resource')
+            .map((entry) => entry.name)
+            .filter((url) => !url.startsWith(location.origin) && !url.startsWith('data:')),
+        };
+      })()`);
+      detailReports.push(detailReport);
+
+      if (
+        !detailReport.noHorizontalOverflow ||
+        detailReport.h1Count !== 1 ||
+        detailReport.h1Text !== detailCase.title ||
+        detailReport.breadcrumbCurrent !==
+          `${detailCase.title} ${detailCase.trim}` ||
+        detailReport.pageHeaderHasIntro ||
+        detailReport.detailMarkerCount !== 1 ||
+        detailReport.actionCount !== 2 ||
+        detailReport.actionKinds.join(",") !== "basket,quote" ||
+        detailReport.linkedActionCount !== 0 ||
+        detailReport.aboutSectionCount !== 0 ||
+        detailReport.technicalSectionCount !== 1 ||
+        detailReport.technicalSpecificationCount < 5 ||
+        detailReport.repeatedSummaryPresent ||
+        detailReport.checkmarkFeaturePresent ||
+        detailReport.editorialPreviewCount !== 1 ||
+        !detailReport.offerPanelStartsWithHeading ||
+        detailReport.relatedOldCopyPresent ||
+        detailReport.relatedControlCount !== 2 ||
+        detailReport.relatedControlKinds.join(",") !== "next,previous" ||
+        !detailReport.relatedTrackOverflow ||
+        detailReport.relatedCount !== detailCase.relatedCount ||
+        detailReport.uniqueRelatedCount !== detailCase.relatedCount ||
+        detailReport.invalidRelatedHrefCount !== 0 ||
+        !detailReport.priceContext ||
+        !detailReport.robots?.startsWith("noindex, nofollow") ||
+        detailReport.canonical !==
+          `${deployOrigin}/arac-listesi/${detailCase.slug}/` ||
+        detailReport.remoteResources.length !== 0
+      ) {
+        throw new Error(
+          `Vehicle detail smoke assertion failed: ${JSON.stringify(detailReport)}`,
+        );
+      }
+
+      const scrollControlReport = await evaluate(`(() => {
+        const track = document.querySelector('[data-related-vehicles-track]');
+        const next = document.querySelector(
+          'button[data-related-vehicles-control="next"]'
+        );
+        const before = track?.scrollLeft ?? 0;
+        next?.click();
+        return { before, clicked: Boolean(next), max: track ?
+          track.scrollWidth - track.clientWidth : 0 };
+      })()`);
+      await delay(700);
+      const scrollAfter = await evaluate(`document.querySelector(
+        '[data-related-vehicles-track]'
+      )?.scrollLeft ?? 0`);
+      if (
+        !scrollControlReport.clicked ||
+        scrollControlReport.max <= 0 ||
+        scrollAfter <= scrollControlReport.before
+      ) {
+        throw new Error(
+          `Related vehicle control smoke assertion failed: ${JSON.stringify({
+            ...scrollControlReport,
+            scrollAfter,
+            slug: detailCase.slug,
+            viewport: width,
+          })}`,
+        );
+      }
+    }
+  }
+
   console.log(
     JSON.stringify(
       {
         deployOrigin,
         sitemapUrlCount: 0,
         responsiveReports,
+        detailReports,
         filterStates: {
           clioState,
           electricState,

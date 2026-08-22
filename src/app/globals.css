@@ -147,6 +147,7 @@
 html {
   min-height: 100%;
   background: var(--kf-surface-page);
+  scroll-behavior: smooth;
   scroll-padding-block-start: 1rem;
 }
 
@@ -188,16 +189,19 @@ body {
 }
 
 .featured-vehicles-action {
+  border-color: #000 !important;
+  background-color: transparent !important;
+  color: #000 !important;
+  transition:
+    border-color 150ms ease,
+    color 150ms ease !important;
+}
+
+.featured-vehicles-action:hover,
+.featured-vehicles-action:focus-visible {
   border-color: var(--kf-corporate-blue) !important;
   background-color: transparent !important;
   color: var(--kf-corporate-blue) !important;
-  transition: none !important;
-}
-
-.featured-vehicles-action:hover {
-  border-color: var(--kf-brand-navy) !important;
-  background-color: transparent !important;
-  color: var(--kf-brand-navy) !important;
 }
 
 .home-glass-panel {

@@ -1,14 +1,15 @@
-# Kalite Filo — Filo Rehberi Blog İçerikleri
+# Kalite Filo — Filo Rehberi içerikleri
 
-Bu klasör, Kalite Filo web sitesinin Filo Rehberi bölümü için hazırlanan 6 adet Markdown blog içeriğini içerir.
+Bu klasör, Kalite Filo Filo Rehberi için kullanıcı tarafından sağlanan 18
+Markdown yazının çalışma kopyalarını içerir.
 
-## Dosyalar
+- 6 kategori vardır.
+- Her kategoride 3 yazı bulunur.
+- `operasyonel-arac-kiralama-nedir.md` öne çıkan içeriktir.
+- Her dosyada frontmatter, kart özeti, ana içerik ve SEO alanları bulunur.
+- Paket yeni görsel içermediğinden yalnızca mevcut altı hakları doğrulanmış
+  yerel kapak kullanılır.
 
-1. `operasyonel-arac-kiralama-nedir.md`
-2. `filo-toplam-sahip-olma-maliyeti-tco.md`
-3. `kurumsal-filoda-dogru-arac-secimi.md`
-4. `filo-kiralama-kilometre-limiti-nasil-belirlenir.md`
-5. `elektrikli-araclar-sirket-filosu-gecis-rehberi.md`
-6. `filo-bakim-hasar-yonetimi.md`
-
-Her dosyada YAML frontmatter, SEO alanları, kart özeti, içerik, CTA ve görsel brief/alt metin alanları bulunmaktadır.
+Paketin değiştirilmemiş arşivi ve tam içerik kataloğu
+`references/source-data/filo-rehberi-18-blog/` altındadır. Listeleme metadata
+dosyası `scripts/generate-article-records.mjs` ile üretilir.

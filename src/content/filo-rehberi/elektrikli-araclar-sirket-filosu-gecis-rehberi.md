@@ -111,6 +111,4 @@ Rota yapısı, kilometre, araçların park süresi, şarj altyapısı ve toplam 
 
 ### Filonuz elektrikli araçlara hazır mı?
 
-Kullanım senaryonuzu paylaşın; şirket filonuzdaki elektrikli araç kullanımına uygun araç gruplarını birlikte değerlendirelim.
-
-**Buton:** `Teklif Al`
+Kullanım senaryonuzu paylaşın; şirket filonuzdaki elektrikli araç kullanımına uygun araç gruplarını birlikte değerlendirmek için [teklif alın](/teklif-al/).
