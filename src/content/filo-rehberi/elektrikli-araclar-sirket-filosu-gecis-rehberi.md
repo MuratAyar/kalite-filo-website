@@ -107,8 +107,6 @@ Elektrikli araçlar birçok kurumsal kullanım senaryosunda güçlü bir alterna
 
 Rota yapısı, kilometre, araçların park süresi, şarj altyapısı ve toplam maliyet birlikte analiz edilmelidir.
 
-## CTA
-
 ### Filonuz elektrikli araçlara hazır mı?
 
 Kullanım senaryonuzu paylaşın; şirket filonuzdaki elektrikli araç kullanımına uygun araç gruplarını birlikte değerlendirmek için [teklif alın](/teklif-al/).

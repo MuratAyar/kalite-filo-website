@@ -36,7 +36,7 @@ export const homePageCopy: HomePageCopy = {
     body:
       "Kurumsal kullanım ihtiyacınıza uygun araç seçeneklerini değerlendirmek için portföy sayfasına göz atın.",
     action: {
-      label: "Araçları İncele",
+      label: "Ticari Araçları Listele",
     },
   },
   why: {

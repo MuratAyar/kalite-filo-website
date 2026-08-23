@@ -213,8 +213,6 @@ Filo politikası, araç kullanımını kişisel tercihler ve sözlü kurallar ü
 
 Doğru kurallar hem maliyet kontrolünü hem güvenliği hem de çalışan deneyimini destekler.
 
-## CTA
-
 ### Filonuzu standart ve yönetilebilir bir yapıya dönüştürün.
 
 Araç ihtiyacınızı paylaşın; Kalite Filo ile şirketinizin kullanım yapısına uygun kiralama ve filo çözümlerini değerlendirmek için [teklif alın](/teklif-al/).

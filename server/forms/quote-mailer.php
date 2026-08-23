@@ -104,7 +104,7 @@ function kalite_filo_validate_mail_config(array $rawConfig): array
         }
     }
 
-    return [
+    $config = [
         'host' => trim($rawConfig['host']),
         'port' => $port,
         'encryption' => $encryption,
@@ -115,12 +115,30 @@ function kalite_filo_validate_mail_config(array $rawConfig): array
         'recipient_address' => trim($rawConfig['recipient_address']),
         'recipient_name' => trim($rawConfig['recipient_name']),
     ];
+
+    $contactAddress = $rawConfig['contact_recipient_address'] ?? null;
+    $contactName = $rawConfig['contact_recipient_name'] ?? null;
+    if ($contactAddress !== null || $contactName !== null) {
+        if (
+            !is_string($contactAddress)
+            || filter_var(trim($contactAddress), FILTER_VALIDATE_EMAIL) === false
+            || preg_match('/[\r\n]/', $contactAddress) === 1
+            || !is_string($contactName)
+            || trim($contactName) === ''
+        ) {
+            throw new RuntimeException('Private mail configuration is invalid.');
+        }
+        $config['contact_recipient_address'] = trim($contactAddress);
+        $config['contact_recipient_name'] = trim($contactName);
+    }
+
+    return $config;
 }
 
 /**
  * @param array{subject: string, html_body: string, text_body: string, reply_to_address: string, reply_to_name: string} $message
  */
-function kalite_filo_send_quote_email(array $message): bool
+function kalite_filo_send_email(array $message, string $recipientType = 'quote'): bool
 {
     try {
         // Keep configuration validation independently testable, while requiring
@@ -142,10 +160,16 @@ function kalite_filo_send_quote_email(array $message): bool
         $mail->CharSet = PHPMailer::CHARSET_UTF8;
 
         $mail->setFrom((string) $config['from_address'], (string) $config['from_name']);
-        $mail->addAddress(
-            (string) $config['recipient_address'],
-            (string) $config['recipient_name'],
-        );
+        $recipientAddressKey = $recipientType === 'contact'
+            ? 'contact_recipient_address'
+            : 'recipient_address';
+        $recipientNameKey = $recipientType === 'contact'
+            ? 'contact_recipient_name'
+            : 'recipient_name';
+        if (!isset($config[$recipientAddressKey], $config[$recipientNameKey])) {
+            throw new RuntimeException('Requested mail recipient is unavailable.');
+        }
+        $mail->addAddress((string) $config[$recipientAddressKey], (string) $config[$recipientNameKey]);
         $mail->addReplyTo($message['reply_to_address'], $message['reply_to_name']);
 
         $mail->isHTML(true);
@@ -155,7 +179,15 @@ function kalite_filo_send_quote_email(array $message): bool
 
         return $mail->send();
     } catch (Throwable $exception) {
-        error_log('Kalite Filo quote SMTP delivery failed [' . get_class($exception) . '].');
+        error_log('Kalite Filo SMTP delivery failed [' . get_class($exception) . '].');
         return false;
     }
+}
+
+/**
+ * @param array{subject: string, html_body: string, text_body: string, reply_to_address: string, reply_to_name: string} $message
+ */
+function kalite_filo_send_quote_email(array $message): bool
+{
+    return kalite_filo_send_email($message, 'quote');
 }

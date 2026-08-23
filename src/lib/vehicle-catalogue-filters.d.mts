@@ -8,6 +8,7 @@ export type VehicleCatalogueTransmission =
   | "Otomatik"
   | "Yarı Otomatik"
   | "Manuel";
+export type VehicleCatalogueSort = "fiyat-artan" | "fiyat-azalan";
 
 export interface VehicleCatalogueFilterRecord {
   readonly make: string;
@@ -16,6 +17,7 @@ export interface VehicleCatalogueFilterRecord {
   readonly fuelLabel: string;
   readonly segmentLabel: string;
   readonly transmissionLabel: string;
+  readonly listPrice?: Readonly<{ amountMinor: number }>;
 }
 
 export interface VehicleCatalogueFilters {
@@ -25,6 +27,7 @@ export interface VehicleCatalogueFilters {
   readonly fuel?: VehicleCatalogueFuel;
   readonly segment?: string;
   readonly transmission?: VehicleCatalogueTransmission;
+  readonly sort?: VehicleCatalogueSort;
 }
 
 export interface VehicleCatalogueCandidateFilters {
@@ -34,6 +37,7 @@ export interface VehicleCatalogueCandidateFilters {
   readonly fuel?: string;
   readonly segment?: string;
   readonly transmission?: string;
+  readonly sort?: string;
 }
 
 export interface VehicleCatalogueOptions {
@@ -54,6 +58,10 @@ export const VEHICLE_CATEGORY_OPTIONS: readonly Readonly<{
 }>[];
 export const VEHICLE_FUEL_OPTIONS: readonly VehicleCatalogueFuel[];
 export const VEHICLE_TRANSMISSION_OPTIONS: readonly VehicleCatalogueTransmission[];
+export const VEHICLE_SORT_OPTIONS: readonly Readonly<{
+  label: string;
+  value: VehicleCatalogueSort;
+}>[];
 
 export function getVehicleFuelGroup(
   fuelLabel: string,

@@ -169,8 +169,6 @@ Yüksek kilometreli filo aracı seçerken en ucuz veya en popüler model yerine,
 
 Küçük tüketim, bakım ve konfor farkları yüz binlerce filo kilometresi boyunca büyük farklara dönüşebilir.
 
-## CTA
-
 ### Yüksek kilometreli ekipleriniz için doğru araçları seçin.
 
 Kalite Filo ile yıllık kilometre ve kullanım senaryonuza uygun uzun dönem kiralama alternatiflerini değerlendirin ve [teklif alın](/teklif-al/).

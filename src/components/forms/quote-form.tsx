@@ -18,6 +18,7 @@ type ValidationErrors = Record<string, string>;
 type SubmissionState = "idle" | "submitting";
 
 type QuoteResponse = {
+  fieldErrors?: ValidationErrors;
   quoteNumber: string | null;
   result: ResultKey;
 };
@@ -114,6 +115,14 @@ function validationMessageFor(field: HTMLInputElement | HTMLSelectElement | HTML
   if (field.name === "telefon") return "*Geçerli bir numara giriniz.";
   if (field.name === "eposta") return "*Geçersiz e-posta adresi.";
   return "*Bu alanı geçerli formatta doldurunuz.";
+}
+
+function focusField(form: HTMLFormElement, fieldName: string) {
+  const field = form.elements.namedItem(fieldName);
+  if (field instanceof HTMLElement) {
+    field.focus();
+    field.scrollIntoView({ behavior: "smooth", block: "center" });
+  }
 }
 
 function CountryFlag({ iso }: { iso: string }) {
@@ -352,12 +361,12 @@ export function QuoteForm() {
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const form = event.currentTarget;
-    const requiredFields = Array.from(
+    const formFields = Array.from(
       form.querySelectorAll<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>(
-        "input[required], select[required], textarea[required]",
+        "input:not([type='hidden']), select, textarea",
       ),
     );
-    const invalidFields = requiredFields.filter((field) => !field.checkValidity());
+    const invalidFields = formFields.filter((field) => !field.checkValidity());
 
     if (invalidFields.length > 0) {
       setValidationErrors(
@@ -394,8 +403,19 @@ export function QuoteForm() {
       const payload = (await response.json()) as QuoteResponse;
 
       if (!response.ok || payload.result !== "basarili" || !payload.quoteNumber) {
+        let focusedInvalidField = false;
+        if (payload.result === "dogrulama" && payload.fieldErrors) {
+          setValidationErrors(payload.fieldErrors);
+          const firstInvalidField = Object.keys(payload.fieldErrors)[0];
+          if (firstInvalidField) {
+            focusedInvalidField = true;
+            window.requestAnimationFrame(() => focusField(form, firstInvalidField));
+          }
+        }
         setResult(payload.result in resultMessages ? payload.result : "gonderilemedi");
-        window.requestAnimationFrame(() => resultRef.current?.focus());
+        if (!focusedInvalidField) {
+          window.requestAnimationFrame(() => resultRef.current?.focus());
+        }
         return;
       }
 
@@ -492,7 +512,7 @@ export function QuoteForm() {
             <div className="grid gap-6 md:grid-cols-2">
               <ProvinceSelect error={validationErrors.il} id="quote-city" label="İl" name="il" placeholder="Şehrinizi seçiniz" />
               <TextField autoComplete="address-level2" error={validationErrors.ilce} id="quote-district" label="İlçe" maxLength={80} name="ilce" placeholder="İlçenizi yazınız" required />
-              <TextField autoComplete="url" id="quote-company-website" label="Firma Web Sitesi" maxLength={200} name="firma_web_sitesi" placeholder="Web sitenizi yazınız" type="url" />
+              <TextField autoComplete="url" id="quote-company-website" label="Firma Web Sitesi" maxLength={200} name="firma_web_sitesi" placeholder="Web sitenizi yazınız" />
               <div className="space-y-2">
                 <FieldLabel htmlFor="quote-company-type">Şirket Tipi *</FieldLabel>
                 <select aria-describedby={validationErrors.sirket_tipi ? "quote-company-type-error" : undefined} aria-invalid={validationErrors.sirket_tipi ? "true" : undefined} className={fieldClassName} defaultValue="" id="quote-company-type" name="sirket_tipi" required>

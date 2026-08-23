@@ -156,8 +156,6 @@ Filonun gerçek maliyetini azaltmak yalnızca tedarikçiden daha düşük fiyat 
 
 Bazen en büyük tasarruf, araçların nasıl seçildiği, kullanıldığı ve yönetildiği konusunda yapılacak küçük süreç iyileştirmelerinden gelir.
 
-## CTA
-
 ### Filo maliyetini sadece faturalarda değil, operasyonun tamamında değerlendirin.
 
 Kalite Filo [araç portföyünü inceleyin](/arac-listesi/) ve ihtiyacınıza uygun uzun dönem kiralama çözümleri için [teklif alın](/teklif-al/).

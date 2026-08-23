@@ -55,3 +55,11 @@ fallback'i yoktur. Ayrıntılı kontrol listesi: `docs/smtp-staging-test.md`.
 Release paketi PHP çalıştıran cPanel document root'una yüklenmelidir. Genel
 statik önizleme sunucuları PHP kaynağını düz metin gösterebileceğinden bu paket
 onlarda yayımlanmamalıdır.
+
+## İletişim formu
+
+`iletisim.php`, aynı SMTP taşıma katmanını, origin kontrolünü, honeypot ve hız
+sınırını kullanır. Teklif alıcısını değiştirmez; özel yapılandırmadaki
+`contact_recipient_address` ve `contact_recipient_name` alanlarına gönderir.
+Gerçek parola ve SMTP kimliği yalnızca document root dışındaki özel
+`kalite-filo-mail.php` dosyasında tutulmalıdır.

@@ -20,6 +20,7 @@ const records = Object.freeze([
     model: "Clio",
     segmentLabel: "B Hatchback",
     transmissionLabel: "X-Tronic Otomatik",
+    listPrice: { amountMinor: 4_020_000 },
   }),
   Object.freeze({
     id: "duster",
@@ -29,6 +30,7 @@ const records = Object.freeze([
     model: "Duster",
     segmentLabel: "C-SUV",
     transmissionLabel: "7 ileri EDC Otomatik",
+    listPrice: { amountMinor: 5_100_000 },
   }),
   Object.freeze({
     id: "transit",
@@ -38,6 +40,7 @@ const records = Object.freeze([
     model: "Transit Van",
     segmentLabel: "Büyük Panelvan",
     transmissionLabel: "6 ileri Manuel",
+    listPrice: { amountMinor: 3_250_000 },
   }),
   Object.freeze({
     id: "model-y",
@@ -47,6 +50,7 @@ const records = Object.freeze([
     model: "Model Y",
     segmentLabel: "D-SUV Elektrik",
     transmissionLabel: "Tek oranlı otomatik",
+    listPrice: { amountMinor: 6_300_000 },
   }),
 ]);
 
@@ -54,7 +58,7 @@ test("reads and normalizes only approved catalogue query keys", () => {
   assert.deepEqual(
     readVehicleCatalogueQueryFilters(
       new URLSearchParams(
-        "marka=%20RENAULT%20&model=Clio&kategori=Binek&yakit=Benzin&segment=B%20Hatchback&vites=Otomatik&ignored=yes",
+        "marka=%20RENAULT%20&model=Clio&kategori=Binek&yakit=Benzin&segment=B%20Hatchback&vites=Otomatik&sirala=fiyat-artan&ignored=yes",
       ),
     ),
     {
@@ -64,6 +68,7 @@ test("reads and normalizes only approved catalogue query keys", () => {
       fuel: "Benzin",
       segment: "B Hatchback",
       transmission: "Otomatik",
+      sort: "fiyat-artan",
     },
   );
 });
@@ -169,7 +174,27 @@ test("serializes only non-empty approved query key names", () => {
       fuel: "Hybrid",
       segment: "C-SUV",
       transmission: "Otomatik",
+      sort: "fiyat-azalan",
     }),
-    "kategori=SUV&marka=Renault&yakit=Hybrid&segment=C-SUV&vites=Otomatik",
+    "kategori=SUV&marka=Renault&yakit=Hybrid&segment=C-SUV&vites=Otomatik&sirala=fiyat-azalan",
+  );
+});
+
+test("sorts filtered catalogue prices in either direction and preserves default order", () => {
+  assert.deepEqual(
+    filterVehicleCatalogue(records, { sort: "fiyat-artan" }).map(
+      (record) => record.id,
+    ),
+    ["transit", "clio", "duster", "model-y"],
+  );
+  assert.deepEqual(
+    filterVehicleCatalogue(records, { sort: "fiyat-azalan" }).map(
+      (record) => record.id,
+    ),
+    ["model-y", "duster", "clio", "transit"],
+  );
+  assert.deepEqual(
+    filterVehicleCatalogue(records).map((record) => record.id),
+    ["clio", "duster", "transit", "model-y"],
   );
 });

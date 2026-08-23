@@ -193,8 +193,6 @@ Sürücü prosedürü, iletişim hattı, servis ağı, ikame araç ve raporlama 
 
 Bu yapı sayesinde araçların operasyon dışında kaldığı süre azaltılabilir ve çalışanlar kaza anında ne yapacaklarını bilir.
 
-## CTA
-
 ### Hasar operasyonunu filonuz için daha yönetilebilir hale getirin.
 
 Kalite Filo ile bakım, hasar ve uzun dönem araç kiralama ihtiyaçlarınızı birlikte değerlendirmek için [teklif alın](/teklif-al/).

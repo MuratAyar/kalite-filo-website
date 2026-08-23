@@ -65,6 +65,12 @@ const quotePhpSourcePath = path.join(
   "forms",
   "teklif.php",
 );
+const contactPhpSourcePath = path.join(
+  repositoryRoot,
+  "server",
+  "forms",
+  "iletisim.php",
+);
 const quoteMailerSourcePath = path.join(
   repositoryRoot,
   "server",
@@ -92,6 +98,7 @@ const quoteComposerLockPath = path.join(
 const expectedArticleArchiveHash =
   "b8100d2419c1e77f250995e19f8d3e8277ddf6f7b38ec8b9cca41a6fe7fadead";
 const approvedClientComponents = new Set([
+  "src/components/contact/contact-form.tsx",
   "src/components/editorial/article-share-actions.tsx",
   "src/components/editorial/fleet-guide-listing.tsx",
   "src/components/faq/faq-category-filter.tsx",
@@ -602,6 +609,7 @@ function validateSourceArchitecture() {
 export function validateQuotePhpSource({ requireComposerLock = true } = {}) {
   for (const [sourcePath, description] of [
     [quotePhpSourcePath, "quote PHP endpoint"],
+    [contactPhpSourcePath, "contact PHP endpoint"],
     [quoteMailerSourcePath, "authenticated SMTP boundary"],
     [quoteMailExamplePath, "secret-free mail configuration example"],
     [quoteComposerJsonPath, "quote-form Composer manifest"],
@@ -617,6 +625,7 @@ export function validateQuotePhpSource({ requireComposerLock = true } = {}) {
   }
 
   const content = readFileSync(quotePhpSourcePath, "utf8");
+  const contactContent = readFileSync(contactPhpSourcePath, "utf8");
   const mailerContent = readFileSync(quoteMailerSourcePath, "utf8");
   const exampleContent = readFileSync(quoteMailExamplePath, "utf8");
   const composerManifest = JSON.parse(readFileSync(quoteComposerJsonPath, "utf8"));
@@ -657,7 +666,7 @@ export function validateQuotePhpSource({ requireComposerLock = true } = {}) {
     [/ENCRYPTION_SMTPS/, "implicit TLS support"],
     [/ENCRYPTION_STARTTLS/, "STARTTLS support"],
     [/\$mail->setFrom\(\(string\) \$config\['from_address'\]/, "configured sender identity"],
-    [/\$mail->addAddress\(\s*\(string\) \$config\['recipient_address'\]/s, "configured recipient identity"],
+    [/\$mail->addAddress\(\(string\) \$config\[\$recipientAddressKey\]/, "configured recipient identity"],
     [/\$mail->addReplyTo\(\$message\['reply_to_address'\]/, "visitor Reply-To handling"],
     [/PHPMailer::CHARSET_UTF8/, "UTF-8 message encoding"],
     [/\$mail->Body\s*=\s*\$message\['html_body'\]/, "HTML message content"],
@@ -673,7 +682,19 @@ export function validateQuotePhpSource({ requireComposerLock = true } = {}) {
     fail("The quote-form Composer manifest must require phpmailer/phpmailer ^7.1.");
   }
 
-  const projectOwnedPhp = [content, mailerContent, exampleContent].join("\n");
+  for (const [pattern, description] of [
+    [/declare\s*\(strict_types\s*=\s*1\)/, "strict PHP typing"],
+    [/contact_field\('website'/, "a honeypot field"],
+    [/FILTER_VALIDATE_EMAIL/, "server-side email validation"],
+    [/contact_rate_limit_allows_request\(\)/, "rate limiting"],
+    [/https:\/\/kalitefilo\.com\.tr/, "the production origin allowlist"],
+    [/https:\/\/staging\.kalitefilo\.com\.tr/, "the staging origin allowlist"],
+    [/kalite_filo_send_email\([^;]+, 'contact'\)/s, "contact-recipient SMTP delivery"],
+  ]) {
+    if (!pattern.test(contactContent)) fail(`The contact PHP endpoint is missing ${description}.`);
+  }
+
+  const projectOwnedPhp = [content, contactContent, mailerContent, exampleContent].join("\n");
   if (/\bmail\s*\(/i.test(projectOwnedPhp)) {
     fail("Project-owned quote PHP must not use PHP mail().");
   }
@@ -687,6 +708,8 @@ export function validateQuotePhpSource({ requireComposerLock = true } = {}) {
   for (const publicPath of [
     path.join(repositoryRoot, "public", "forms", "teklif.php"),
     path.join(repositoryRoot, "out", "forms", "teklif.php"),
+    path.join(repositoryRoot, "public", "forms", "iletisim.php"),
+    path.join(repositoryRoot, "out", "forms", "iletisim.php"),
     path.join(repositoryRoot, "public", "forms", "quote-mailer.php"),
     path.join(repositoryRoot, "out", "forms", "quote-mailer.php"),
     path.join(repositoryRoot, "server", "forms", "kalite-filo-mail.php"),
@@ -1770,11 +1793,18 @@ export function validateAboutOutput(html) {
   }
 
   if (
-    (html.match(/<a\b[^>]*>[\s\S]*?<\/a>/gi) ?? []).some((anchor) =>
-      /Kilometre Taşlarımız|Vizyonumuz/i.test(anchor),
+    !html.includes('href="#vizyon-misyon-degerler"') ||
+    !html.includes('id="vizyon-misyon-degerler"')
+  ) {
+    fail("The About vision control must target the vision, mission, and values section.");
+  }
+
+  if (
+    !/<button\b[^>]*data-about-hero-control=["']milestones["'][^>]*>/i.test(
+      html,
     )
   ) {
-    fail("The inactive About hero controls must not be navigation links.");
+    fail("The inactive About milestones control must remain a button.");
   }
 
   if (!html.includes('data-content-status="draft"')) {
@@ -2120,6 +2150,27 @@ export function validateQuoteFormOutput(html) {
   return { formCount: forms.length };
 }
 
+export function validateContactFormOutput(html) {
+  const mainHtml = html.match(/<main\b[\s\S]*?<\/main>/i)?.[0];
+  if (!mainHtml) fail("Contact output is missing its main landmark.");
+  const forms = mainHtml.match(/<form\b[\s\S]*?<\/form>/gi) ?? [];
+  const contactForms = forms.filter((form) => /\baction=["']\/forms\/iletisim\.php["']/i.test(form));
+  if (contactForms.length !== 1) fail("Contact output must contain exactly one contact form.");
+  const form = contactForms[0];
+  const openingTag = form.match(/<form\b[^>]*>/i)?.[0] ?? "";
+  if (
+    openingTag.match(/\baction=["']([^"']+)["']/i)?.[1] !== "/forms/iletisim.php"
+    || openingTag.match(/\bmethod=["']([^"']+)["']/i)?.[1]?.toLowerCase() !== "post"
+  ) {
+    fail("Contact form must POST to the approved local PHP endpoint.");
+  }
+  for (const name of ["website", "isim", "eposta", "mesaj"]) {
+    if (!new RegExp(`\\bname=["']${name}["']`, "i").test(form)) {
+      fail(`Contact form is missing its ${name} field.`);
+    }
+  }
+}
+
 function validateOutput(routes) {
   const outputRoot = path.join(repositoryRoot, "out");
   const requiredFiles = [
@@ -2281,6 +2332,10 @@ function validateOutput(routes) {
 
     if (route.id === "quote") {
       validateQuoteFormOutput(html);
+    }
+
+    if (route.id === "contact") {
+      validateContactFormOutput(html);
     }
 
     assertRobotsMetadata(

@@ -101,8 +101,6 @@ Operasyonel araç kiralama, doğru yapılandırıldığında şirketlerin araç 
 
 Ancak doğru sonuç için araç modeli kadar sözleşme süresi, kilometre limiti ve hizmet kapsamının da gerçek kullanım koşullarına uygun belirlenmesi gerekir.
 
-## CTA
-
 ### Şirketiniz için doğru filo modelini birlikte belirleyelim.
 
 Araç ihtiyacınızı, kullanım sürenizi ve kilometre beklentinizi paylaşın. Kalite Filo ekibi şirketinize uygun uzun dönem araç kiralama alternatiflerini değerlendirsin; siz de [teklif alın](/teklif-al/).

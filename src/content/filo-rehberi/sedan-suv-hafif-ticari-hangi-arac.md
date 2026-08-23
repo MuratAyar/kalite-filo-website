@@ -155,8 +155,6 @@ Doğru seçim, aracın şirket içinde üstleneceği göreve göre değişir.
 
 Filo politikasını görev bazlı tasarlamak hem çalışan memnuniyetini hem de maliyet kontrolünü iyileştirebilir.
 
-## CTA
-
 ### Şirketiniz için doğru araç sınıfını birlikte belirleyelim.
 
 Kalite Filo [araç portföyünü inceleyin](/arac-listesi/) veya kullanım senaryonuzu paylaşarak uygun araç alternatifleri için [teklif alın](/teklif-al/).

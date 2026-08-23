@@ -61,6 +61,7 @@ export function assembleCpanelRelease(target, repositoryRoot = defaultRepository
 
   for (const requiredFile of [
     "teklif.php",
+    "iletisim.php",
     "quote-mailer.php",
     "composer.json",
     "composer.lock",
@@ -81,6 +82,7 @@ export function assembleCpanelRelease(target, repositoryRoot = defaultRepository
   mkdirSync(formsDirectory, { recursive: true });
   for (const runtimeFile of [
     "teklif.php",
+    "iletisim.php",
     "quote-mailer.php",
     "composer.json",
     "composer.lock",

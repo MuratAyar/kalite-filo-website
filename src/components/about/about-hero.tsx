@@ -1,5 +1,5 @@
 import { PageContainer, Section } from "@/components/layout";
-import { Button } from "@/components/ui";
+import { ActionLink, Button } from "@/components/ui";
 import { aboutPageContent } from "@/data/about";
 
 import { AboutIcon } from "./about-icon";
@@ -40,10 +40,15 @@ export function AboutHero({ content }: AboutHeroProps) {
               <Button data-about-hero-control="milestones" size="primary" variant="secondary">
                 {content.primaryAction}
               </Button>
-              <Button data-about-hero-control="vision" size="secondary" variant="outline">
+              <ActionLink
+                data-about-hero-control="vision"
+                href="#vizyon-misyon-degerler"
+                size="secondary"
+                variant="outline"
+              >
                 {content.secondaryAction}
                 <span aria-hidden="true">→</span>
-              </Button>
+              </ActionLink>
             </div>
           </div>
 

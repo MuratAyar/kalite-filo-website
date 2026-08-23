@@ -14,4 +14,7 @@ return [
 
     'recipient_address' => 'CHANGE_ME',
     'recipient_name' => 'Kalite Filo Teklif',
+
+    'contact_recipient_address' => 'contact@kalitefilo.com.tr',
+    'contact_recipient_name' => 'Kalite Filo İletişim',
 ];

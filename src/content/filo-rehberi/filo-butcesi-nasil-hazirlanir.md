@@ -181,8 +181,6 @@ Bu analiz gelecek yılın bütçesini de daha doğru hale getirir.
 
 Doğru kurulduğunda filonun verimliliğini ölçen ve yönetim kararlarını destekleyen dinamik bir kontrol aracına dönüşür.
 
-## CTA
-
 ### Filo maliyetlerinizi daha öngörülebilir hale getirin.
 
 Şirketinizin araç sayısını ve kullanım yapısını paylaşın; Kalite Filo ile uzun dönem kiralama alternatiflerini ve bütçenize uygun filo modelini değerlendirmek için [teklif alın](/teklif-al/).

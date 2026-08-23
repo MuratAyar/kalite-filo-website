@@ -13,8 +13,9 @@ export function VisionMissionValues({ content }: VisionMissionValuesProps) {
   return (
     <Section
       aria-labelledby="vision-mission-values-title"
-      className="pt-0"
+      className="scroll-mt-28 pt-0"
       data-about-section="vision-mission-values"
+      id="vizyon-misyon-degerler"
       surface="page"
     >
       <PageContainer>

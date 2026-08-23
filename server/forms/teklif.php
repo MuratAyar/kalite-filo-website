@@ -13,14 +13,14 @@ function request_wants_json(): bool
     return str_contains($accept, 'application/json');
 }
 
-function respond_result(string $result, ?string $quoteNumber = null): never
+function respond_result(string $result, ?string $quoteNumber = null, array $fieldErrors = []): never
 {
     if (request_wants_json()) {
         $status = $result === 'basarili' ? 200 : ($result === 'dogrulama' ? 422 : 503);
         http_response_code($status);
         header('Content-Type: application/json; charset=UTF-8');
         echo json_encode(
-            ['result' => $result, 'quoteNumber' => $quoteNumber],
+            ['result' => $result, 'quoteNumber' => $quoteNumber, 'fieldErrors' => $fieldErrors],
             JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE,
         );
         exit;
@@ -53,14 +53,14 @@ function normalized_field(string $name, int $maxBytes, bool $required = false): 
 {
     $value = $_POST[$name] ?? '';
     if (!is_string($value)) {
-        respond_result('dogrulama');
+        respond_result('dogrulama', null, [$name => '*Bu alan geçerli formatta doldurulmalıdır.']);
     }
 
     $value = preg_replace('/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/u', '', $value) ?? '';
     $value = preg_replace('/[\t ]+/u', ' ', trim($value)) ?? '';
 
     if (($required && $value === '') || strlen($value) > $maxBytes) {
-        respond_result('dogrulama');
+        respond_result('dogrulama', null, [$name => $value === '' ? '*Bu alan boş bırakılamaz.' : '*Bu alan geçerli formatta doldurulmalıdır.']);
     }
 
     return $value;
@@ -73,7 +73,7 @@ function validated_integer(string $name, int $minimum, int $maximum): int
     ]);
 
     if (!is_int($value)) {
-        respond_result('dogrulama');
+        respond_result('dogrulama', null, [$name => '*Bu alan izin verilen sayı aralığında olmalıdır.']);
     }
 
     return $value;
@@ -251,24 +251,31 @@ $allowedCountryCodes = [
 ];
 $internationalPhone = $countryCode . $phoneDigits;
 
-$companyWebsiteIsValid = $companyWebsite === '' || (
-    filter_var($companyWebsite, FILTER_VALIDATE_URL) !== false
-    && in_array(parse_url($companyWebsite, PHP_URL_SCHEME), ['http', 'https'], true)
-);
-
+$fieldErrors = [];
+if (filter_var($email, FILTER_VALIDATE_EMAIL) === false || preg_match('/[\r\n]/', $email) === 1) {
+    $fieldErrors['eposta'] = '*Geçersiz e-posta adresi.';
+}
+if (preg_match("/^[\\p{L}][\\p{L}' -]*$/u", $firstName) !== 1) {
+    $fieldErrors['ad'] = '*Ad yalnızca harf, boşluk, kesme işareti ve kısa çizgi içerebilir.';
+}
+if (preg_match("/^[\\p{L}][\\p{L}' -]*$/u", $lastName) !== 1) {
+    $fieldErrors['soyad'] = '*Soyad yalnızca harf, boşluk, kesme işareti ve kısa çizgi içerebilir.';
+}
 if (
-    filter_var($email, FILTER_VALIDATE_EMAIL) === false
-    || preg_match('/[\r\n]/', $email) === 1
-    || preg_match("/^[\\p{L}][\\p{L}' -]*$/u", $firstName) !== 1
-    || preg_match("/^[\\p{L}][\\p{L}' -]*$/u", $lastName) !== 1
-    || !in_array($countryCode, $allowedCountryCodes, true)
+    !in_array($countryCode, $allowedCountryCodes, true)
     || preg_match('/^[0-9]{6,14}$/', $phoneDigits) !== 1
     || strlen($internationalPhone) > 15
-    || (!$isCorporate && !is_valid_turkish_identity_number($identityNumber))
-    || ($isCorporate && preg_match('/^[0-9]{10}$/', $taxNumber) !== 1)
-    || !$companyWebsiteIsValid
 ) {
-    respond_result('dogrulama');
+    $fieldErrors['telefon'] = '*Geçerli bir telefon numarası giriniz.';
+}
+if (!$isCorporate && !is_valid_turkish_identity_number($identityNumber)) {
+    $fieldErrors['tc_kimlik_no'] = '*Geçerli bir T.C. kimlik numarası giriniz.';
+}
+if ($isCorporate && preg_match('/^[0-9]{10}$/', $taxNumber) !== 1) {
+    $fieldErrors['vergi_numarasi'] = '*Vergi numarası 10 rakamdan oluşmalıdır.';
+}
+if ($fieldErrors !== []) {
+    respond_result('dogrulama', null, $fieldErrors);
 }
 
 $quoteNumber = create_quote_number();

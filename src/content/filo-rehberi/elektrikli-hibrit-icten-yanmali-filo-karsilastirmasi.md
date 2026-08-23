@@ -167,8 +167,6 @@ Elektrikli, hibrit ve içten yanmalı araçlar farklı görevler için farklı g
 
 Doğru filo, tek teknolojiye bağlı kalmak yerine kullanım verisine göre en uygun araçları seçen filodur.
 
-## CTA
-
 ### Filonuzdaki hangi araçların elektrifikasyona uygun olduğunu birlikte değerlendirelim.
 
 Kalite Filo [araç portföyünü inceleyin](/arac-listesi/) ve uzun dönem kiralama çözümleri için [teklif alın](/teklif-al/).

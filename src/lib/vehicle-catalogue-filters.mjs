@@ -20,6 +20,11 @@ export const VEHICLE_TRANSMISSION_OPTIONS = Object.freeze([
   "Manuel",
 ]);
 
+export const VEHICLE_SORT_OPTIONS = Object.freeze([
+  Object.freeze({ label: "Fiyat Artan", value: "fiyat-artan" }),
+  Object.freeze({ label: "Fiyat Azalan", value: "fiyat-azalan" }),
+]);
+
 const QUERY_KEYS = Object.freeze({
   category: "kategori",
   make: "marka",
@@ -27,6 +32,7 @@ const QUERY_KEYS = Object.freeze({
   fuel: "yakit",
   segment: "segment",
   transmission: "vites",
+  sort: "sirala",
 });
 
 function foldLabel(value) {
@@ -124,6 +130,7 @@ export function readVehicleCatalogueQueryFilters(searchParams) {
     transmission: normalizeVehicleQueryValue(
       searchParams.get(QUERY_KEYS.transmission),
     ),
+    sort: normalizeVehicleQueryValue(searchParams.get(QUERY_KEYS.sort)),
   });
 }
 
@@ -157,6 +164,10 @@ export function normalizeVehicleCatalogueFilters(records, candidate = {}) {
     VEHICLE_TRANSMISSION_OPTIONS,
     candidate.transmission,
   );
+  const sort = getCanonicalValue(
+    VEHICLE_SORT_OPTIONS.map((option) => option.value),
+    candidate.sort,
+  );
 
   return Object.freeze({
     ...(category ? { category } : {}),
@@ -165,6 +176,7 @@ export function normalizeVehicleCatalogueFilters(records, candidate = {}) {
     ...(fuel ? { fuel } : {}),
     ...(segment ? { segment } : {}),
     ...(transmission ? { transmission } : {}),
+    ...(sort ? { sort } : {}),
   });
 }
 
@@ -207,7 +219,7 @@ export function buildVehicleCatalogueOptions(records, selectedMake) {
 export function filterVehicleCatalogue(records, candidateFilters = {}) {
   const filters = normalizeVehicleCatalogueFilters(records, candidateFilters);
 
-  return records.filter((record) => {
+  const filteredRecords = records.filter((record) => {
     const categoryMatches =
       !filters.category ||
       foldLabel(record.categoryLabel) === foldLabel(filters.category);
@@ -233,6 +245,23 @@ export function filterVehicleCatalogue(records, candidateFilters = {}) {
       segmentMatches &&
       transmissionMatches
     );
+  });
+
+  if (!filters.sort) {
+    return filteredRecords;
+  }
+
+  const direction = filters.sort === "fiyat-artan" ? 1 : -1;
+
+  return [...filteredRecords].sort((left, right) => {
+    const leftPrice = left.listPrice?.amountMinor;
+    const rightPrice = right.listPrice?.amountMinor;
+
+    if (!Number.isFinite(leftPrice) || !Number.isFinite(rightPrice)) {
+      return 0;
+    }
+
+    return (leftPrice - rightPrice) * direction;
   });
 }
 

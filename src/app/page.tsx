@@ -45,7 +45,7 @@ export default function Home() {
         vehiclesHref={vehiclesRoute.path}
       />
       <CommercialRentalSection
-        actionHref={vehiclesRoute.path}
+        actionHref="/arac-listesi/?kategori=Ticari"
         content={homePageCopy.commercial}
       />
       <WhyKaliteFilo content={homePageCopy.why} />

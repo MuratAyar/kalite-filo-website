@@ -104,8 +104,6 @@ TCO yaklaşımı şirketlerin görünür ve görünmeyen maliyetleri aynı çer�
 
 Kalite Filo'da araç ve kiralama alternatifleri değerlendirilirken amaç yalnızca uygun fiyatlı araç bulmak değil; kullanım senaryosuna göre sürdürülebilir bir toplam maliyet yapısı oluşturmaktır.
 
-## CTA
-
 ### Filonuzun gerçek maliyetini birlikte değerlendirelim.
 
 [Filo ihtiyacınız için teklif alın](/teklif-al/).

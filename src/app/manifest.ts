@@ -13,9 +13,9 @@ export default function manifest(): MetadataRoute.Manifest {
     theme_color: "#182136",
     icons: [
       {
-        src: "/icons/site-icon-placeholder.svg",
-        sizes: "any",
-        type: "image/svg+xml",
+        src: "/icons/kalite-filo-icon.png",
+        sizes: "512x512",
+        type: "image/png",
       },
     ],
   };

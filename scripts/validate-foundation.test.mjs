@@ -67,7 +67,7 @@ test("quote delivery source uses the approved authenticated SMTP boundary", () =
   );
   assert.doesNotMatch(`${endpoint}\n${mailer}`, /\bmail\s*\(/i);
   assert.match(mailer, /\$config\['from_address'\]/);
-  assert.match(mailer, /\$config\['recipient_address'\]/);
+  assert.match(mailer, /\$config\[\$recipientAddressKey\]/);
   assert.match(mailer, /addReplyTo\(\$message\['reply_to_address'\]/);
   assert.doesNotMatch(mailer, /\$_(?:POST|REQUEST).*?(?:Username|setFrom|addAddress)/s);
 });
@@ -83,10 +83,10 @@ test("validates the claim-safe About output contract", () => {
       <section data-about-section="hero">
         <img src="/images/home/commercial-fleet.jpg">
         <img src="/images/home/hero-fleet-highway.jpg">
-        <button>Kilometre Taşlarımız</button><button>Vizyonumuz</button>
+        <button data-about-hero-control="milestones">Kilometre Taşlarımız</button><a href="#vizyon-misyon-degerler">Vizyonumuz</a>
         <p>300+ Araç Filosu</p><p>%98 Müşteri Memnuniyeti</p>
       </section>
-      <section data-about-section="vision-mission-values">
+      <section data-about-section="vision-mission-values" id="vizyon-misyon-degerler">
         <img src="/images/about/volvo-xc90-vision-mission.png">
         <h3>Vizyonumuz</h3><h3>Misyonumuz</h3><h3>Değerlerimiz</h3>
         <p>Güven Kalite Liderlik Müşteri Odaklılık Operasyonel Mükemmellik Yenilikçilik Sorumluluk Sürdürülebilirlik Sürekli Gelişim</p>
@@ -747,6 +747,24 @@ test("requires the quote page to use the approved local PHP form boundary", () =
     () => validateQuoteFormOutput(valid.replace("</main>", "<p>noreply@kalitefilo.com.tr</p></main>")),
     /must not leak/,
   );
+});
+
+test("quote validation exposes client and server errors on rejected fields", () => {
+  const clientSource = readFileSync(
+    path.join(repositoryRoot, "src", "components", "forms", "quote-form.tsx"),
+    "utf8",
+  );
+  const serverSource = readFileSync(
+    path.join(repositoryRoot, "server", "forms", "teklif.php"),
+    "utf8",
+  );
+
+  assert.match(clientSource, /input:not\(\[type='hidden'\]\), select, textarea/);
+  assert.match(clientSource, /payload\.fieldErrors/);
+  assert.match(clientSource, /focusField\(form, firstInvalidField\)/);
+  assert.match(serverSource, /'fieldErrors' => \$fieldErrors/);
+  assert.doesNotMatch(serverSource, /FILTER_VALIDATE_URL/);
+  assert.doesNotMatch(serverSource, /\$fieldErrors\['firma_web_sitesi'\]/);
 });
 
 const approvedVehicleListPrices = JSON.parse(

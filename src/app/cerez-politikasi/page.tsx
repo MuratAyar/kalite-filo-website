@@ -1,27 +1,18 @@
 import type { Metadata } from "next";
 
-import { PageHeader } from "@/components/layout/page-header";
-import { getPublicStaticRoute } from "@/config/public-navigation";
-import { createStaticRouteMetadata } from "@/lib/route-metadata";
+import {
+  createLegalPageMetadata,
+  LegalPage,
+} from "@/components/legal/legal-page";
+import { readLegalDocument } from "@/lib/legal-content";
 
-const homeRoute = getPublicStaticRoute("home");
-const route = getPublicStaticRoute("cookie-policy");
+const document = readLegalDocument("cerez-politikasi");
 
-export const metadata: Metadata = {
-  ...createStaticRouteMetadata(route.id),
-  title: route.label,
-};
+export const metadata: Metadata = createLegalPageMetadata(
+  "cookie-policy",
+  document,
+);
 
 export default function CookiePolicyPage() {
-  return (
-    <main id="main-content" tabIndex={-1} className="flex-1">
-      <PageHeader
-        breadcrumbs={[
-          { href: homeRoute.path, label: homeRoute.label },
-          { label: route.label },
-        ]}
-        title={route.label}
-      />
-    </main>
-  );
+  return <LegalPage contentKey="cerez-politikasi" routeId="cookie-policy" />;
 }

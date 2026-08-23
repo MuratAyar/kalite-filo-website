@@ -164,8 +164,6 @@ Araç listesi, kilometre, bakım geçmişi, hasar durumu, yaklaşan işlemler ve
 
 Teklifleri değerlendirirken aylık bedelin yanında gerçek kullanım senaryosu, hizmet kapsamı, esneklik ve sözleşme sonu koşulları birlikte ele alınmalıdır.
 
-## CTA
-
 ### Kiralama tekliflerini sadece fiyatla değil, kapsamıyla karşılaştırın.
 
 Şirketinizin araç sayısını, kullanım süresini ve kilometre beklentisini paylaşın. Kalite Filo ekibi ihtiyacınıza uygun uzun dönem kiralama alternatiflerini birlikte değerlendirsin; siz de [teklif alın](/teklif-al/).

@@ -107,8 +107,6 @@ Periyodik bakım, lastik, hasar ve servis süreçlerinin planlanması filonun ke
 
 Operasyonel kiralama modeli de şirketlerin bu süreçlerdeki idari yükünün önemli bölümünü profesyonel hizmet sağlayıcılarla paylaşmasına imkan verebilir.
 
-## CTA
-
 ### Araçlarınız değil, işiniz hareket halinde kalsın.
 
 Kalite Filo [araç portföyünü inceleyin](/arac-listesi/) ve filo operasyonunuz için uygun hizmet kapsamını birlikte belirlemek üzere [teklif alın](/teklif-al/).

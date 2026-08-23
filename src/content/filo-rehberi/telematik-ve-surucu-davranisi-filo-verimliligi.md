@@ -163,8 +163,6 @@ Telematik sistemlerinin değeri çok veri üretmelerinden değil, doğru veriyi 
 
 Kilometre, tüketim, sürüş ve kullanım yoğunluğu verileri bir araya getirildiğinde filo maliyeti ve operasyon kalitesi daha ölçülebilir hale gelir.
 
-## CTA
-
 ### Veriye dayalı filo yönetimine geçin.
 
 Kalite Filo ile şirketinizin araç ve kullanım ihtiyaçlarına uygun filo çözümlerini değerlendirin ve [teklif alın](/teklif-al/).

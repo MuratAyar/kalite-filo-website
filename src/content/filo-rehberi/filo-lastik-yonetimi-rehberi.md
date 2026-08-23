@@ -182,8 +182,6 @@ Lastik yönetimi; güvenlik, maliyet, yakıt/enerji verimliliği ve operasyon s�
 
 Standart takip, planlı değişim ve doğru araç/lastik seçimi toplam filo performansına katkı sağlar.
 
-## CTA
-
 ### Filonuzun bakım ve lastik operasyonlarını planlı yönetin.
 
 Kalite Filo ile uzun dönem araç kiralama ve filo ihtiyaçlarınızı değerlendirin, ardından [teklif alın](/teklif-al/).

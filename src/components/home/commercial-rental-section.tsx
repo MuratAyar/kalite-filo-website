@@ -1,10 +1,10 @@
-import type { HomeCommercialCopy, InternalPath } from "@/types";
+import type { HomeCommercialCopy } from "@/types";
 
 import { PageContainer, Section } from "@/components/layout";
 import { ActionLink, SectionHeading } from "@/components/ui";
 
 export type CommercialRentalSectionProps = {
-  actionHref: InternalPath;
+  actionHref: `/arac-listesi/${string}` | "/arac-listesi/";
   content: HomeCommercialCopy;
 };
 

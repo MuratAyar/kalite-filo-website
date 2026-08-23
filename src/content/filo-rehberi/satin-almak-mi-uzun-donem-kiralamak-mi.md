@@ -144,8 +144,6 @@ Doğru karar “her zaman satın al” veya “her zaman kirala” kadar basit d
 
 En sağlıklı yaklaşım, iki model için de aynı kullanım süresi ve kilometre varsayımlarını kullanarak toplam maliyet ve operasyon etkisini karşılaştırmaktır.
 
-## CTA
-
 ### Şirketiniz için hangi model daha uygun?
 
 Araç ihtiyacınızı ve kullanım yapınızı paylaşın. Kalite Filo ekibi uzun dönem kiralama alternatiflerini değerlendirmenize yardımcı olsun; siz de [teklif alın](/teklif-al/).

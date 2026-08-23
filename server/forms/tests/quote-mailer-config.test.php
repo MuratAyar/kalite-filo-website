@@ -38,6 +38,20 @@ assert_true($smtps['port'] === 465 && $smtps['encryption'] === 'smtps', 'SMTPS/4
 assert_true($smtps['username'] !== $smtps['from_address'], 'SMTP username and From identity must remain independent.');
 assert_true($smtps['from_address'] !== $smtps['recipient_address'], 'From and recipient identities must remain independent.');
 
+$withContact = kalite_filo_validate_mail_config([
+    ...$base,
+    'contact_recipient_address' => 'contact@example.test',
+    'contact_recipient_name' => 'Contact Recipient',
+]);
+assert_true(
+    $withContact['contact_recipient_address'] === 'contact@example.test',
+    'The separately configured contact recipient must be accepted.',
+);
+assert_invalid_config(
+    [...$base, 'contact_recipient_address' => "bad\n@example.test", 'contact_recipient_name' => 'Contact'],
+    'A malformed contact recipient must be rejected.',
+);
+
 $startTls = kalite_filo_validate_mail_config([
     ...$base,
     'port' => 587,

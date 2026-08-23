@@ -107,8 +107,6 @@ Kurumsal filo için doğru araç seçimi bir otomobil tercihinden çok bir opera
 
 Görev, kilometre, sürücü profili, segment, yakıt veya enerji tüketimi ve toplam maliyet birlikte değerlendirilmelidir.
 
-## CTA
-
 ### Şirketiniz için doğru araç grubunu oluşturun.
 
 Kalite Filo [araç portföyünü inceleyin](/arac-listesi/) veya kullanım senaryonuzu paylaşarak şirketinize uygun alternatifler için [teklif alın](/teklif-al/).

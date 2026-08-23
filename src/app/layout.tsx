@@ -21,8 +21,16 @@ export const metadata: Metadata = {
   icons: {
     icon: [
       {
-        url: "/icons/site-icon-placeholder.svg",
-        type: "image/svg+xml",
+        url: "/icons/kalite-filo-icon.png",
+        sizes: "512x512",
+        type: "image/png",
+      },
+    ],
+    apple: [
+      {
+        url: "/icons/kalite-filo-icon.png",
+        sizes: "512x512",
+        type: "image/png",
       },
     ],
   },

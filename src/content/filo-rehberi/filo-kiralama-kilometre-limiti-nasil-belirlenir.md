@@ -103,6 +103,4 @@ Doğru kilometre, şirket aracının gerçek kullanımını mümkün olduğunca 
 
 Kalite Filo ile teklif sürecinde kullanım profilinizi ve yıllık kilometre beklentinizi paylaşarak ihtiyacınıza uygun sözleşme alternatiflerini değerlendirebilirsiniz.
 
-## CTA
-
 [Filo ihtiyacınız için teklif alın](/teklif-al/).

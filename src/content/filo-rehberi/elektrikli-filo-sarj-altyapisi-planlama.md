@@ -180,8 +180,6 @@ Başarılı elektrikli filo dönüşümü, yalnızca doğru elektrikli aracı se
 
 Araç, rota, enerji ihtiyacı ve şarj altyapısının tek sistem olarak planlanması gerekir.
 
-## CTA
-
 ### Elektrikli filoya geçişi araçtan önce kullanım verinizle planlayın.
 
 Kalite Filo [araç portföyünü inceleyin](/arac-listesi/) ve şirketinizin kullanım senaryosuna uygun filo alternatifleri için [teklif alın](/teklif-al/).

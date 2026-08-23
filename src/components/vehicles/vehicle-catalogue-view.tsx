@@ -18,6 +18,7 @@ import {
   filterVehicleCatalogue,
   serializeVehicleCatalogueFilters,
   VEHICLE_CATEGORY_OPTIONS,
+  VEHICLE_SORT_OPTIONS,
 } from "@/lib/vehicle-catalogue-filters.mjs";
 import { getVehicleDetailPath } from "@/lib/paths";
 
@@ -359,6 +360,58 @@ function VehicleCard({
   );
 }
 
+function VehicleSortControl({
+  filters,
+  onFiltersChange,
+}: Pick<VehicleCatalogueViewProps, "filters" | "onFiltersChange">) {
+  const currentOption = VEHICLE_SORT_OPTIONS.find(
+    (option) => option.value === filters.sort,
+  );
+
+  if (!onFiltersChange) {
+    return null;
+  }
+
+  return (
+    <details className="group relative" data-vehicle-sort-control="true">
+      <summary className="inline-flex min-h-11 cursor-pointer list-none items-center gap-2 rounded-control border border-border-control bg-surface-card px-3 text-label font-semibold text-text-primary transition-colors hover:border-corporate-blue hover:text-corporate-blue marker:content-none motion-reduce:transition-none">
+        <svg aria-hidden="true" className="size-5" fill="none" viewBox="0 0 24 24">
+          <path d="M8 7h11M8 12h8M8 17h5M4 5v14m0 0-2.5-2.5M4 19l2.5-2.5" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.75" />
+        </svg>
+        <span>{currentOption?.label ?? "Sırala"}</span>
+      </summary>
+      <div className="absolute right-0 z-20 mt-2 min-w-48 overflow-hidden rounded-card border border-border-subtle bg-surface-card p-2 shadow-[0_0.75rem_1.75rem_rgb(24_33_54_/_0.14)]">
+        {VEHICLE_SORT_OPTIONS.map((option) => {
+          const isSelected = filters.sort === option.value;
+
+          return (
+            <button
+              aria-pressed={isSelected}
+              className={`flex min-h-11 w-full items-center justify-between gap-3 rounded-control px-3 text-left text-label font-medium transition-colors motion-reduce:transition-none ${
+                isSelected
+                  ? "bg-surface-muted text-corporate-blue"
+                  : "text-text-primary hover:bg-surface-muted"
+              }`}
+              key={option.value}
+              onClick={(event) => {
+                onFiltersChange({
+                  ...filters,
+                  sort: isSelected ? undefined : option.value,
+                });
+                event.currentTarget.closest("details")?.removeAttribute("open");
+              }}
+              type="button"
+            >
+              {option.label}
+              {isSelected ? <span aria-hidden="true">✓</span> : null}
+            </button>
+          );
+        })}
+      </div>
+    </details>
+  );
+}
+
 export function VehicleCatalogueView({
   filters,
   onFiltersChange,
@@ -494,13 +547,19 @@ export function VehicleCatalogueView({
                 </span>
               )}
             </div>
-            <p
-              aria-live="polite"
-              className="text-label font-semibold text-text-primary"
-              data-vehicle-result-count={filteredRecords.length}
-            >
-              {filteredRecords.length} araç gösteriliyor
-            </p>
+            <div className="flex flex-wrap items-center gap-3 sm:justify-end">
+              <p
+                aria-live="polite"
+                className="text-label font-semibold text-text-primary"
+                data-vehicle-result-count={filteredRecords.length}
+              >
+                {filteredRecords.length} araç gösteriliyor
+              </p>
+              <VehicleSortControl
+                filters={filters}
+                onFiltersChange={onFiltersChange}
+              />
+            </div>
           </div>
         </section>
 
