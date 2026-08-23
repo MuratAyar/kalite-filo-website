@@ -777,9 +777,8 @@ const approvedVehicleListPrices = JSON.parse(
 function createVehiclePriceMarkup(amountMinor) {
   const amountTry = amountMinor / 100;
   return `<div data-vehicle-list-price="true">
-    <p>Aylık Liste Net</p>
     <p><data value="${amountTry}">${formatVehicleListNetPrice(amountMinor)}</data><span>/ay</span></p>
-    <p>KDV hariç</p>
+    <p>+ %20 KDV</p>
   </div>`;
 }
 
@@ -821,10 +820,10 @@ function createVehicleCatalogueFixture() {
   const cards = Object.entries(approvedVehicleListPrices).map(
     ([sourceId, amountMinor], index) => {
     const position = index + 1;
-    const media =
-      position <= 28
-        ? `<div data-vehicle-media="true"><img alt="Araç ${position}" height="540" src="/images/vehicles/arac-${position}.jpg" width="960"></div>`
-        : `<div data-vehicle-media="true"><div aria-label="Araç ${position} için doğrulanmış araç görseli mevcut değil" role="img">Doğrulanmış araç görseli mevcut değil</div></div>`;
+    const source = position <= 28
+      ? `/images/vehicles/cards/arac-${position}.jpg`
+      : "/images/vehicles/cards/vehicle-placeholder.jpg";
+    const media = `<div data-vehicle-media="true"><img alt="Araç ${position}" height="440" src="${source}" width="640"></div>`;
 
       return `<article data-vehicle-card="arac-${position}" data-monthly-list-net-price-try="${amountMinor / 100}" data-vehicle-source-id="${sourceId}"><a class="group" data-vehicle-card-link="true" href="/arac-listesi/arac-${position}/">${media}${createVehicleFactsMarkup()}${createVehiclePriceMarkup(amountMinor)}<span class="group-hover:bg-orange-dark" data-vehicle-card-cta="true">Aracı İncele</span></a></article>`;
     },
@@ -858,7 +857,7 @@ test("locks Home featured vehicle prices to the approved source", () => {
     .map((sourceId) => {
       const amountMinor = approvedVehicleListPrices[sourceId];
       const slug = sourceId.toLowerCase();
-      return `<li data-vehicle-card="${slug}" data-monthly-list-net-price-try="${amountMinor / 100}" data-vehicle-source-id="${sourceId}"><a class="group" data-vehicle-card-link="true" href="/arac-listesi/${slug}/"><div data-vehicle-media="true"><img alt="Araç" height="540" src="/images/vehicles/${sourceId}.jpg" width="960"></div>${createVehicleFactsMarkup()}${createVehiclePriceMarkup(amountMinor)}<span class="group-hover:bg-orange-dark" data-vehicle-card-cta="true">Aracı İncele</span></a></li>`;
+      return `<li data-vehicle-card="${slug}" data-monthly-list-net-price-try="${amountMinor / 100}" data-vehicle-source-id="${sourceId}"><a class="group" data-vehicle-card-link="true" href="/arac-listesi/${slug}/"><div data-vehicle-media="true"><img alt="Araç" height="440" src="/images/vehicles/cards/${sourceId}.jpg" width="640"></div>${createVehicleFactsMarkup()}${createVehiclePriceMarkup(amountMinor)}<span class="group-hover:bg-orange-dark" data-vehicle-card-cta="true">Aracı İncele</span></a></li>`;
     })
     .join("");
   const html = `<main><section aria-labelledby="featured-vehicles-title"><a class="featured-vehicles-action h-control-primary" data-featured-vehicles-action="true" href="/arac-listesi/">Araçları Görüntüle</a>${cards}</section></main>`;
@@ -876,10 +875,10 @@ test("locks Home featured vehicle prices to the approved source", () => {
   );
 });
 
-test("locks the exported vehicle catalogue to prices and 28/4 media coverage", () => {
+test("locks the exported vehicle catalogue to prices and 32/4 card media coverage", () => {
   assert.deepEqual(validateVehicleCatalogueOutput(createVehicleCatalogueFixture()), {
     cardCount: 32,
-    imageCount: 28,
+    imageCount: 32,
     listPriceCount: 32,
     missingImageCount: 4,
   });
@@ -912,7 +911,7 @@ test("rejects incomplete, duplicated, mispriced, or incorrectly linked vehicle o
   assert.throws(
     () =>
       validateVehicleCatalogueOutput(
-        valid.replace("<p>KDV hariç</p>", "<p>KDV dahil</p>"),
+        valid.replace("<p>+ %20 KDV</p>", "<p>KDV dahil</p>"),
       ),
     /visible net-monthly context/,
   );
@@ -957,7 +956,13 @@ test("validates inert vehicle-detail actions and a controlled same-category vehi
     { length: 5 },
     (_, index) => `<div data-vehicle-technical-specification="true">Özellik ${index + 1}</div>`,
   ).join("");
-  const html = `<main><section data-vehicle-detail="ana-arac"><div data-vehicle-technical-section="true">${specifications}<div>Bagaj hacmi</div><div>352 L</div><p>Aylık Liste Net</p><p>KDV hariç</p><p>₺40.200</p></div><button data-vehicle-detail-action="quote">Hemen Teklif İste</button><button data-vehicle-detail-action="basket">Araç Sepetine Ekle</button><button data-related-vehicles-control="previous">Önceki</button><button data-related-vehicles-control="next">Sonraki</button><ul data-related-vehicles-track="true">${relatedMarkup}</ul><section><h2 id="editorial-preview-title">Filo Dünyası'nı Keşfedin</h2></section></section></main>`;
+  const durationOptions = [12, 18, 24, 30, 36]
+    .map((value) => `<option value="${value}">${value}</option>`)
+    .join("");
+  const kilometreOptions = [10000, 15000, 20000, 25000, 30000, 35000, 40000, 45000, 50000, 55000]
+    .map((value) => `<option value="${value}">${value}</option>`)
+    .join("");
+  const html = `<main><section data-vehicle-detail="ana-arac"><div data-vehicle-technical-section="true">${specifications}<div>Bagaj hacmi</div><div>352 L</div></div><aside data-vehicle-offer-panel="true"><p>₺40.200</p><p>+ %20 KDV</p><select name="kiralama-suresi">${durationOptions}</select><select name="yillik-kilometre">${kilometreOptions}</select><button data-vehicle-detail-action="quote">Hemen Teklif İste</button><button data-vehicle-detail-action="basket">Araç Sepetine Ekle</button></aside><button data-related-vehicles-control="previous">Önceki</button><button data-related-vehicles-control="next">Sonraki</button><ul data-related-vehicles-track="true">${relatedMarkup}</ul><section><h2 id="editorial-preview-title">Filo Dünyası'nı Keşfedin</h2></section></section></main>`;
 
   assert.deepEqual(
     validateVehicleDetailOutput(html, vehicle, [vehicle, ...related]),

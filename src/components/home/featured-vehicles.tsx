@@ -8,6 +8,7 @@ import { PageContainer, Section, Stack } from "@/components/layout";
 import { ActionLink, SectionHeading } from "@/components/ui";
 import {
   VehicleCardFacts,
+  getVehicleCardImage,
   VehicleListPrice,
 } from "@/components/vehicles/vehicle-card-details";
 import { getVehicleDetailPath } from "@/lib/paths";
@@ -60,37 +61,40 @@ export function FeaturedVehicles({
           </div>
 
           <ul className="grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
-            {featuredVehicles.map((vehicle) => (
-              <li
-                className="min-w-0"
-                data-vehicle-card={vehicle.slug}
-                data-monthly-list-net-price-try={
-                  vehicle.listPrice.amountMinor / 100
-                }
-                data-vehicle-source-id={vehicle.sourceId}
-                key={vehicle.id}
-              >
-                <a
-                  aria-label={`${vehicle.make} ${vehicle.model} araç detayını incele`}
-                  className="group flex h-full flex-col overflow-hidden rounded-card border border-border-subtle bg-surface-card text-inherit no-underline shadow-[0_0.5rem_1.5rem_rgb(24_33_54_/_0.05)] transition-[border-color,box-shadow] hover:border-corporate-blue hover:shadow-[0_0.75rem_1.75rem_rgb(24_33_54_/_0.12)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus motion-reduce:transition-none"
-                  data-vehicle-card-link="true"
-                  href={getVehicleDetailPath(vehicle.slug)}
+            {featuredVehicles.map((vehicle) => {
+              const cardImage = getVehicleCardImage(vehicle);
+
+              return (
+                <li
+                  className="min-w-0"
+                  data-vehicle-card={vehicle.slug}
+                  data-monthly-list-net-price-try={
+                    vehicle.listPrice.amountMinor / 100
+                  }
+                  data-vehicle-source-id={vehicle.sourceId}
+                  key={vehicle.id}
                 >
-                  <div
-                    className="relative aspect-[4/3] overflow-hidden bg-surface-muted"
-                    data-vehicle-media="true"
+                  <a
+                    aria-label={`${vehicle.make} ${vehicle.model} araç detayını incele`}
+                    className="group flex h-full flex-col overflow-hidden rounded-card border border-border-subtle bg-surface-card text-inherit no-underline shadow-[0_0.5rem_1.5rem_rgb(24_33_54_/_0.05)] transition-[border-color,box-shadow] hover:border-corporate-blue hover:shadow-[0_0.75rem_1.75rem_rgb(24_33_54_/_0.12)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus motion-reduce:transition-none"
+                    data-vehicle-card-link="true"
+                    href={getVehicleDetailPath(vehicle.slug)}
                   >
-                    {/* Static delivery is intentional for the export-only host. */}
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
-                      alt={vehicle.coverImage!.alt}
-                      className="size-full object-cover"
-                      height={vehicle.coverImage!.height}
-                      loading="lazy"
-                      src={vehicle.coverImage!.src}
-                      width={vehicle.coverImage!.width}
-                    />
-                  </div>
+                    <div
+                      className="relative aspect-[4/3] overflow-hidden bg-surface-muted"
+                      data-vehicle-media="true"
+                    >
+                      {/* Static delivery is intentional for the export-only host. */}
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        alt={cardImage.alt}
+                        className="size-full object-cover"
+                        height={cardImage.height}
+                        loading="lazy"
+                        src={cardImage.src}
+                        width={cardImage.width}
+                      />
+                    </div>
 
                   <div className="flex flex-1 flex-col p-5">
                     <h3 className="text-xl font-semibold text-text-primary">
@@ -107,7 +111,7 @@ export function FeaturedVehicles({
                     />
 
                     <div className="mt-auto flex flex-col gap-3 border-t border-border-subtle pt-4 2xl:flex-row 2xl:items-end 2xl:justify-between">
-                      <VehicleListPrice listPrice={vehicle.listPrice} />
+                    <VehicleListPrice compactCard listPrice={vehicle.listPrice} />
                       <span
                         className="inline-flex min-h-11 w-full shrink-0 items-center justify-center rounded-control bg-accent-orange px-4 text-label font-semibold text-brand-navy transition-colors group-hover:bg-orange-dark group-focus-visible:bg-orange-dark motion-reduce:transition-none 2xl:w-auto"
                         data-vehicle-card-cta="true"
@@ -116,9 +120,10 @@ export function FeaturedVehicles({
                       </span>
                     </div>
                   </div>
-                </a>
-              </li>
-            ))}
+                  </a>
+                </li>
+              );
+            })}
           </ul>
 
         </Stack>

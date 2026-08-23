@@ -11,6 +11,7 @@ const VEHICLE_CATALOGUE_PATH = "/arac-listesi/";
 import { Button } from "@/components/ui";
 import {
   VehicleCardFacts,
+  getVehicleCardImage,
   VehicleListPrice,
 } from "@/components/vehicles/vehicle-card-details";
 import {
@@ -292,6 +293,8 @@ function VehicleCard({
 }: {
   vehicle: VehiclePortfolioRecord;
 }) {
+  const cardImage = getVehicleCardImage(vehicle);
+
   return (
     <article
       className="h-full min-w-0"
@@ -309,26 +312,16 @@ function VehicleCard({
           className="relative aspect-[16/11] overflow-hidden bg-surface-muted"
           data-vehicle-media="true"
         >
-        {vehicle.coverImage ? (
-          // Static delivery is intentional for the export-only production host.
-          // eslint-disable-next-line @next/next/no-img-element
+          {/* Static card derivative is intentional for the export-only host. */}
+          {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
-            alt={vehicle.coverImage.alt}
+            alt={cardImage.alt}
             className="size-full object-cover"
-            height={vehicle.coverImage.height}
+            height={cardImage.height}
             loading="lazy"
-            src={vehicle.coverImage.src}
-            width={vehicle.coverImage.width}
+            src={cardImage.src}
+            width={cardImage.width}
           />
-        ) : (
-          <div
-            aria-label={`${vehicle.make} ${vehicle.model} için doğrulanmış araç görseli mevcut değil`}
-            className="flex size-full items-center justify-center bg-[linear-gradient(145deg,#f2f4f6,#e6e8ec)] px-5 text-center text-label text-text-secondary"
-            role="img"
-          >
-            Doğrulanmış araç görseli mevcut değil
-          </div>
-        )}
         </div>
 
         <div className="flex flex-1 flex-col p-5">
@@ -346,7 +339,7 @@ function VehicleCard({
         />
 
         <div className="mt-auto flex flex-col gap-3 border-t border-border-subtle pt-5 sm:flex-row sm:items-end sm:justify-between">
-          <VehicleListPrice listPrice={vehicle.listPrice} />
+          <VehicleListPrice compactCard listPrice={vehicle.listPrice} />
           <span
             className="inline-flex min-h-11 w-full shrink-0 items-center justify-center rounded-control bg-accent-orange px-4 text-label font-semibold text-brand-navy transition-colors group-hover:bg-orange-dark group-focus-visible:bg-orange-dark motion-reduce:transition-none sm:w-auto"
             data-vehicle-card-cta="true"

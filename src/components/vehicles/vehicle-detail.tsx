@@ -5,6 +5,7 @@ import { Button } from "@/components/ui";
 import { getVehicleDetailPath } from "@/lib/paths";
 
 import {
+  getVehicleCardImage,
   VehicleCardFacts,
   VehicleListPrice,
 } from "./vehicle-card-details";
@@ -14,6 +15,14 @@ export type VehicleDetailProps = {
   relatedVehicles: readonly VehiclePortfolioRecord[];
   vehicle: VehiclePortfolioRecord;
 };
+
+const leaseDurationOptions = [12, 18, 24, 30, 36] as const;
+const annualKilometreOptions = [
+  10_000, 15_000, 20_000, 25_000, 30_000,
+  35_000, 40_000, 45_000, 50_000, 55_000,
+] as const;
+
+const kilometreFormatter = new Intl.NumberFormat("tr-TR");
 
 type TechnicalSpecification = readonly [label: string, value: string];
 
@@ -132,6 +141,8 @@ function VehicleMedia({
 }
 
 function RelatedVehicleCard({ vehicle }: { vehicle: VehiclePortfolioRecord }) {
+  const cardImage = getVehicleCardImage(vehicle);
+
   return (
     <article className="h-full min-w-0" data-related-vehicle={vehicle.slug}>
       <a
@@ -140,7 +151,17 @@ function RelatedVehicleCard({ vehicle }: { vehicle: VehiclePortfolioRecord }) {
         href={getVehicleDetailPath(vehicle.slug)}
       >
         <div className="overflow-hidden bg-surface-muted" data-vehicle-media="true">
-          <VehicleMedia vehicle={vehicle} />
+          {/* Static card derivatives avoid delivering the larger detail image here. */}
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            alt={cardImage.alt}
+            className="aspect-[16/10] size-full object-cover"
+            decoding="async"
+            height={cardImage.height}
+            loading="lazy"
+            src={cardImage.src}
+            width={cardImage.width}
+          />
         </div>
         <div className="flex flex-1 flex-col p-5">
           <h3 className="text-xl font-semibold leading-tight text-text-primary">
@@ -189,8 +210,9 @@ export function VehicleDetail({
     <>
       <Section
         aria-label={`${vehicle.make} ${vehicle.model} araç bilgileri`}
-        className="pt-0"
+        className="pb-10 pt-0 md:pb-12"
         data-vehicle-detail={vehicle.slug}
+        spacing="none"
         surface="page"
       >
         <PageContainer>
@@ -244,7 +266,44 @@ export function VehicleDetail({
                 transmissionLabel={vehicle.transmissionLabel}
               />
 
-              <VehicleListPrice className="mt-6" listPrice={vehicle.listPrice} />
+              <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
+                <label className="grid gap-2 text-label font-semibold text-text-primary">
+                  <span>
+                    Kiralama Süresi (Ay)<span aria-hidden="true">*</span>
+                  </span>
+                  <select
+                    className="h-control-secondary w-full rounded-control border border-border-control bg-surface-card px-3 text-body font-semibold text-text-primary"
+                    defaultValue="12"
+                    name="kiralama-suresi"
+                  >
+                    {leaseDurationOptions.map((duration) => (
+                      <option key={duration} value={duration}>{duration}</option>
+                    ))}
+                  </select>
+                </label>
+                <label className="grid gap-2 text-label font-semibold text-text-primary">
+                  <span>
+                    Yıllık Kilometre<span aria-hidden="true">*</span>
+                  </span>
+                  <select
+                    className="h-control-secondary w-full rounded-control border border-border-control bg-surface-card px-3 text-body font-semibold text-text-primary"
+                    defaultValue="10000"
+                    name="yillik-kilometre"
+                  >
+                    {annualKilometreOptions.map((kilometres) => (
+                      <option key={kilometres} value={kilometres}>
+                        {kilometreFormatter.format(kilometres)}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              </div>
+
+              <VehicleListPrice
+                className="mt-6"
+                listPrice={vehicle.listPrice}
+                offerPanel
+              />
               <p
                 className="mt-3 text-xs leading-5 text-text-secondary"
                 id="vehicle-detail-action-status"
@@ -280,8 +339,9 @@ export function VehicleDetail({
 
       <Section
         aria-labelledby="related-vehicles-title"
-        className="overflow-x-hidden [contain:paint]"
+        className="overflow-x-hidden py-12 [contain:paint] md:py-16"
         data-related-vehicles-section="true"
+        spacing="none"
         surface="muted"
       >
         <PageContainer>
@@ -296,7 +356,7 @@ export function VehicleDetail({
           </div>
 
           <ul
-            className="mt-8 flex max-w-full min-w-0 snap-x snap-mandatory gap-5 overflow-x-auto pb-4"
+            className="mt-8 flex max-w-full min-w-0 snap-x snap-mandatory scroll-smooth gap-5 overflow-x-auto [scrollbar-width:none] motion-reduce:scroll-auto [&::-webkit-scrollbar]:hidden"
             data-related-vehicles-track="true"
             id="related-vehicles-track"
           >

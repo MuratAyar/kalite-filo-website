@@ -250,7 +250,7 @@ try {
           perCardCreditLinkCount: card.querySelectorAll('[data-asset-credit="true"]').length,
           hasPerCardCreditText: card.innerText.includes('Görsel:'),
           hasMonthlyListNetLabel: priceText.includes('Aylık Liste Net'),
-          hasVatExcludedLabel: priceText.includes('KDV hariç'),
+          hasVatExcludedLabel: priceText.includes('+ %20 KDV'),
           hasMonthlySuffix: priceText.includes('/ay'),
           cardLinkCount: card.querySelectorAll(
             'a[data-vehicle-card-link="true"][href="/teklif-al/"]'
@@ -681,7 +681,7 @@ try {
           card.hasCategoryBadgeText ||
           card.perCardCreditLinkCount !== 0 ||
           card.hasPerCardCreditText ||
-          !card.hasMonthlyListNetLabel ||
+          card.hasMonthlyListNetLabel ||
           !card.hasVatExcludedLabel ||
           !card.hasMonthlySuffix ||
           card.cardLinkCount !== 1 ||

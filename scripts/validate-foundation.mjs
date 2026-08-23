@@ -1223,8 +1223,8 @@ export function validateHomeFeaturedVehiclePrices(
 
     if (
       !cardBlock.includes(formatVehicleListNetPrice(amountTry * 100)) ||
-      !cardBlock.includes("Aylık Liste Net") ||
-      !cardBlock.includes("KDV hariç") ||
+      cardBlock.includes("Aylık Liste Net") ||
+      !cardBlock.includes("+ %20 KDV") ||
       !cardBlock.includes("/ay") ||
       (cardBlock.match(/\bdata-vehicle-fact=["'][^"']+["']/gi) ?? [])
         .length !== 2
@@ -1251,7 +1251,7 @@ export function validateVehicleCatalogueOutput(
   html,
   {
     expectedCardCount = 32,
-    expectedImageCount = 28,
+    expectedImageCount = 32,
     expectedMissingImageCount = 4,
     expectedListPricesTry = Object.fromEntries(
       Object.entries(
@@ -1322,8 +1322,8 @@ export function validateVehicleCatalogueOutput(
       !dataTag ||
       !new RegExp(`\\bvalue=["']${amountTry}["']`, "i").test(dataTag) ||
       !dataTag.includes(expectedFormattedPrice) ||
-      !cardBlock.includes("Aylık Liste Net") ||
-      !cardBlock.includes("KDV hariç") ||
+      cardBlock.includes("Aylık Liste Net") ||
+      !cardBlock.includes("+ %20 KDV") ||
       !cardBlock.includes("/ay") ||
       !/\bdata-vehicle-list-price=["']true["']/i.test(cardBlock)
     ) {
@@ -1352,7 +1352,7 @@ export function validateVehicleCatalogueOutput(
 
   const vehicleImageTags = (mainHtml.match(/<img\b[^>]*>/gi) ?? []).filter(
     (tag) =>
-      /\bsrc=["']\/images\/vehicles\/[^"']+\.jpg["']/i.test(tag),
+      /\bsrc=["']\/images\/vehicles\/cards\/[^"']+\.jpg["']/i.test(tag),
   );
 
   if (vehicleImageTags.length !== expectedImageCount) {
@@ -1365,8 +1365,15 @@ export function validateVehicleCatalogueOutput(
     (tag) => tag.match(/\bsrc=["']([^"']+)["']/i)?.[1],
   );
 
-  if (new Set(vehicleImageSources).size !== vehicleImageSources.length) {
-    fail("Vehicle catalogue output must not reuse a vehicle image as another record.");
+  const nonPlaceholderImageSources = vehicleImageSources.filter(
+    (source) => source !== "/images/vehicles/cards/vehicle-placeholder.jpg",
+  );
+
+  if (
+    new Set(nonPlaceholderImageSources).size !==
+    nonPlaceholderImageSources.length
+  ) {
+    fail("Vehicle catalogue output must not reuse a verified vehicle image as another record.");
   }
 
   for (const imageTag of vehicleImageTags) {
@@ -1379,22 +1386,21 @@ export function validateVehicleCatalogueOutput(
     }
   }
 
-  const missingImageTags = (mainHtml.match(/<[^/!][^>]*>/g) ?? []).filter(
+  const missingImageTags = vehicleImageTags.filter(
     (tag) =>
-      /\brole=["']img["']/i.test(tag) &&
-      /\baria-label=["'][^"']*doğrulanmış araç görseli mevcut değil[^"']*["']/i.test(
+      /\bsrc=["']\/images\/vehicles\/cards\/vehicle-placeholder\.jpg["']/i.test(
         tag,
       ),
   );
 
   if (missingImageTags.length !== expectedMissingImageCount) {
     fail(
-      `Vehicle catalogue must fail closed with exactly ${expectedMissingImageCount} missing-image placeholders.`,
+      `Vehicle catalogue must expose exactly ${expectedMissingImageCount} shared card-image placeholders.`,
     );
   }
 
-  if (expectedImageCount + expectedMissingImageCount !== expectedCardCount) {
-    fail("Vehicle catalogue media coverage does not match its card count.");
+  if (expectedImageCount !== expectedCardCount) {
+    fail("Vehicle catalogue card-image coverage does not match its card count.");
   }
 
   const requiredFilterNames = ["marka", "model", "segment", "yakit", "vites"];
@@ -1546,12 +1552,31 @@ export function validateVehicleDetailOutput(
     fail(`Vehicle detail ${vehicle.slug} must reuse the Filo D\u00fcnyas\u0131 editorial preview once.`);
   }
 
+  const offerPanelHtml = mainHtml.match(
+    /<aside\b[^>]*\bdata-vehicle-offer-panel=["']true["'][^>]*>[\s\S]*?<\/aside>/i,
+  )?.[0];
   if (
-    !/Ayl\u0131k Liste Net/.test(mainHtml) ||
-    !/KDV hari\u00e7/.test(mainHtml) ||
-    !mainHtml.includes(formatVehicleListNetPrice(vehicle.listPrice.amountMinor))
+    !offerPanelHtml ||
+    /Ayl\u0131k Liste Net/.test(offerPanelHtml) ||
+    /KDV hari\u00e7/.test(offerPanelHtml) ||
+    !/\+ %20 KDV/.test(offerPanelHtml) ||
+    !offerPanelHtml.includes(formatVehicleListNetPrice(vehicle.listPrice.amountMinor))
   ) {
-    fail(`Vehicle detail ${vehicle.slug} is missing its approved list-net price context.`);
+    fail(`Vehicle detail ${vehicle.slug} is missing its approved monthly price context.`);
+  }
+
+  if (
+    !/name=["']kiralama-suresi["']/i.test(offerPanelHtml) ||
+    !/name=["']yillik-kilometre["']/i.test(offerPanelHtml) ||
+    ![12, 18, 24, 30, 36].every((value) =>
+      new RegExp(`<option\\b[^>]*value=["']${value}["']`, "i").test(offerPanelHtml),
+    ) ||
+    ![10000, 15000, 20000, 25000, 30000, 35000, 40000, 45000, 50000, 55000].every(
+      (value) =>
+        new RegExp(`<option\\b[^>]*value=["']${value}["']`, "i").test(offerPanelHtml),
+    )
+  ) {
+    fail(`Vehicle detail ${vehicle.slug} is missing its approved lease selectors.`);
   }
 
   return {

@@ -332,7 +332,7 @@ try {
         imageCount: imageSources.length,
         uniqueImageCount: new Set(imageSources).size,
         missingImageCount: main?.querySelectorAll(
-          '[data-vehicle-card] [role="img"][aria-label*="doğrulanmış araç görseli mevcut değil"]'
+          '[data-vehicle-card] img[src="/images/vehicles/cards/vehicle-placeholder.jpg"]'
         ).length ?? 0,
         quoteCount: main?.querySelectorAll(
           '[data-vehicle-card] a[href="/teklif-al/"]'
@@ -366,7 +366,7 @@ try {
         ).length,
         vatExcludedLabelCount: vehicleCards.filter((card) =>
           card.querySelector('[data-vehicle-list-price="true"]')
-            ?.innerText.includes('KDV hariç')
+            ?.innerText.includes('+ %20 KDV')
         ).length,
         validPricePresentationCount: vehicleCards.filter((card) => {
           const amountTry = Number(
@@ -485,8 +485,8 @@ try {
       report.catalogueCount !== 1 ||
       report.cardCount !== 32 ||
       report.resultCount !== 32 ||
-      report.imageCount !== 28 ||
-      report.uniqueImageCount !== 28 ||
+      report.imageCount !== 32 ||
+      report.uniqueImageCount !== 29 ||
       report.missingImageCount !== 4 ||
       report.quoteCount !== 0 ||
       report.fullCardLinkCount !== 32 ||
@@ -496,7 +496,7 @@ try {
       report.detailLinkCount !== 32 ||
       report.hasObsoleteQuoteOnlyPriceCopy ||
       report.priceBlockCount !== 32 ||
-      report.monthlyListNetLabelCount !== 32 ||
+      report.monthlyListNetLabelCount !== 0 ||
       report.vatExcludedLabelCount !== 32 ||
       report.validPricePresentationCount !== 32 ||
       report.factGroupCount !== 32 ||
@@ -744,8 +744,8 @@ try {
             return !link || new URL(link.href).pathname !==
               '/arac-listesi/' + slug + '/';
           }).length,
-          priceContext: main?.innerText.includes('Aylık Liste Net') &&
-            main?.innerText.includes('KDV hariç'),
+          priceContext: !main?.innerText.includes('Aylık Liste Net') &&
+            main?.innerText.includes('+ %20 KDV'),
           robots: document.querySelector('meta[name="robots"]')?.content,
           canonical: document.querySelector('link[rel="canonical"]')?.href,
           remoteResources: performance

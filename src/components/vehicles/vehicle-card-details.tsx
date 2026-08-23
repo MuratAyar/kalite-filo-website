@@ -17,8 +17,35 @@ type VehicleCardFactsProps = Pick<
 
 type VehicleListPriceProps = {
   className?: string;
+  compactCard?: boolean;
+  offerPanel?: boolean;
   listPrice: VehiclePortfolioListPrice;
 };
+
+export const vehicleCardPlaceholder = Object.freeze({
+  alt: "Örtü altında temsili araç görseli",
+  height: 440,
+  src: "/images/vehicles/cards/vehicle-placeholder.jpg",
+  width: 640,
+});
+
+export function getVehicleCardImage(
+  vehicle: Pick<VehiclePortfolioRecord, "coverImage">,
+) {
+  if (!vehicle.coverImage) {
+    return vehicleCardPlaceholder;
+  }
+
+  return {
+    ...vehicle.coverImage,
+    height: 440,
+    src: vehicle.coverImage.src.replace(
+      "/images/vehicles/",
+      "/images/vehicles/cards/",
+    ),
+    width: 640,
+  };
+}
 
 function FuelIcon() {
   return (
@@ -52,26 +79,26 @@ export function VehicleCardFacts({
   return (
     <dl
       className={classNames(
-        "grid grid-cols-2 gap-x-3 text-xs leading-4 text-text-secondary sm:text-sm",
+        "grid min-h-12 grid-cols-2 items-center gap-x-3 text-xs leading-4 text-text-secondary sm:text-sm",
         className,
       )}
       data-vehicle-facts="true"
       data-vehicle-facts-layout="single-row"
     >
-      <div className="min-w-0" data-vehicle-fact="fuel">
+      <div className="flex min-h-10 min-w-0 items-center" data-vehicle-fact="fuel">
         <dt className="sr-only">Yakıt tipi</dt>
-        <dd className="flex items-start gap-1.5 break-words">
+        <dd className="flex items-center gap-1.5 break-words">
           <FuelIcon />
           <span>{fuelLabel}</span>
         </dd>
       </div>
       <div
-        className="min-w-0"
+        className="flex min-h-10 min-w-0 items-center"
         data-vehicle-fact="transmission"
         data-vehicle-transmission-display={transmissionDisplayLabel}
       >
         <dt className="sr-only">Vites tipi</dt>
-        <dd className="flex items-start gap-1.5 break-words">
+        <dd className="flex items-center gap-1.5 break-words">
           <TransmissionIcon />
           <span>{transmissionDisplayLabel}</span>
         </dd>
@@ -83,17 +110,35 @@ export function VehicleCardFacts({
 /** Owner-approved monthly list-net display; this is not a final offer. */
 export function VehicleListPrice({
   className,
+  compactCard = false,
+  offerPanel = false,
   listPrice,
 }: VehicleListPriceProps) {
   const amountTry = listPrice.amountMinor / 100;
 
   return (
     <div
-      className={classNames("min-w-0", className)}
+      className={classNames(
+        "min-w-0",
+        offerPanel &&
+          "flex items-center justify-between gap-4 rounded-card border border-accent-orange bg-surface-page p-4",
+        className,
+      )}
       data-vehicle-list-price="true"
     >
-      <p className="text-xs leading-5 text-text-secondary">Aylık Liste Net</p>
-      <p className="whitespace-nowrap text-xl font-bold leading-tight text-text-primary tabular-nums">
+      {!compactCard && !offerPanel ? (
+        <p className="text-xs leading-4 text-text-secondary">Aylık Liste Net</p>
+      ) : null}
+      <p
+        className={classNames(
+          "whitespace-nowrap font-bold leading-tight text-text-primary tabular-nums",
+          offerPanel
+            ? "text-3xl text-corporate-blue"
+            : compactCard
+              ? "text-2xl"
+              : "mt-1 text-xl",
+        )}
+      >
         <data value={amountTry}>
           {formatVehicleListNetPrice(listPrice.amountMinor)}
         </data>
@@ -101,7 +146,16 @@ export function VehicleListPrice({
           /ay
         </span>
       </p>
-      <p className="mt-1 text-xs leading-4 text-text-secondary">KDV hariç</p>
+      <p
+        className={classNames(
+          "text-xs font-semibold leading-4",
+          offerPanel
+            ? "shrink-0 rounded-control bg-surface-muted px-3 py-2 text-text-primary"
+            : "mt-1 text-text-secondary",
+        )}
+      >
+        {compactCard || offerPanel ? "+ %20 KDV" : "KDV hariç"}
+      </p>
     </div>
   );
 }
