@@ -106,7 +106,9 @@ const approvedClientComponents = new Set([
   "src/components/home/newsletter-signup-demo.tsx",
   "src/components/home/vehicle-finder-fields.tsx",
   "src/components/navigation/primary-navigation.tsx",
+  "src/components/navigation/cart-count-badge.tsx",
   "src/components/vehicles/related-vehicle-carousel-controls.tsx",
+  "src/components/vehicles/vehicle-offer-controls.tsx",
   "src/components/vehicles/vehicle-query-state.tsx",
 ]);
 
@@ -638,8 +640,10 @@ export function validateQuotePhpSource({ requireComposerLock = true } = {}) {
     [/normalized_field\('tc_kimlik_no'[^\n]+!\$isCorporate\)/, "the individual identity contract"],
     [/normalized_field\('sirket_unvani'[^\n]+\$isCorporate\)/, "the corporate title contract"],
     [/normalized_field\('vergi_numarasi'[^\n]+\$isCorporate\)/, "the corporate tax contract"],
-    [/normalized_field\('arac_markasi'[^\n]+true\)/, "the required vehicle make"],
-    [/normalized_field\('arac_modeli'[^\n]+true\)/, "the required vehicle model"],
+    [/normalized_field\('arac_markasi'[^\n]+!\$isCart\)/, "the required non-cart vehicle make"],
+    [/normalized_field\('arac_modeli'[^\n]+!\$isCart\)/, "the required non-cart vehicle model"],
+    [/\$formType !== 'sepet'/, "the cart quote type"],
+    [/normalized_field\('sepet_json'[^\n]+true\)/, "the required cart payload"],
     [/validated_integer\('kiralama_suresi', 12, 120\)/, "the twelve-month minimum"],
     [/is_valid_turkish_identity_number\(/, "T.C. identity validation"],
     [/rate_limit_allows_request\(\)/, "rate limiting"],
@@ -1463,7 +1467,7 @@ export function validateVehicleDetailOutput(
     !actionKinds.includes("basket") ||
     /<(?:a|form)\b[^>]*\bdata-vehicle-detail-action=/i.test(mainHtml)
   ) {
-    fail(`Vehicle detail ${vehicle.slug} must keep both requested actions inert.`);
+    fail(`Vehicle detail ${vehicle.slug} must expose both actions as controlled client buttons.`);
   }
 
   const relatedSlugs = Array.from(
@@ -2143,11 +2147,12 @@ export function validateQuoteFormOutput(html) {
     form.match(/<button\b[^>]*\baria-pressed=[^>]*\btype=["']button["'][^>]*>/gi) ??
     [];
   if (
-    formTypeButtons.length !== 2 ||
+    formTypeButtons.length !== 3 ||
     !form.includes("Kurumsal") ||
-    !form.includes("Bireysel")
+    !form.includes("Bireysel") ||
+    !form.includes("Sepetim")
   ) {
-    fail("Quote form must expose two stateful, non-submitting form-type buttons.");
+    fail("Quote form must expose three stateful, non-submitting form-type buttons.");
   }
 
   if (

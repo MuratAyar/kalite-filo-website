@@ -727,6 +727,7 @@ test("requires the quote page to use the approved local PHP form boundary", () =
     <form action="/forms/teklif.php" method="post">
       <button aria-pressed="true" type="button">Kurumsal</button>
       <button aria-pressed="false" type="button">Bireysel</button>
+      <button aria-pressed="false" type="button">Sepetim</button>
       ${fields}
     </form>
     <a href="tel:+905317158068">05317158068</a>
@@ -934,7 +935,7 @@ test("rejects incomplete, duplicated, mispriced, or incorrectly linked vehicle o
   );
 });
 
-test("validates inert vehicle-detail actions and a controlled same-category vehicle track", () => {
+test("validates controlled vehicle-detail actions and a same-category vehicle track", () => {
   const vehicle = {
     slug: "ana-arac",
     categoryLabel: "Binek",

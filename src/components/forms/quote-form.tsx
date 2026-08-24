@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import {
   useEffect,
   useLayoutEffect,
@@ -12,8 +13,15 @@ import {
 
 import { Button } from "@/components/ui/button";
 import { classNames } from "@/components/ui/class-names";
+import { formatVehicleListNetPrice } from "@/lib/vehicle-list-price.mjs";
+import {
+  readVehicleCart,
+  subscribeToVehicleCart,
+  writeVehicleCart,
+  type VehicleCartItem,
+} from "@/lib/vehicle-cart";
 
-type QuoteFormType = "kurumsal" | "bireysel";
+type QuoteFormType = "kurumsal" | "bireysel" | "sepet";
 type ValidationErrors = Record<string, string>;
 type SubmissionState = "idle" | "submitting";
 
@@ -104,7 +112,7 @@ function FieldLabel({ children, htmlFor }: { children: ReactNode; htmlFor: strin
 
 function FieldError({ error, id }: { error?: string; id: string }) {
   return error ? (
-    <p className="text-label font-semibold text-error" id={id} role="alert">
+    <p className="text-label font-semibold text-error" id={id} role="alert" tabIndex={-1}>
       {error}
     </p>
   ) : null;
@@ -120,8 +128,16 @@ function validationMessageFor(field: HTMLInputElement | HTMLSelectElement | HTML
 function focusField(form: HTMLFormElement, fieldName: string) {
   const field = form.elements.namedItem(fieldName);
   if (field instanceof HTMLElement) {
-    field.focus();
+    field.focus({ preventScroll: true });
     field.scrollIntoView({ behavior: "smooth", block: "center" });
+  }
+}
+
+function focusElementById(id: string) {
+  const element = document.getElementById(id);
+  if (element instanceof HTMLElement) {
+    element.focus({ preventScroll: true });
+    element.scrollIntoView({ behavior: "smooth", block: "center" });
   }
 }
 
@@ -315,18 +331,64 @@ function PhoneField({ error }: { error?: string }) {
   );
 }
 
+function CartItems({ items, onChange }: { items: VehicleCartItem[]; onChange: (items: VehicleCartItem[]) => void }) {
+  function changeQuantity(key: string, delta: number) {
+    const next = items
+      .map((item) => item.key === key ? { ...item, quantity: Math.max(0, Math.min(99, item.quantity + delta)) } : item)
+      .filter((item) => item.quantity > 0);
+    writeVehicleCart(next);
+    onChange(next);
+  }
+
+  if (items.length === 0) {
+    return <div className="rounded-card border border-dashed border-border-control bg-surface-muted p-6 text-body text-text-secondary">Sepetinizde henüz araç bulunmuyor.</div>;
+  }
+
+  return <div className="grid gap-5">{items.map((item) => (
+    <article className="grid overflow-hidden rounded-card border border-border-subtle bg-surface-card md:grid-cols-[14rem_minmax(0,1fr)]" key={item.key}>
+      {/* Static local vehicle derivative. */}
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img alt={item.image.alt} className="aspect-[16/9] size-full bg-surface-muted object-cover md:aspect-auto" height={item.image.height} loading="lazy" src={item.image.src} width={item.image.width} />
+      <div className="grid min-w-0 gap-4 p-5">
+        <div>
+          <h3 className="text-xl font-semibold text-text-primary">{item.make} {item.model}</h3>
+          <p className="mt-1 text-label text-text-secondary">{item.trim}</p>
+        </div>
+        <dl className="grid gap-3 text-label sm:grid-cols-2">
+          <div><dt className="text-text-secondary">Kiralama Süresi</dt><dd className="font-semibold">{item.durationMonths} Ay</dd></div>
+          <div><dt className="text-text-secondary">Yıllık Kilometre</dt><dd className="font-semibold">{new Intl.NumberFormat("tr-TR").format(item.annualKilometres)} km</dd></div>
+        </dl>
+        <div className="flex flex-wrap items-center justify-between gap-4 rounded-control bg-surface-muted p-3">
+          <p className="text-xl font-bold text-corporate-blue">{formatVehicleListNetPrice(item.priceAmountMinor)}<span className="text-xs font-normal text-text-secondary"> /ay + %20 KDV</span></p>
+          <div className="flex items-center rounded-pill bg-accent-orange p-1 text-brand-navy">
+            <button aria-label={`${item.make} ${item.model} aracını sepetten çıkar`} className="grid min-h-10 min-w-10 place-items-center rounded-full hover:bg-brand-navy/10" onClick={() => changeQuantity(item.key, -item.quantity)} type="button">⌫</button>
+            <button aria-label="Adedi azalt" className="grid min-h-10 min-w-10 place-items-center rounded-full hover:bg-brand-navy/10" onClick={() => changeQuantity(item.key, -1)} type="button">−</button>
+            <span aria-label={`${item.quantity} adet`} className="grid min-h-10 min-w-10 place-items-center rounded-control bg-white font-semibold text-brand-navy">{item.quantity}</span>
+            <button aria-label="Adedi artır" className="grid min-h-10 min-w-10 place-items-center rounded-full hover:bg-brand-navy/10" onClick={() => changeQuantity(item.key, 1)} type="button">+</button>
+          </div>
+        </div>
+      </div>
+    </article>
+  ))}</div>;
+}
+
 export function QuoteForm() {
   const [formType, setFormType] = useState<QuoteFormType>("kurumsal");
   const [result, setResult] = useState<ResultKey | null>(null);
   const [quoteNumber, setQuoteNumber] = useState<string | null>(null);
   const [submissionState, setSubmissionState] = useState<SubmissionState>("idle");
   const [validationErrors, setValidationErrors] = useState<ValidationErrors>({});
+  const [cartItems, setCartItems] = useState<VehicleCartItem[]>([]);
   const resultRef = useRef<HTMLDivElement>(null);
   const successDialogRef = useRef<HTMLDialogElement>(null);
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
-      const value = new URLSearchParams(window.location.search).get("sonuc");
+      const search = new URLSearchParams(window.location.search);
+      const value = search.get("sonuc");
+      if (search.get("form") === "sepet") {
+        setFormType("sepet");
+      }
       if (value && value in resultMessages) {
         setResult(value as ResultKey);
         window.requestAnimationFrame(() => resultRef.current?.focus());
@@ -335,7 +397,14 @@ export function QuoteForm() {
     return () => window.clearTimeout(timer);
   }, []);
 
+  useEffect(() => {
+    const update = () => setCartItems(readVehicleCart());
+    update();
+    return subscribeToVehicleCart(update);
+  }, []);
+
   const resultMessage = result ? resultMessages[result] : null;
+  const cartQuantity = cartItems.reduce((total, item) => total + item.quantity, 0);
 
   function clearFieldError(event: FormEvent<HTMLFormElement>) {
     const target = event.target;
@@ -368,11 +437,20 @@ export function QuoteForm() {
     );
     const invalidFields = formFields.filter((field) => !field.checkValidity());
 
+    if (formType === "sepet" && cartItems.length === 0) {
+      setValidationErrors({ sepet: "*Teklif göndermek için sepetinize en az bir araç ekleyiniz." });
+      window.setTimeout(() => focusElementById("quote-cart-error"), 0);
+      return;
+    }
+
     if (invalidFields.length > 0) {
       setValidationErrors(
         Object.fromEntries(invalidFields.map((field) => [field.name, validationMessageFor(field)])),
       );
-      invalidFields[0]?.focus();
+      const firstInvalidField = invalidFields[0]?.name;
+      if (firstInvalidField) {
+        window.requestAnimationFrame(() => focusField(form, firstInvalidField));
+      }
       return;
     }
 
@@ -421,6 +499,10 @@ export function QuoteForm() {
 
       setQuoteNumber(payload.quoteNumber);
       successDialogRef.current?.showModal();
+      if (formType === "sepet") {
+        writeVehicleCart([]);
+        setCartItems([]);
+      }
       form.reset();
     } catch {
       setResult("gonderilemedi");
@@ -456,13 +538,14 @@ export function QuoteForm() {
 
       <form acceptCharset="UTF-8" action="/forms/teklif.php" aria-busy={submissionState === "submitting"} className="space-y-12" method="post" noValidate onChange={clearFieldError} onInput={clearFieldError} onSubmit={handleSubmit}>
         <input name="form_turu" type="hidden" value={formType} />
+        {formType === "sepet" ? <input name="sepet_json" type="hidden" value={JSON.stringify(cartItems)} /> : null}
         <div aria-hidden="true" className="absolute -left-[10000px] top-auto size-px overflow-hidden">
           <label htmlFor="quote-website">Web sitesi</label>
           <input autoComplete="off" id="quote-website" name="website" tabIndex={-1} type="text" />
         </div>
 
-        <div aria-label="Teklif türü" className="grid max-w-xl grid-cols-2 rounded-card border border-border-subtle bg-surface-muted p-1" role="group">
-          {(["kurumsal", "bireysel"] as const).map((value) => (
+        <div aria-label="Teklif türü" className="grid max-w-xl grid-cols-3 rounded-card border border-border-subtle bg-surface-muted p-1" role="group">
+          {(["kurumsal", "bireysel", "sepet"] as const).map((value) => (
             <button
               aria-pressed={formType === value}
               className={classNames(
@@ -478,10 +561,30 @@ export function QuoteForm() {
               }}
               type="button"
             >
-              {value === "kurumsal" ? "Kurumsal" : "Bireysel"}
+              <span className="inline-flex items-center justify-center gap-2">
+                {value === "kurumsal" ? "Kurumsal" : value === "bireysel" ? "Bireysel" : "Sepetim"}
+                {value === "sepet" && cartQuantity > 0 ? (
+                  <span
+                    aria-label={`Sepette ${cartQuantity} araç var`}
+                    className="inline-grid min-h-6 min-w-6 place-items-center rounded-full bg-error px-1.5 text-xs font-bold leading-none text-white"
+                  >
+                    {cartQuantity}
+                  </span>
+                ) : null}
+              </span>
             </button>
           ))}
         </div>
+
+        {formType === "sepet" ? (
+          <fieldset className="space-y-6">
+            <legend className="w-full border-b border-border-subtle pb-4 text-heading-md font-semibold text-corporate-blue">Araç Bilgileri</legend>
+            <p className="text-body text-text-secondary">Sepetinize eklediğiniz araçları, adetleri ve kiralama tercihlerini kontrol ediniz.</p>
+            <CartItems items={cartItems} onChange={setCartItems} />
+            <FieldError error={validationErrors.sepet} id="quote-cart-error" />
+            <div className="flex justify-end"><Link className="inline-flex min-h-11 items-center rounded-control border border-corporate-blue px-5 text-label font-semibold text-corporate-blue no-underline hover:bg-corporate-blue hover:text-white" href="/arac-listesi/">Araç Ekle →</Link></div>
+          </fieldset>
+        ) : null}
 
         <fieldset className="space-y-6">
           <legend className="w-full border-b border-border-subtle pb-4 text-heading-md font-semibold text-corporate-blue">
@@ -491,7 +594,7 @@ export function QuoteForm() {
           <div className="grid gap-6 md:grid-cols-2">
             <TextField autoComplete="given-name" error={validationErrors.ad} id="quote-first-name" label="Adınız" maxLength={80} name="ad" onInput={keepPersonNameCharacters} pattern="[A-Za-zÇĞİÖŞÜçğıöşü' -]+" placeholder="Adınızı yazınız" required />
             <TextField autoComplete="family-name" error={validationErrors.soyad} id="quote-last-name" label="Soyadınız" maxLength={80} name="soyad" onInput={keepPersonNameCharacters} pattern="[A-Za-zÇĞİÖŞÜçğıöşü' -]+" placeholder="Soyadınızı yazınız" required />
-            {formType === "kurumsal" ? (
+            {formType !== "bireysel" ? (
               <TextField autoComplete="organization-title" id="quote-title" label="Unvanınız" maxLength={120} name="unvan" placeholder="Unvanınızı yazınız" />
             ) : (
               <TextField error={validationErrors.tc_kimlik_no} id="quote-identity" inputMode="numeric" label="T.C. Kimlik Numaranız" maxLength={11} name="tc_kimlik_no" pattern="[1-9][0-9]{10}" placeholder="11 haneli T.C. kimlik numaranız" required />
@@ -501,7 +604,7 @@ export function QuoteForm() {
           </div>
         </fieldset>
 
-        {formType === "kurumsal" ? (
+        {formType !== "bireysel" ? (
           <fieldset className="space-y-6">
             <legend className="w-full border-b border-border-subtle pb-4 text-heading-md font-semibold text-corporate-blue">
               Şirket Bilgileri
@@ -533,7 +636,12 @@ export function QuoteForm() {
           </fieldset>
         ) : null}
 
-        <fieldset className="space-y-6">
+        {formType === "sepet" ? (
+          <div className="space-y-2">
+            <FieldLabel htmlFor="quote-note">İletmek İstediğiniz Not</FieldLabel>
+            <textarea className={classNames(fieldClassName, "min-h-32 py-3")} id="quote-note" maxLength={2000} name="not" placeholder="Notunuzu yazınız" />
+          </div>
+        ) : <fieldset className="space-y-6">
           <legend className="w-full border-b border-border-subtle pb-4 text-heading-md font-semibold text-corporate-blue">
             Araç Bilgileri
           </legend>
@@ -555,7 +663,7 @@ export function QuoteForm() {
           {formType === "bireysel" ? (
             <p className="text-body text-text-secondary">Bu formda kiralama süresi en az 12 aydır.</p>
           ) : null}
-        </fieldset>
+        </fieldset>}
 
         <div className="flex justify-end border-t border-border-subtle pt-8">
           <Button className="w-full sm:w-auto sm:min-w-56" disabled={submissionState === "submitting"} type="submit">

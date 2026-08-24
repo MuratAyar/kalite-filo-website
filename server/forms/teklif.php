@@ -207,11 +207,12 @@ if (!rate_limit_allows_request()) {
 }
 
 $formType = normalized_field('form_turu', 16, true);
-if ($formType !== 'kurumsal' && $formType !== 'bireysel') {
+if ($formType !== 'kurumsal' && $formType !== 'bireysel' && $formType !== 'sepet') {
     respond_result('dogrulama');
 }
 
-$isCorporate = $formType === 'kurumsal';
+$isCart = $formType === 'sepet';
+$isCorporate = $formType === 'kurumsal' || $isCart;
 $firstName = normalized_field('ad', 160, true);
 $lastName = normalized_field('soyad', 160, true);
 $countryCode = digits_only(normalized_field('ulke_kodu', 4, true));
@@ -229,13 +230,51 @@ $taxCity = normalized_field('vergi_dairesi_ili', 160, $isCorporate);
 $taxOffice = normalized_field('vergi_dairesi', 240, $isCorporate);
 $taxNumber = digits_only(normalized_field('vergi_numarasi', 10, $isCorporate));
 
-$vehicleMake = normalized_field('arac_markasi', 200, true);
-$vehicleModel = normalized_field('arac_modeli', 240, true);
+$vehicleMake = normalized_field('arac_markasi', 200, !$isCart);
+$vehicleModel = normalized_field('arac_modeli', 240, !$isCart);
 $note = normalized_field('not', 4000, false);
 $campaignCode = normalized_field('kampanya_kodu', 120, false);
-$duration = validated_integer('kiralama_suresi', 12, 120);
-$vehicleCount = validated_integer('arac_sayisi', 1, 999);
-$annualDistance = validated_integer('yillik_km', 1000, 500000);
+$duration = $isCart ? 0 : validated_integer('kiralama_suresi', 12, 120);
+$vehicleCount = $isCart ? 0 : validated_integer('arac_sayisi', 1, 999);
+$annualDistance = $isCart ? 0 : validated_integer('yillik_km', 1000, 500000);
+$cartItems = [];
+
+if ($isCart) {
+    $cartJson = normalized_field('sepet_json', 20000, true);
+    try {
+        $decodedCart = json_decode($cartJson, true, 16, JSON_THROW_ON_ERROR);
+    } catch (JsonException) {
+        respond_result('dogrulama', null, ['sepet' => '*Sepet bilgileri geçerli değil. Lütfen araçları yeniden ekleyiniz.']);
+    }
+    if (!is_array($decodedCart) || count($decodedCart) < 1 || count($decodedCart) > 32) {
+        respond_result('dogrulama', null, ['sepet' => '*Teklif göndermek için sepetinizde en az bir araç bulunmalıdır.']);
+    }
+    foreach ($decodedCart as $item) {
+        if (!is_array($item)) {
+            respond_result('dogrulama', null, ['sepet' => '*Sepet bilgileri geçerli değil.']);
+        }
+        $make = trim((string) ($item['make'] ?? ''));
+        $model = trim((string) ($item['model'] ?? ''));
+        $trim = trim((string) ($item['trim'] ?? ''));
+        $slug = trim((string) ($item['slug'] ?? ''));
+        $itemDuration = filter_var($item['durationMonths'] ?? null, FILTER_VALIDATE_INT);
+        $itemDistance = filter_var($item['annualKilometres'] ?? null, FILTER_VALIDATE_INT);
+        $quantity = filter_var($item['quantity'] ?? null, FILTER_VALIDATE_INT);
+        if (
+            $make === '' || strlen($make) > 100 || $model === '' || strlen($model) > 120
+            || strlen($trim) > 200 || preg_match('/^[a-z0-9-]+$/', $slug) !== 1
+            || !in_array($itemDuration, [12, 18, 24, 30, 36], true)
+            || !in_array($itemDistance, [10000, 15000, 20000, 25000, 30000, 35000, 40000, 45000, 50000, 55000], true)
+            || !is_int($quantity) || $quantity < 1 || $quantity > 99
+        ) {
+            respond_result('dogrulama', null, ['sepet' => '*Sepetteki araç bilgilerinden biri geçerli değil.']);
+        }
+        $cartItems[] = [
+            'make' => $make, 'model' => $model, 'trim' => $trim, 'slug' => $slug,
+            'duration' => $itemDuration, 'distance' => $itemDistance, 'quantity' => $quantity,
+        ];
+    }
+}
 
 $phoneDigits = digits_only($phone);
 if ($countryCode === '90' && strlen($phoneDigits) === 11 && str_starts_with($phoneDigits, '0')) {
@@ -281,7 +320,7 @@ if ($fieldErrors !== []) {
 $quoteNumber = create_quote_number();
 $emailFields = [
     ['Teklif numarası', $quoteNumber],
-    ['Teklif türü', $isCorporate ? 'Kurumsal' : 'Bireysel'],
+    ['Teklif türü', $isCart ? 'Sepet' : ($isCorporate ? 'Kurumsal' : 'Bireysel')],
     ['Ad soyad', $firstName . ' ' . $lastName],
     ['Telefon', '+' . $countryCode . ' ' . $phoneDigits],
     ['E-posta', $email],
@@ -299,11 +338,21 @@ if ($isCorporate) {
     $emailFields[] = ['T.C. kimlik numarası', $identityNumber];
 }
 
-$emailFields[] = ['Araç markası', $vehicleMake];
-$emailFields[] = ['Araç modeli', $vehicleModel];
-$emailFields[] = ['Araç sayısı', (string) $vehicleCount];
-$emailFields[] = ['Kiralama süresi', (string) $duration . ' ay'];
-$emailFields[] = ['Yıllık kilometre', number_format($annualDistance, 0, ',', '.') . ' km'];
+if ($isCart) {
+    foreach ($cartItems as $index => $item) {
+        $emailFields[] = [
+            'Sepet aracı ' . ($index + 1),
+            $item['make'] . ' ' . $item['model'] . ($item['trim'] !== '' ? ' — ' . $item['trim'] : '')
+            . "\n" . $item['duration'] . ' ay · ' . number_format($item['distance'], 0, ',', '.') . ' km/yıl · ' . $item['quantity'] . ' adet',
+        ];
+    }
+} else {
+    $emailFields[] = ['Araç markası', $vehicleMake];
+    $emailFields[] = ['Araç modeli', $vehicleModel];
+    $emailFields[] = ['Araç sayısı', (string) $vehicleCount];
+    $emailFields[] = ['Kiralama süresi', (string) $duration . ' ay'];
+    $emailFields[] = ['Yıllık kilometre', number_format($annualDistance, 0, ',', '.') . ' km'];
+}
 $emailFields[] = ['Not', $note !== '' ? $note : 'Belirtilmedi'];
 if (!$isCorporate) {
     $emailFields[] = ['Kampanya kodu', $campaignCode !== '' ? $campaignCode : 'Belirtilmedi'];

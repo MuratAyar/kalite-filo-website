@@ -8,7 +8,8 @@ const nextConfig: NextConfig = {
     "192.168.182.146",
     "192.168.1.76",
     "192.168.1.133",
-    "192.168.182.190"
+    "192.168.182.190",
+    "192.168.1.137"
   ],
   output: "export",
   trailingSlash: true,
@@ -19,5 +20,5 @@ const nextConfig: NextConfig = {
     unoptimized: true,
   },
 };
-""
+
 export default nextConfig;

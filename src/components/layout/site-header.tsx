@@ -20,11 +20,10 @@ export function SiteHeader() {
           <div className="hidden min-w-0 lg:contents">
             <PrimaryNavigation
               actionClassName={getActionClassName({
-                className: "justify-self-end",
                 size: "primary",
                 variant: "primary",
               })}
-              actionCurrentClassName="ring-2 ring-corporate-blue ring-offset-2 ring-offset-surface-card"
+              actionCurrentClassName="bg-orange-dark"
               actionItem={QUOTE_NAVIGATION_ITEM}
               className="justify-self-center"
               items={PRIMARY_NAVIGATION_ITEMS}

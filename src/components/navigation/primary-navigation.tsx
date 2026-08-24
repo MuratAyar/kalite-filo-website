@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 import { classNames } from "@/components/ui/class-names";
+import { CartCountBadge } from "./cart-count-badge";
 import type { PublicNavigationItem } from "@/config/public-navigation";
 import { getCurrentPublicNavigationRouteId } from "@/lib/navigation-route-matching.mjs";
 
@@ -57,6 +58,7 @@ export function PrimaryNavigation({
     item: PublicNavigationItem,
     resolvedClassName: string,
     resolvedCurrentClassName: string,
+    isAction = false,
   ) {
     const isCurrent = currentRouteId === item.id;
     const linkClassName = classNames(
@@ -68,6 +70,7 @@ export function PrimaryNavigation({
       <a
         aria-current={isCurrent ? "page" : undefined}
         className={linkClassName}
+        data-quote-action={isAction ? "true" : undefined}
         href={item.path}
       >
         {item.label}
@@ -76,6 +79,7 @@ export function PrimaryNavigation({
       <Link
         aria-current={isCurrent ? "page" : undefined}
         className={linkClassName}
+        data-quote-action={isAction ? "true" : undefined}
         href={item.path}
       >
         {item.label}
@@ -105,13 +109,22 @@ export function PrimaryNavigation({
           ))}
         </ul>
       </nav>
-      {actionItem
-        ? renderLink(
+      {actionItem ? (
+        <div
+          className={classNames(
+            "quote-action-group grid items-stretch [grid-template-columns:minmax(0,auto)_4rem]",
+            orientation === "horizontal" ? "justify-self-end" : "w-full",
+          )}
+        >
+          {renderLink(
             actionItem,
-            classNames(actionClassName),
+            classNames("relative z-10", actionClassName),
             actionCurrentClassName ?? "",
-          )
-        : null}
+            true,
+          )}
+          <CartCountBadge />
+        </div>
+      ) : null}
     </>
   );
 }

@@ -1,7 +1,6 @@
 import type { VehiclePortfolioRecord } from "@/types";
 
 import { PageContainer, Section } from "@/components/layout";
-import { Button } from "@/components/ui";
 import { getVehicleDetailPath } from "@/lib/paths";
 
 import {
@@ -10,19 +9,12 @@ import {
   VehicleListPrice,
 } from "./vehicle-card-details";
 import { RelatedVehicleCarouselControls } from "./related-vehicle-carousel-controls";
+import { VehicleOfferControls } from "./vehicle-offer-controls";
 
 export type VehicleDetailProps = {
   relatedVehicles: readonly VehiclePortfolioRecord[];
   vehicle: VehiclePortfolioRecord;
 };
-
-const leaseDurationOptions = [12, 18, 24, 30, 36] as const;
-const annualKilometreOptions = [
-  10_000, 15_000, 20_000, 25_000, 30_000,
-  35_000, 40_000, 45_000, 50_000, 55_000,
-] as const;
-
-const kilometreFormatter = new Intl.NumberFormat("tr-TR");
 
 type TechnicalSpecification = readonly [label: string, value: string];
 
@@ -266,72 +258,16 @@ export function VehicleDetail({
                 transmissionLabel={vehicle.transmissionLabel}
               />
 
-              <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
-                <label className="grid gap-2 text-label font-semibold text-text-primary">
-                  <span>
-                    Kiralama Süresi (Ay)<span aria-hidden="true">*</span>
-                  </span>
-                  <select
-                    className="h-control-secondary w-full rounded-control border border-border-control bg-surface-card px-3 text-body font-semibold text-text-primary"
-                    defaultValue="12"
-                    name="kiralama-suresi"
-                  >
-                    {leaseDurationOptions.map((duration) => (
-                      <option key={duration} value={duration}>{duration}</option>
-                    ))}
-                  </select>
-                </label>
-                <label className="grid gap-2 text-label font-semibold text-text-primary">
-                  <span>
-                    Yıllık Kilometre<span aria-hidden="true">*</span>
-                  </span>
-                  <select
-                    className="h-control-secondary w-full rounded-control border border-border-control bg-surface-card px-3 text-body font-semibold text-text-primary"
-                    defaultValue="10000"
-                    name="yillik-kilometre"
-                  >
-                    {annualKilometreOptions.map((kilometres) => (
-                      <option key={kilometres} value={kilometres}>
-                        {kilometreFormatter.format(kilometres)}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-              </div>
-
-              <VehicleListPrice
-                className="mt-6"
+              <VehicleOfferControls
+                fuelLabel={vehicle.fuelLabel}
+                image={getVehicleCardImage(vehicle)}
                 listPrice={vehicle.listPrice}
-                offerPanel
+                make={vehicle.make}
+                model={vehicle.model}
+                slug={vehicle.slug}
+                transmissionLabel={vehicle.transmissionLabel}
+                trim={vehicle.trim}
               />
-              <p
-                className="mt-3 text-xs leading-5 text-text-secondary"
-                id="vehicle-detail-action-status"
-              >
-                Liste fiyatı bağlayıcı teklif veya araç bulunabilirliği garantisi değildir. Teklif ve sepet işlemleri şu anda aktif değildir.
-              </p>
-
-              <div className="mt-6 grid gap-3">
-                <Button
-                  aria-describedby="vehicle-detail-action-status"
-                  data-vehicle-detail-action="quote"
-                  fullWidth
-                  size="primary"
-                  type="button"
-                >
-                  Hemen Teklif İste
-                </Button>
-                <Button
-                  aria-describedby="vehicle-detail-action-status"
-                  data-vehicle-detail-action="basket"
-                  fullWidth
-                  size="secondary"
-                  type="button"
-                  variant="outline"
-                >
-                  Araç Sepetine Ekle
-                </Button>
-              </div>
             </aside>
           </div>
         </PageContainer>
