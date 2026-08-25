@@ -1123,7 +1123,7 @@ test("validates article contents targets and rejects source-only scaffolding", (
             <dialog data-article-share-dialog="true">
               <button data-share-copy="true">Bağlantıyı kopyala</button>
               <a data-share-x="true" href="https://x.com/intent/tweet?url=ornek">X'te paylaş</a>
-              <a data-share-whatsapp="true" href="https://api.whatsapp.com/send/?text=ornek">WhatsApp'ta paylaş</a>
+              <a data-share-whatsapp="true" href="https://wa.me/?text=ornek">WhatsApp'ta paylaş</a>
             </dialog>
           </div>
         </section>

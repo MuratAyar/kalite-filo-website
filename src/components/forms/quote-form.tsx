@@ -345,10 +345,10 @@ function CartItems({ items, onChange }: { items: VehicleCartItem[]; onChange: (i
   }
 
   return <div className="grid gap-5">{items.map((item) => (
-    <article className="grid overflow-hidden rounded-card border border-border-subtle bg-surface-card md:grid-cols-[14rem_minmax(0,1fr)]" key={item.key}>
+    <article className="grid min-w-0 overflow-hidden rounded-card border border-border-subtle bg-surface-card md:grid-cols-[14rem_minmax(0,1fr)]" key={item.key}>
       {/* Static local vehicle derivative. */}
       {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img alt={item.image.alt} className="aspect-[16/9] size-full bg-surface-muted object-cover md:aspect-auto" height={item.image.height} loading="lazy" src={item.image.src} width={item.image.width} />
+      <img alt={item.image.alt} className="aspect-[16/9] h-auto w-full self-start bg-surface-muted object-cover md:aspect-auto md:h-full" height={item.image.height} loading="lazy" src={item.image.src} width={item.image.width} />
       <div className="grid min-w-0 gap-4 p-5">
         <div>
           <h3 className="text-xl font-semibold text-text-primary">{item.make} {item.model}</h3>

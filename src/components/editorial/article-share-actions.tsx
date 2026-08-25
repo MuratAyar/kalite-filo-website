@@ -16,7 +16,8 @@ export function ArticleShareActions({ canonicalUrl, title }: ArticleShareActions
   const [status, setStatus] = useState("");
   const emailHref = `mailto:?subject=${encodeURIComponent(title)}&body=${encodeURIComponent(canonicalUrl)}`;
   const shareTitle = `${title} | Kalite Filo`;
-  const whatsAppHref = `https://api.whatsapp.com/send/?text=${encodeURIComponent(`${shareTitle} ${shareUrl}`)}&type=custom_url&app_absent=0`;
+  const whatsAppText = encodeURIComponent(`${shareTitle}\n${shareUrl}`);
+  const whatsAppHref = `https://wa.me/?text=${whatsAppText}`;
   const xHref = `https://x.com/intent/tweet?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent(shareTitle)}`;
 
   function getCurrentPageUrl() {
@@ -64,6 +65,15 @@ export function ArticleShareActions({ canonicalUrl, title }: ArticleShareActions
 
   function handleDialogClick(event: MouseEvent<HTMLDialogElement>) {
     if (event.target === event.currentTarget) closeShareDialog();
+  }
+
+  function shareOnWhatsApp(event: MouseEvent<HTMLAnchorElement>) {
+    const currentShareText = encodeURIComponent(`${shareTitle}\n${getCurrentPageUrl()}`);
+
+    if (/Android|iPhone|iPad|iPod/i.test(navigator.userAgent)) {
+      event.preventDefault();
+      window.location.href = `whatsapp://send?text=${currentShareText}`;
+    }
   }
 
   const actionClassName =
@@ -151,6 +161,7 @@ export function ArticleShareActions({ canonicalUrl, title }: ArticleShareActions
               className="flex min-h-12 w-full items-center justify-between gap-4 rounded-control border border-border-subtle bg-surface-muted px-4 py-3 text-body font-semibold text-text-primary transition-colors hover:border-corporate-blue hover:text-corporate-blue"
               data-share-whatsapp="true"
               href={whatsAppHref}
+              onClick={shareOnWhatsApp}
               rel="noopener noreferrer"
               target="_blank"
             >

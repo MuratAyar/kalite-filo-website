@@ -30,7 +30,7 @@ export default function Home() {
     <main
       id="main-content"
       tabIndex={-1}
-      className="flex-1"
+      className="max-w-full flex-1 overflow-x-clip"
       data-content-status={homePageCopy.publicationStatus}
     >
       <HomeHero

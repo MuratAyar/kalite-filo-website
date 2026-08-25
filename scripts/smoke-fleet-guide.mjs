@@ -357,7 +357,7 @@ try {
     detailReport.shareControls !== 7 || !detailReport.shareDialogOpen ||
     !detailReport.shareDialogClosedFromBackdrop ||
     !detailReport.shareXHref?.startsWith('https://x.com/intent/tweet?') ||
-    !detailReport.shareWhatsAppHref?.startsWith('https://api.whatsapp.com/send/?') ||
+    !detailReport.shareWhatsAppHref?.startsWith('https://wa.me/?') ||
     new URL(detailReport.shareXHref).searchParams.get('url') !== detailReport.currentUrl ||
     !new URL(detailReport.shareWhatsAppHref).searchParams.get('text')?.includes(detailReport.currentUrl) ||
     detailReport.copyStatus !== 'Makale bağlantısı kopyalandı.' ||

@@ -22,7 +22,7 @@ export const homePageCopy: HomePageCopy = {
   },
   featuredVehicles: {
     title: "Öne Çıkan Araçlar",
-    intro: "Portföyümüzden seçilen araç modellerini inceleyin.",
+    intro: "Kampanyalı araç modellerini inceleyin.",
     emptyState: {
       title: "Henüz yayıma hazır araç kaydı bulunmuyor",
       body: "Güncel araç seçenekleri için Araçlar sayfasını inceleyin.",

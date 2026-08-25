@@ -1713,7 +1713,7 @@ export function validateArticleDetailOutput(html) {
       getHtmlAttribute(shareXAnchors[0] ?? "", "href") ?? "",
     ) ||
     shareWhatsAppAnchors.length !== 1 ||
-    !/^https:\/\/api\.whatsapp\.com\/send\/?\?/i.test(
+    !/^https:\/\/wa\.me\/?\?/i.test(
       getHtmlAttribute(shareWhatsAppAnchors[0] ?? "", "href") ?? "",
     ) ||
     sidebarTags.length !== 1 ||
