@@ -22,16 +22,40 @@ export function MobilePageStart() {
       return;
     }
 
+    if (normalizedPathname === "/") {
+      const root = document.documentElement;
+      const previousScrollBehavior = root.style.scrollBehavior;
+      let restoreFrame = 0;
+      root.style.scrollBehavior = "auto";
+      window.scrollTo(0, 0);
+
+      const frame = window.requestAnimationFrame(() => {
+        window.scrollTo(0, 0);
+        restoreFrame = window.requestAnimationFrame(() => {
+          window.scrollTo(0, 0);
+          root.style.scrollBehavior = previousScrollBehavior;
+        });
+      });
+
+      return () => {
+        window.cancelAnimationFrame(frame);
+        window.cancelAnimationFrame(restoreFrame);
+        root.style.scrollBehavior = previousScrollBehavior;
+      };
+    }
+
     const frame = window.requestAnimationFrame(() => {
-      if (normalizedPathname === "/") {
-        window.scrollTo({ behavior: "auto", top: 0 });
-        return;
-      }
+      const articleTitleMarker = /^\/filo-rehberi\/[^/]+\/[^/]+\/$/.test(
+        normalizedPathname,
+      )
+        ? document.querySelector<HTMLElement>("[data-mobile-title-start]")
+        : null;
 
       const routeMarker = document.querySelector<HTMLElement>(
         `[data-mobile-route-start="${normalizedPathname}"]`,
       );
       const marker =
+        articleTitleMarker ??
         routeMarker ??
         document.querySelector<HTMLElement>("[data-mobile-page-start]");
       const header = document.querySelector<HTMLElement>("header");
@@ -46,7 +70,8 @@ export function MobilePageStart() {
           0,
           window.scrollY +
             marker.getBoundingClientRect().top -
-            (header?.offsetHeight ?? 0),
+            (header?.offsetHeight ?? 0) -
+            Number(marker.dataset.mobileRouteOffset ?? 0),
         ),
       });
     });

@@ -22,6 +22,7 @@ export type PageHeaderProps = Omit<
   eyebrow?: string;
   headingId?: string;
   intro?: string;
+  mobileStartAtTitle?: boolean;
   spacing?: SectionSpacing;
   title: string;
   variant?: PageHeaderVariant;
@@ -35,6 +36,7 @@ export function PageHeader({
   eyebrow,
   headingId = "page-title",
   intro,
+  mobileStartAtTitle = false,
   spacing = "compact",
   title,
   variant = "standard",
@@ -56,6 +58,9 @@ export function PageHeader({
         <PageContainer>
           <Stack gap="sm">
             {breadcrumbs ? <Breadcrumbs items={breadcrumbs} /> : null}
+            {mobileStartAtTitle ? (
+              <div aria-hidden="true" data-mobile-title-start="true" />
+            ) : null}
             <SectionHeading
               description={intro}
               eyebrow={eyebrow}

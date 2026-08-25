@@ -4,7 +4,11 @@ import { useEffect, useState } from "react";
 
 import { getVehicleCartQuantity, readVehicleCart, subscribeToVehicleCart } from "@/lib/vehicle-cart";
 
-export function CartCountBadge() {
+export type CartCountBadgeProps = {
+  variant?: "action" | "mobile-menu";
+};
+
+export function CartCountBadge({ variant = "action" }: CartCountBadgeProps) {
   const [count, setCount] = useState(0);
 
   useEffect(() => {
@@ -14,7 +18,22 @@ export function CartCountBadge() {
   }, []);
 
   if (count < 1) {
-    return <span aria-hidden="true" className="w-16" />;
+    return variant === "action" ? (
+      <span aria-hidden="true" className="w-16" />
+    ) : null;
+  }
+
+  if (variant === "mobile-menu") {
+    return (
+      <span
+        aria-label={`Sepette ${count} araç var.`}
+        className="absolute -top-1.5 -right-1.5 grid min-h-5 min-w-5 place-items-center rounded-full bg-error px-1 text-[0.6875rem] leading-none font-bold text-white shadow-sm"
+        data-mobile-cart-count
+        role="status"
+      >
+        {count}
+      </span>
+    );
   }
 
   return (

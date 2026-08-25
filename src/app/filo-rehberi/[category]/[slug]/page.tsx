@@ -104,6 +104,7 @@ export default async function FleetGuideArticlePage({ params }: ArticlePageProps
           { label: article.title },
         ]}
         intro={article.excerpt}
+        mobileStartAtTitle
         title={article.title}
         variant="high-emphasis"
       >

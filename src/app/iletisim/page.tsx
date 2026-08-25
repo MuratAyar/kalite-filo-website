@@ -37,6 +37,7 @@ export default function ContactPage() {
           <PageContainer>
           <div
             className="grid items-stretch gap-8 lg:grid-cols-2"
+            data-mobile-route-offset="8"
             data-mobile-route-start="/iletisim/"
           >
             <div className="relative flex flex-col overflow-hidden rounded-panel border border-brand-navy/15 bg-surface-muted shadow-lg md:min-h-[34rem]">
