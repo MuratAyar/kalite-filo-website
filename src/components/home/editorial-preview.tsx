@@ -87,7 +87,7 @@ export function EditorialPreview({
         {approvedArticles.length > 0 ? (
           <ul
             className={classNames(
-              "mt-10 grid gap-5 sm:grid-cols-2",
+              "mobile-card-track mt-10 grid gap-5 sm:grid-cols-2",
               columns === 3 ? "xl:grid-cols-3" : "xl:grid-cols-4",
             )}
           >
@@ -101,11 +101,11 @@ export function EditorialPreview({
 
               return (
               <li
-                className="group relative isolate min-h-80 overflow-hidden rounded-card border border-white/20 bg-navy-secondary transition-[border-color,box-shadow] duration-200 hover:border-accent-orange hover:shadow-lg focus-within:border-accent-orange focus-within:shadow-lg"
+                className="mobile-one-half-card group relative isolate min-h-72 overflow-hidden rounded-card border border-white/20 bg-navy-secondary transition-[border-color,box-shadow] duration-200 hover:border-accent-orange hover:shadow-lg focus-within:border-accent-orange focus-within:shadow-lg sm:min-h-80"
                 key={article.id}
               >
                 <Link
-                  className="flex min-h-80 flex-col justify-end p-5 focus-visible:outline-2 focus-visible:-outline-offset-4 focus-visible:outline-accent-orange"
+                  className="flex min-h-72 flex-col justify-end p-4 focus-visible:outline-2 focus-visible:-outline-offset-4 focus-visible:outline-accent-orange sm:min-h-80 sm:p-5"
                   data-editorial-preview-article-link="true"
                   href={getFiloRehberiArticlePath(
                     category.slug,

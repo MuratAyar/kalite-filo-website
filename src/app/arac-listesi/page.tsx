@@ -33,7 +33,6 @@ export default function VehiclesPage() {
           { href: homeRoute.path, label: homeRoute.label },
           { label: route.label },
         ]}
-        intro="Portföydeki araç kayıtlarını marka, model ve teknik özelliklere göre inceleyin."
         title="Uzun Dönem Kiralık Araçlar"
         variant="high-emphasis"
       />

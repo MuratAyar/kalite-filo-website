@@ -21,18 +21,17 @@ export function MobileNavigation({
   return (
     <details
       className={classNames(
-        "group border-t border-border-subtle pb-3 lg:hidden",
+        "group static shrink-0 lg:hidden",
         className,
       )}
     >
-      <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between gap-3 rounded-control px-3 py-2 text-label font-semibold text-text-primary hover:bg-surface-muted">
-        <span>Menü</span>
-        <span aria-hidden="true" className="text-xl leading-none text-corporate-blue">
-          <span className="group-open:hidden">+</span>
-          <span className="hidden group-open:inline">−</span>
-        </span>
+      <summary aria-label="Ana menüyü aç veya kapat" className="grid size-10 cursor-pointer list-none place-items-center rounded-control border border-border-subtle text-brand-navy transition-colors hover:border-corporate-blue hover:bg-surface-muted hover:text-corporate-blue motion-reduce:transition-none sm:size-11 [&::-webkit-details-marker]:hidden">
+        <svg aria-hidden="true" className="size-5 sm:size-6" fill="none" viewBox="0 0 24 24">
+          <path className="group-open:hidden" d="M4 7h16M4 12h16M4 17h16" stroke="currentColor" strokeLinecap="round" strokeWidth="2" />
+          <path className="hidden group-open:block" d="m6 6 12 12M18 6 6 18" stroke="currentColor" strokeLinecap="round" strokeWidth="2" />
+        </svg>
       </summary>
-      <div className="grid gap-3 pb-1 pt-2">
+      <div className="absolute inset-x-0 top-full z-50 grid gap-3 border-t border-border-subtle bg-surface-card px-gutter py-4 shadow-[0_1rem_2rem_rgb(24_33_54_/_0.12)]">
         <PrimaryNavigation
           actionClassName={getActionClassName({
             fullWidth: true,

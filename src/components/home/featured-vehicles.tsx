@@ -60,13 +60,13 @@ export function FeaturedVehicles({
             </ActionLink>
           </div>
 
-          <ul className="grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
+          <ul className="mobile-card-track grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
             {featuredVehicles.map((vehicle) => {
               const cardImage = getVehicleCardImage(vehicle);
 
               return (
                 <li
-                  className="min-w-0"
+                  className="mobile-half-card min-w-0"
                   data-vehicle-card={vehicle.slug}
                   data-monthly-list-net-price-try={
                     vehicle.listPrice.amountMinor / 100
@@ -96,16 +96,16 @@ export function FeaturedVehicles({
                       />
                     </div>
 
-                  <div className="flex flex-1 flex-col p-5">
-                    <h3 className="text-xl font-semibold text-text-primary">
+                  <div className="flex flex-1 flex-col p-3 sm:p-5">
+                    <h3 className="text-base font-semibold text-text-primary sm:text-xl">
                       {vehicle.make} {vehicle.model}
                     </h3>
-                    <p className="mt-1 min-h-12 text-label text-text-secondary">
+                    <p className="mt-1 min-h-10 text-xs text-text-secondary sm:min-h-12 sm:text-label">
                       {vehicle.trim}
                     </p>
 
                     <VehicleCardFacts
-                      className="mt-4 border-t border-border-subtle pt-4"
+                      className="mt-2 border-t border-border-subtle pt-2 sm:mt-4 sm:pt-4"
                       fuelLabel={vehicle.fuelLabel}
                       transmissionLabel={vehicle.transmissionLabel}
                     />

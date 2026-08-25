@@ -23,7 +23,6 @@ export default function FleetGuidePage() {
           { href: homeRoute.path, label: homeRoute.label },
           { label: route.label },
         ]}
-        intro="Kurumsal araç kiralama ve filo yönetimi içerikleri."
         title={route.label}
         variant="high-emphasis"
       />

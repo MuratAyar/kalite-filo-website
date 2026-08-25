@@ -22,6 +22,7 @@ import {
   VEHICLE_SORT_OPTIONS,
 } from "@/lib/vehicle-catalogue-filters.mjs";
 import { getVehicleDetailPath } from "@/lib/paths";
+import { MobileVehicleFilterDialog } from "./mobile-vehicle-filter-dialog";
 
 export type VehicleCatalogueViewProps = {
   filters: VehicleCatalogueFilters;
@@ -66,7 +67,7 @@ function FilterFields({
   onFiltersChange,
   records,
 }: FilterFieldsProps) {
-  const options = buildVehicleCatalogueOptions(records, filters.make);
+  const options = buildVehicleCatalogueOptions(records, filters);
   const interactive = Boolean(onFiltersChange);
 
   const getSelectProps = (
@@ -260,30 +261,6 @@ function VehicleFilterPanel({
         ) : null}
       </aside>
 
-      <details className="rounded-card border border-border-subtle bg-surface-card p-4 lg:hidden">
-        <summary className="flex min-h-12 cursor-pointer list-none items-center justify-between gap-4 rounded-control font-semibold text-text-primary marker:content-none">
-          <span>Filtrele</span>
-          <span aria-hidden="true" className="text-corporate-blue">
-            +
-          </span>
-        </summary>
-        <div className="border-t border-border-subtle pt-5">
-          {panelContents("mobile-vehicle-filter")}
-          {onFiltersChange ? (
-            <Button
-              className="mt-6"
-              data-vehicle-reset="true"
-              fullWidth
-              onClick={() => onFiltersChange({})}
-              size="secondary"
-              type="button"
-              variant="outline"
-            >
-              Filtreleri Temizle
-            </Button>
-          ) : null}
-        </div>
-      </details>
     </>
   );
 }
@@ -510,6 +487,26 @@ export function VehicleCatalogueView({
           <h2 className="sr-only" id="selected-vehicle-filters-title">
             Aktif araç filtreleri ve sonuçlar
           </h2>
+          {onFiltersChange ? (
+            <div className="mb-3 flex items-center gap-2 lg:hidden">
+              <p
+                aria-live="polite"
+                className="mr-auto text-xs font-semibold text-text-primary"
+                data-vehicle-mobile-result-count={filteredRecords.length}
+              >
+                {filteredRecords.length} araç gösteriliyor
+              </p>
+              <MobileVehicleFilterDialog
+                filters={filters}
+                onFiltersChange={onFiltersChange}
+                records={records}
+              />
+              <VehicleSortControl
+                filters={filters}
+                onFiltersChange={onFiltersChange}
+              />
+            </div>
+          ) : null}
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div
               className="flex min-h-11 flex-wrap items-center gap-2"
@@ -543,15 +540,17 @@ export function VehicleCatalogueView({
             <div className="flex flex-wrap items-center gap-3 sm:justify-end">
               <p
                 aria-live="polite"
-                className="text-label font-semibold text-text-primary"
+                className="hidden text-label font-semibold text-text-primary lg:block"
                 data-vehicle-result-count={filteredRecords.length}
               >
                 {filteredRecords.length} araç gösteriliyor
               </p>
-              <VehicleSortControl
-                filters={filters}
-                onFiltersChange={onFiltersChange}
-              />
+              <div className="hidden lg:block">
+                <VehicleSortControl
+                  filters={filters}
+                  onFiltersChange={onFiltersChange}
+                />
+              </div>
             </div>
           </div>
         </section>

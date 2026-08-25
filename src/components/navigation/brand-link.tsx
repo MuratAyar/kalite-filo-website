@@ -35,7 +35,7 @@ export function BrandLink({
         // eslint-disable-next-line @next/next/no-img-element
         <img
           alt="Kalite Filo"
-          className="h-auto w-36 sm:w-40 xl:w-44"
+          className="h-auto w-32 sm:w-40 xl:w-44"
           height="112"
           src="/images/brand/kalite-filo-logo.png"
           width="560"

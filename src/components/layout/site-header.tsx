@@ -15,7 +15,7 @@ export function SiteHeader() {
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border-subtle bg-surface-card/95 shadow-[0_1px_0_rgb(24_33_54_/_0.04)] backdrop-blur-md">
       <PageContainer>
-        <div className="flex min-h-16 min-w-0 items-center justify-between gap-6 lg:grid lg:min-h-20 lg:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)]">
+        <div className="relative flex min-h-14 min-w-0 items-center justify-between gap-3 sm:min-h-16 sm:gap-4 lg:grid lg:min-h-20 lg:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)]">
           <BrandLink className="lg:justify-self-start" />
           <div className="hidden min-w-0 lg:contents">
             <PrimaryNavigation
@@ -29,8 +29,8 @@ export function SiteHeader() {
               items={PRIMARY_NAVIGATION_ITEMS}
             />
           </div>
+          <MobileNavigation />
         </div>
-        <MobileNavigation />
       </PageContainer>
     </header>
   );

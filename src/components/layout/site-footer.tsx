@@ -105,8 +105,8 @@ export function SiteFooter() {
   return (
     <footer className="mt-auto w-full border-t border-navy-secondary bg-brand-navy text-text-inverse">
       <PageContainer className="py-14 md:py-16 lg:py-20">
-        <div className="grid min-w-0 gap-x-8 gap-y-12 sm:grid-cols-2 lg:grid-cols-[minmax(15rem,1.35fr)_repeat(3,minmax(0,0.65fr))] lg:items-start lg:gap-x-12">
-          <div className="min-w-0 sm:col-span-2 lg:col-span-1">
+        <div className="grid min-w-0 grid-cols-3 gap-x-3 gap-y-8 sm:gap-x-8 lg:grid-cols-[minmax(15rem,1.35fr)_repeat(3,minmax(0,0.65fr))] lg:items-start lg:gap-x-12">
+          <div className="col-span-3 min-w-0 lg:col-span-1">
             <BrandLink tone="inverse" />
           </div>
 

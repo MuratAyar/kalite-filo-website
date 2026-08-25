@@ -9,7 +9,8 @@ const nextConfig: NextConfig = {
     "192.168.1.76",
     "192.168.1.133",
     "192.168.182.190",
-    "192.168.1.137"
+    "192.168.1.137",
+    "192.168.1.143"
   ],
   output: "export",
   trailingSlash: true,

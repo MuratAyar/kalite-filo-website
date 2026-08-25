@@ -9,6 +9,7 @@ export {
   type PageHeaderVariant,
 } from "./page-header";
 export { PageContainer, type PageContainerProps } from "./page-container";
+export { MobilePageStart } from "./mobile-page-start";
 export { Section, type SectionProps } from "./section";
 export { SiteFooter } from "./site-footer";
 export { SiteHeader } from "./site-header";

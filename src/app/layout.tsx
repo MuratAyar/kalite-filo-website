@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 
-import { SiteFooter, SiteHeader } from "@/components/layout";
+import { MobilePageStart, SiteFooter, SiteHeader } from "@/components/layout";
 import { SkipLink } from "@/components/navigation/skip-link";
 import { getSiteEnvironment } from "@/config/site";
 import { validateFoundationContent } from "@/lib/content-validation";
@@ -47,6 +47,7 @@ export default function RootLayout({
       <body className="flex min-h-svh flex-col bg-page font-sans text-foreground antialiased">
         <SkipLink />
         <SiteHeader />
+        <MobilePageStart />
         {children}
         <SiteFooter />
       </body>

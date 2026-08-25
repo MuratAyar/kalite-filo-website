@@ -25,7 +25,7 @@ export function Breadcrumbs({
 
   return (
     <nav aria-label={ariaLabel} className={className}>
-      <ol className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1 text-label text-text-secondary">
+      <ol className="flex min-w-0 flex-wrap items-center gap-x-1.5 gap-y-1 text-[0.6875rem] leading-4 text-text-secondary sm:gap-x-2 sm:text-label">
         {items.map((item, index) => {
           const isCurrent = index === items.length - 1;
 

@@ -42,7 +42,7 @@ export function FaqCategoryFilter({
         data-faq-category-filter="true"
         role="group"
       >
-        <ul className="flex flex-wrap gap-3">
+        <ul className="mobile-category-track flex gap-x-7 border-b border-border-subtle sm:flex-wrap">
           {controls.map((control) => {
             const isSelected = selectedCategoryId === control.id;
 
@@ -52,10 +52,10 @@ export function FaqCategoryFilter({
                   aria-controls="faq-list"
                   aria-pressed={isSelected}
                   className={classNames(
-                    "inline-flex min-h-11 items-center rounded-pill border px-5 text-label font-semibold transition-colors motion-reduce:transition-none",
+                    "inline-flex min-h-12 items-center border-b-2 px-1 text-label font-semibold transition-colors motion-reduce:transition-none",
                     isSelected
-                      ? "border-accent-orange bg-orange-light text-brand-navy hover:bg-accent-orange"
-                      : "border-border-subtle bg-surface-card text-text-secondary hover:border-corporate-blue hover:text-corporate-blue",
+                      ? "border-corporate-blue text-corporate-blue"
+                      : "border-transparent text-text-secondary hover:border-border-control hover:text-corporate-blue",
                   )}
                   data-faq-category-control="true"
                   data-faq-category-id={control.id}

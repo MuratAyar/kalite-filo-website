@@ -116,7 +116,7 @@ test("rejects unknown values and a model outside its selected make", () => {
 test("builds a dependent model list only after a valid make selection", () => {
   assert.deepEqual(buildVehicleCatalogueOptions(records).models, []);
   assert.deepEqual(
-    buildVehicleCatalogueOptions(records, "Renault").models,
+    buildVehicleCatalogueOptions(records, { make: "Renault" }).models,
     ["Clio", "Duster"],
   );
   assert.deepEqual(buildVehicleCatalogueOptions(records).makes, [
@@ -124,6 +124,30 @@ test("builds a dependent model list only after a valid make selection", () => {
     "Renault",
     "Tesla",
   ]);
+});
+
+test("narrows every facet by all other active catalogue filters", () => {
+  assert.deepEqual(
+    buildVehicleCatalogueOptions(records, { make: "Renault" }).segments,
+    ["B Hatchback", "C-SUV"],
+  );
+  assert.deepEqual(
+    buildVehicleCatalogueOptions(records, { segment: "C-SUV" }).makes,
+    ["Renault"],
+  );
+  assert.deepEqual(
+    buildVehicleCatalogueOptions(records, {
+      category: "SUV",
+      fuel: "Hybrid",
+    }),
+    {
+      makes: ["Renault"],
+      models: [],
+      fuels: ["Hybrid", "Elektrik"],
+      segments: ["C-SUV"],
+      transmissions: ["Yarı Otomatik"],
+    },
+  );
 });
 
 test("filters by category, exact make/model, fuel group, and transmission", () => {

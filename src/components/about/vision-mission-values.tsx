@@ -69,13 +69,13 @@ export function VisionMissionValues({ content }: VisionMissionValuesProps) {
             </p>
           </div>
 
-          <ul className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <ul className="mt-8 grid grid-cols-3 gap-2 sm:grid-cols-2 sm:gap-4 lg:grid-cols-3">
             {content.values.items.map((value) => (
               <li
-                className="flex min-h-20 items-center gap-4 rounded-card border border-border-subtle bg-surface-card p-4 text-label font-semibold text-text-primary"
+                className="flex min-h-24 min-w-0 flex-col items-center justify-center gap-2 rounded-card border border-border-subtle bg-surface-card p-2 text-center text-[0.625rem] leading-tight font-semibold text-text-primary sm:min-h-20 sm:flex-row sm:justify-start sm:gap-4 sm:p-4 sm:text-left sm:text-label"
                 key={value.id}
               >
-                <span className="inline-flex size-11 shrink-0 items-center justify-center rounded-control bg-orange-light text-orange-dark">
+                <span className="inline-flex size-9 shrink-0 items-center justify-center rounded-control bg-orange-light text-orange-dark sm:size-11">
                   <AboutIcon name={value.icon as AboutIconName} />
                 </span>
                 <span className="min-w-0 text-pretty">{value.title}</span>

@@ -5,6 +5,7 @@ import {
   type BreadcrumbItem,
 } from "@/components/navigation/breadcrumbs";
 import { SectionHeading } from "@/components/ui/section-heading";
+import { classNames } from "@/components/ui/class-names";
 
 import { PageContainer } from "./page-container";
 import { Section, type SectionSpacing } from "./section";
@@ -40,27 +41,34 @@ export function PageHeader({
   ...props
 }: PageHeaderProps) {
   return (
-    <Section
-      aria-labelledby={headingId}
-      className={className}
-      spacing={spacing}
-      surface="page"
-      {...props}
-    >
-      <PageContainer>
-        <Stack gap="lg">
-          {breadcrumbs ? <Breadcrumbs items={breadcrumbs} /> : null}
-          <SectionHeading
-            description={intro}
-            eyebrow={eyebrow}
-            headingId={headingId}
-            level={1}
-            size={variant === "high-emphasis" ? "display" : "large"}
-            title={title}
-          />
-          {children}
-        </Stack>
-      </PageContainer>
-    </Section>
+    <>
+      <Section
+        aria-labelledby={headingId}
+        className={classNames(
+          spacing === "compact" ? "py-6 md:py-8" : undefined,
+          className,
+        )}
+        spacing={spacing === "compact" ? "none" : spacing}
+        surface="page"
+        data-page-header-variant={variant}
+        {...props}
+      >
+        <PageContainer>
+          <Stack gap="sm">
+            {breadcrumbs ? <Breadcrumbs items={breadcrumbs} /> : null}
+            <SectionHeading
+              description={intro}
+              eyebrow={eyebrow}
+              headingId={headingId}
+              level={1}
+              size="large"
+              title={title}
+            />
+            {children}
+          </Stack>
+        </PageContainer>
+      </Section>
+      <div aria-hidden="true" data-mobile-page-start="true" />
+    </>
   );
 }

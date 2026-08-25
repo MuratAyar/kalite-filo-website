@@ -23,7 +23,7 @@ export function QuickVehicleFinder({
   title,
 }: QuickVehicleFinderProps) {
   return (
-    <aside className="home-glass-panel rounded-panel p-6 text-text-inverse sm:p-8">
+    <aside className="home-glass-panel rounded-panel p-4 text-text-inverse sm:p-8">
       <h2 className="text-heading-md font-semibold text-text-inverse">
         {title}
       </h2>

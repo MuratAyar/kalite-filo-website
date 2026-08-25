@@ -101,7 +101,7 @@ export function FleetGuideListing({ articles, categories, initialCategoryId }: F
       data-fleet-guide-page-size={ARTICLES_PER_PAGE} data-fleet-guide-record-count={approvedArticles.length}>
       <div aria-label="Filo Rehberi kategorileri" className="border-b border-border-subtle outline-none"
         data-fleet-guide-category-filter="true" ref={listingStartRef} tabIndex={-1}>
-        <ul className="flex flex-wrap gap-x-7 gap-y-2">
+        <ul className="mobile-category-track flex gap-x-7 gap-y-2 sm:flex-wrap">
           {controls.map((control) => {
             const selected = selectedCategoryId === control.id;
             return (

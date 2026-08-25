@@ -15,7 +15,7 @@ export type VehicleFinderFieldsProps = {
 };
 
 const selectClassName =
-  "min-h-12 w-full rounded-control border border-white/25 bg-white/10 px-4 text-body text-text-inverse outline-none backdrop-blur-sm focus-visible:border-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus disabled:cursor-not-allowed disabled:opacity-55";
+  "min-h-10 w-full rounded-control border border-white/25 bg-white/10 px-3 text-label text-text-inverse outline-none backdrop-blur-sm focus-visible:border-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus disabled:cursor-not-allowed disabled:opacity-55 sm:min-h-12 sm:px-4 sm:text-body";
 
 /** The smallest client island needed for the dependent native selects. */
 export function VehicleFinderFields({
@@ -31,7 +31,7 @@ export function VehicleFinderFields({
   return (
     <form
       action={actionHref}
-      className="mt-5 space-y-4"
+      className="mt-3 space-y-2 sm:mt-5 sm:space-y-4"
       method="get"
       onSubmit={(event) => {
         event.preventDefault();
@@ -51,7 +51,7 @@ export function VehicleFinderFields({
     >
       <div>
         <label
-          className="mb-2 block text-label font-semibold text-text-inverse"
+          className="mb-1 block text-label font-semibold text-text-inverse sm:mb-2"
           htmlFor="quick-vehicle-make"
         >
           Marka Seçiniz
@@ -83,7 +83,7 @@ export function VehicleFinderFields({
       </div>
       <div>
         <label
-          className="mb-2 block text-label font-semibold text-text-inverse"
+          className="mb-1 block text-label font-semibold text-text-inverse sm:mb-2"
           htmlFor="quick-vehicle-model"
         >
           Model Seçiniz

@@ -82,7 +82,7 @@ export function normalizeVehicleCatalogueFilters(
 
 export function buildVehicleCatalogueOptions(
   records: readonly VehicleCatalogueFilterRecord[],
-  selectedMake?: string,
+  filters?: VehicleCatalogueCandidateFilters,
 ): Readonly<VehicleCatalogueOptions>;
 
 export function filterVehicleCatalogue<

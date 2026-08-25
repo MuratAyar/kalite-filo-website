@@ -48,8 +48,8 @@ export function HomeHero({
         aria-hidden="true"
         className="absolute inset-x-0 bottom-0 -z-10 h-40 bg-gradient-to-t from-brand-navy/55 to-transparent"
       />
-      <PageContainer className="relative z-10 py-16 sm:py-20 lg:min-h-[38rem] lg:py-24 xl:min-h-[43.75rem]">
-        <div className="grid min-h-full items-center gap-10 lg:grid-cols-[minmax(0,1.55fr)_minmax(18rem,0.75fr)] xl:gap-16">
+      <PageContainer className="relative z-10 py-6 sm:py-20 lg:min-h-[38rem] lg:py-24 xl:min-h-[43.75rem]">
+        <div className="grid min-h-full items-center gap-5 sm:gap-10 lg:grid-cols-[minmax(0,1.55fr)_minmax(18rem,0.75fr)] xl:gap-16">
           <div className="max-w-4xl">
             <h1
               className="max-w-4xl text-display font-bold text-balance text-text-inverse"
@@ -57,12 +57,12 @@ export function HomeHero({
             >
               {content.title}
             </h1>
-            <p className="mt-6 max-w-2xl text-body-lg text-pretty text-text-inverse-muted sm:text-xl">
+            <p className="mt-3 max-w-2xl text-body-lg text-pretty text-text-inverse-muted sm:mt-6 sm:text-xl">
               {content.intro}
             </p>
-            <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:gap-4">
+            <div className="mt-4 grid grid-cols-2 gap-2 sm:mt-8 sm:flex sm:flex-row sm:flex-wrap sm:gap-4">
               <ActionLink
-                className="w-full sm:w-auto sm:min-w-44"
+                className="w-full px-2 sm:w-auto sm:min-w-44 sm:px-6"
                 href={quoteHref}
                 size="primary"
                 variant="primary"
@@ -71,7 +71,7 @@ export function HomeHero({
                 <span aria-hidden="true">→</span>
               </ActionLink>
               <ActionLink
-                className="w-full sm:w-auto sm:min-w-48"
+                className="w-full px-2 sm:w-auto sm:min-w-48 sm:px-6"
                 href={vehiclesHref}
                 size="primary"
                 variant="outline-inverse"

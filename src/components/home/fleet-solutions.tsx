@@ -35,9 +35,9 @@ export function FleetSolutions({
             headingId="fleet-solutions-title"
             title={content.title}
           />
-          <ul className="grid gap-6 md:grid-cols-2 xl:grid-cols-4">
+          <ul className="mobile-card-track grid gap-6 md:grid-cols-2 xl:grid-cols-4">
             {content.items.map((solution, index) => (
-              <li className="min-w-0" key={solution.id}>
+              <li className="mobile-one-half-card min-w-0" key={solution.id}>
                 <Link
                   className="group block h-full rounded-card no-underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
                   data-fleet-solution-card="true"

@@ -35,11 +35,11 @@ export function ServiceNetwork({
               width="1280"
             />
           </figure>
-          <ul className="grid gap-4 sm:grid-cols-3 lg:grid-cols-1">
+          <ul className="mobile-card-track grid gap-4 sm:grid-cols-3 lg:grid-cols-1">
             {content.items.map((item) => (
               <CardSurface
                 as="li"
-                className="flex min-w-0 flex-col justify-center"
+                className="mobile-half-card flex min-w-0 flex-col justify-center"
                 key={item.id}
               >
                 <span className="text-corporate-blue">
@@ -59,4 +59,3 @@ export function ServiceNetwork({
     </Section>
   );
 }
-

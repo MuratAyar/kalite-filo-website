@@ -104,8 +104,6 @@ export default async function FleetGuideArticlePage({ params }: ArticlePageProps
           { label: article.title },
         ]}
         intro={article.excerpt}
-        className="pt-12 pb-6 md:pt-16 md:pb-8"
-        spacing="none"
         title={article.title}
         variant="high-emphasis"
       >

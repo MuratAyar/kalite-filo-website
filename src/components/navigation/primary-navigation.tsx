@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useEffect, useRef } from "react";
 
 import { classNames } from "@/components/ui/class-names";
 import { CartCountBadge } from "./cart-count-badge";
@@ -53,6 +54,42 @@ export function PrimaryNavigation({
   orientation = "horizontal",
 }: PrimaryNavigationProps) {
   const currentRouteId = getCurrentPublicNavigationRouteId(usePathname());
+  const navigationRef = useRef<HTMLElement>(null);
+
+  useEffect(() => {
+    if (!documentNavigation) {
+      return;
+    }
+
+    function getDisclosure() {
+      return navigationRef.current?.closest("details") ?? null;
+    }
+
+    function closeWhenClickingOutside(event: PointerEvent) {
+      const disclosure = getDisclosure();
+
+      if (disclosure?.open && !disclosure.contains(event.target as Node)) {
+        disclosure.open = false;
+      }
+    }
+
+    function closeWithEscape(event: KeyboardEvent) {
+      const disclosure = getDisclosure();
+
+      if (event.key === "Escape" && disclosure?.open) {
+        disclosure.open = false;
+        disclosure.querySelector("summary")?.focus();
+      }
+    }
+
+    document.addEventListener("pointerdown", closeWhenClickingOutside, true);
+    document.addEventListener("keydown", closeWithEscape);
+
+    return () => {
+      document.removeEventListener("pointerdown", closeWhenClickingOutside, true);
+      document.removeEventListener("keydown", closeWithEscape);
+    };
+  }, [documentNavigation]);
 
   function renderLink(
     item: PublicNavigationItem,
@@ -89,7 +126,7 @@ export function PrimaryNavigation({
 
   return (
     <>
-      <nav aria-label={ariaLabel} className={className}>
+      <nav aria-label={ariaLabel} className={className} ref={navigationRef}>
         <ul className={listClasses[orientation]}>
           {items.map((item) => (
             <li className="min-w-0" key={item.id}>

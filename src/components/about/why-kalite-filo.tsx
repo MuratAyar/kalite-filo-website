@@ -24,9 +24,9 @@ export function WhyKaliteFilo({
           headingId="why-kalite-filo-title"
           title={content.title}
         />
-        <ul className="mt-10 grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
+        <ul className="mobile-card-track mt-10 grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
           {content.items.map((item) => (
-            <CardSurface as="li" className="min-w-0" key={item.id}>
+            <CardSurface as="li" className="mobile-half-card min-w-0" key={item.id}>
               <span className="flex size-12 items-center justify-center rounded-control bg-surface-muted text-corporate-blue">
                 <AboutIcon name={item.icon as AboutIconName} />
               </span>
@@ -43,4 +43,3 @@ export function WhyKaliteFilo({
     </Section>
   );
 }
-

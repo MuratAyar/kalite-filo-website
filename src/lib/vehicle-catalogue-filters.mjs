@@ -180,17 +180,42 @@ export function normalizeVehicleCatalogueFilters(records, candidate = {}) {
   });
 }
 
-export function buildVehicleCatalogueOptions(records, selectedMake) {
-  const makes = uniqueSortedLabels(records.map((record) => record.make));
-  const canonicalMake = getCanonicalValue(makes, selectedMake);
-  const models = canonicalMake
+function recordMatchesCatalogueFilters(record, filters, excludedKey) {
+  return (
+    (excludedKey === "category" ||
+      !filters.category ||
+      foldLabel(record.categoryLabel) === foldLabel(filters.category)) &&
+    (excludedKey === "make" ||
+      !filters.make ||
+      foldLabel(record.make) === foldLabel(filters.make)) &&
+    (excludedKey === "model" ||
+      !filters.model ||
+      foldLabel(record.model) === foldLabel(filters.model)) &&
+    (excludedKey === "fuel" ||
+      !filters.fuel ||
+      getVehicleFuelGroup(record.fuelLabel) === filters.fuel) &&
+    (excludedKey === "segment" ||
+      !filters.segment ||
+      foldLabel(record.segmentLabel) === foldLabel(filters.segment)) &&
+    (excludedKey === "transmission" ||
+      !filters.transmission ||
+      getVehicleTransmissionGroup(record.transmissionLabel) ===
+        filters.transmission)
+  );
+}
+
+export function buildVehicleCatalogueOptions(records, candidateFilters = {}) {
+  const filters = normalizeVehicleCatalogueFilters(records, candidateFilters);
+  const matchingRecords = (excludedKey) =>
+    records.filter((record) =>
+      recordMatchesCatalogueFilters(record, filters, excludedKey),
+    );
+  const makes = uniqueSortedLabels(
+    matchingRecords("make").map((record) => record.make),
+  );
+  const models = filters.make
     ? uniqueSortedLabels(
-        records
-          .filter(
-            (record) =>
-              foldLabel(record.make) === foldLabel(canonicalMake),
-          )
-          .map((record) => record.model),
+        matchingRecords("model").map((record) => record.model),
       )
     : Object.freeze([]);
 
@@ -199,15 +224,17 @@ export function buildVehicleCatalogueOptions(records, selectedMake) {
     models,
     fuels: Object.freeze(
       VEHICLE_FUEL_OPTIONS.filter((option) =>
-        records.some(
+        matchingRecords("fuel").some(
           (record) => getVehicleFuelGroup(record.fuelLabel) === option,
         ),
       ),
     ),
-    segments: uniqueSortedLabels(records.map((record) => record.segmentLabel)),
+    segments: uniqueSortedLabels(
+      matchingRecords("segment").map((record) => record.segmentLabel),
+    ),
     transmissions: Object.freeze(
       VEHICLE_TRANSMISSION_OPTIONS.filter((option) =>
-        records.some(
+        matchingRecords("transmission").some(
           (record) =>
             getVehicleTransmissionGroup(record.transmissionLabel) === option,
         ),
