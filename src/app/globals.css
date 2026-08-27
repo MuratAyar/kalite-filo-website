@@ -146,7 +146,8 @@
 
 html {
   min-height: 100%;
-  background: var(--kf-surface-page);
+  background: var(--kf-brand-navy);
+  overscroll-behavior-y: none;
   scroll-behavior: smooth;
   scroll-padding-block-start: 1rem;
 }
@@ -159,6 +160,7 @@ body {
   font-family: var(--kf-font-sans);
   font-size: 1rem;
   line-height: 1.5;
+  overscroll-behavior-y: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
 }

@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { ContactForm } from "@/components/contact";
 import { EditorialPreview, NewsletterPreview } from "@/components/home";
 import { PageContainer, PageHeader, Section } from "@/components/layout";
+import { ConsentAwareMap } from "@/components/privacy";
 import { getPublicStaticRoute } from "@/config/public-navigation";
 import { articleCategories, articles, homePageCopy } from "@/data";
 import { createStaticRouteMetadata } from "@/lib/route-metadata";
@@ -41,14 +42,7 @@ export default function ContactPage() {
             data-mobile-route-start="/iletisim/"
           >
             <div className="relative flex flex-col overflow-hidden rounded-panel border border-brand-navy/15 bg-surface-muted shadow-lg md:min-h-[34rem]">
-              <iframe
-                allowFullScreen
-                className="h-[22rem] w-full border-0 md:absolute md:inset-0 md:size-full"
-                loading="lazy"
-                referrerPolicy="no-referrer-when-downgrade"
-                src="https://www.google.com/maps?q=Petrol+%C4%B0%C5%9F+Mahallesi,+Mesire+Sokak,+No:8,+Daire:3,+Kartal,+%C4%B0stanbul&output=embed"
-                title="Kalite Filo adresi: Petrol İş Mahallesi, Mesire Sokak, No:8, Daire:3, Kartal, İstanbul"
-              />
+              <ConsentAwareMap />
               <aside className="relative w-full bg-brand-navy p-5 text-text-inverse md:absolute md:bottom-6 md:left-6 md:w-[28rem] md:rounded-card md:p-6 md:shadow-xl">
                 <h2 className="text-heading-md font-semibold">Genel Müdürlük</h2>
                 <dl className="mt-5 grid gap-3 md:grid-cols-2 md:gap-4">

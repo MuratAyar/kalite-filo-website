@@ -1,11 +1,58 @@
 import { PageContainer } from "@/components/layout/page-container";
 import { BrandLink } from "@/components/navigation/brand-link";
+import { FooterPreferenceMenus } from "@/components/layout/footer-preference-menus";
 import { PrimaryNavigation } from "@/components/navigation/primary-navigation";
+import { PrivacySettingsButton } from "@/components/privacy";
 import {
   FOOTER_NAVIGATION_ITEMS,
   type PublicNavigationItem,
 } from "@/config/public-navigation";
 import { contactInformation } from "@/data/site";
+
+type SocialPlatform =
+  | "facebook"
+  | "instagram"
+  | "threads"
+  | "tiktok"
+  | "x"
+  | "pinterest";
+
+const SOCIAL_LINKS: readonly {
+  href: string;
+  label: string;
+  platform: SocialPlatform;
+}[] = [
+  {
+    href: "https://www.facebook.com/share/1GXNob81Eb/?mibextid=wwXIfr",
+    label: "Kalite Filo Facebook hesabı",
+    platform: "facebook",
+  },
+  {
+    href: "https://www.instagram.com/kalitefilo?igsi=MTI4MWRpaXJ0ZXUxNg%3D%3D&utm_source=qr",
+    label: "Kalite Filo Instagram hesabı",
+    platform: "instagram",
+  },
+  {
+    href: "https://www.threads.com/@kalitefilo?igshid=NTc4MTIwNjQ2YQ==",
+    label: "Kalite Filo Threads hesabı",
+    platform: "threads",
+  },
+  {
+    href: "https://www.tiktok.com/@kalitefilo?_r=1&_t=ZS-99DAihq1RaO",
+    label: "Kalite Filo TikTok hesabı",
+    platform: "tiktok",
+  },
+  {
+    href: "https://x.com/kalitefilo?s=11",
+    label: "Kalite Filo X hesabı",
+    platform: "x",
+  },
+  {
+    href: "https://pin.it/7v4phb43o",
+    label: "Kalite Filo Pinterest hesabı",
+    platform: "pinterest",
+  },
+] as const;
 
 const QUICK_LINK_IDS = new Set([
   "vehicles",
@@ -96,6 +143,87 @@ function FooterContactGroup() {
           ))}
         </ul>
       </address>
+      <PrivacySettingsButton />
+    </div>
+  );
+}
+
+function SocialIcon({ platform }: { platform: SocialPlatform }) {
+  const commonProps = {
+    "aria-hidden": true,
+    className: "size-5",
+    fill: "none",
+    viewBox: "0 0 24 24",
+  } as const;
+
+  switch (platform) {
+    case "facebook":
+      return (
+        <svg {...commonProps} fill="currentColor">
+          <path d="M13.7 21v-8h2.7l.4-3.1h-3.1v-2c0-.9.3-1.5 1.6-1.5H17V3.6c-.8-.1-1.6-.2-2.4-.2-2.4 0-4.1 1.5-4.1 4.2v2.3H7.8V13h2.7v8h3.2Z" />
+        </svg>
+      );
+    case "instagram":
+      return (
+        <svg {...commonProps} stroke="currentColor" strokeWidth="1.8">
+          <rect height="17" rx="5" width="17" x="3.5" y="3.5" />
+          <circle cx="12" cy="12" r="3.7" />
+          <circle cx="17.6" cy="6.5" fill="currentColor" r="1" stroke="none" />
+        </svg>
+      );
+    case "threads":
+      return (
+        <svg {...commonProps} fill="currentColor">
+          <path d="M18.263 11.097c-.03-3.486-1.92-5.586-5.111-5.586-2.13 0-3.922.963-4.863 2.499l2.062 1.438c.535-.843 1.272-1.543 2.628-1.543 1.528 0 2.318.85 2.544 2.431a15 15 0 0 0-2.236-.173c-4.125 0-6.068 1.867-6.068 4.336s1.943 3.99 4.804 3.99c3.139 0 5.013-2.115 5.781-4.735.798.361 1.348 1.204 1.348 2.47 0 3.387-3.907 5.232-7.22 5.232-4.885 0-8.077-3.207-8.077-8.424 0-6.392 4.223-10.487 9.9-10.487 3.808 0 5.69 1.671 6.97 3.914l2.108-1.475C21.44 2.078 18.331 0 13.663 0 6.227 0 1.168 5.277 1.168 12.934c0 7 4.953 11.066 10.856 11.066 4.878 0 9.809-2.846 9.809-7.716 0-2.545-1.46-4.231-3.569-5.187m-6.33 4.855c-1.077 0-2.026-.512-2.026-1.453 0-1.483 1.822-1.934 3.606-1.934.678 0 1.34.045 1.927.173-.422 1.927-1.671 3.215-3.508 3.214Z" />
+        </svg>
+      );
+    case "tiktok":
+      return (
+        <svg {...commonProps} fill="currentColor">
+          <path d="M14.2 3h3a4.8 4.8 0 0 0 3.3 3.3v3a8 8 0 0 1-3.3-1v6.2a6 6 0 1 1-5.1-5.9v3.1a3 3 0 1 0 2.1 2.8V3Z" />
+        </svg>
+      );
+    case "x":
+      return (
+        <svg {...commonProps} fill="currentColor">
+          <path d="M4 4h4.3l4.5 6 5.1-6H20l-6.2 7.3L20.4 20h-4.3l-4.9-6.5L5.7 20H3.6l6.6-7.8L4 4Zm3.2 1.6 9.7 12.8h1.9L9.1 5.6H7.2Z" />
+        </svg>
+      );
+    case "pinterest":
+      return (
+        <svg {...commonProps} fill="currentColor">
+          <path d="M12.017 0C5.396 0 .029 5.367.029 11.987c0 5.079 3.158 9.417 7.618 11.162-.105-.949-.199-2.403.041-3.439.219-.937 1.406-5.957 1.406-5.957s-.359-.72-.359-1.781c0-1.663.967-2.911 2.168-2.911 1.024 0 1.518.769 1.518 1.688 0 1.029-.653 2.567-.992 3.992-.285 1.193.6 2.165 1.775 2.165 2.128 0 3.768-2.245 3.768-5.487 0-2.861-2.063-4.869-5.008-4.869-3.41 0-5.409 2.562-5.409 5.199 0 1.033.394 2.143.889 2.741.099.12.112.225.085.345-.09.375-.293 1.199-.334 1.363-.053.225-.172.271-.401.165-1.495-.69-2.433-2.878-2.433-4.646 0-3.776 2.748-7.252 7.92-7.252 4.158 0 7.392 2.967 7.392 6.923 0 4.135-2.607 7.462-6.233 7.462-1.214 0-2.354-.629-2.758-1.379l-.749 2.848c-.269 1.045-1.004 2.352-1.498 3.146 1.123.345 2.306.535 3.55.535 6.607 0 11.985-5.365 11.985-11.987C23.97 5.39 18.592.026 11.985.026L12.017 0Z" />
+        </svg>
+      );
+  }
+}
+
+function FooterBottomBar() {
+  return (
+    <div className="mt-10 border-t border-text-inverse/15 pt-4 md:mt-12 lg:mt-16">
+      <div className="grid min-w-0 items-center gap-3 md:grid-cols-[1fr_auto_1fr]">
+        <p className="text-center text-[0.6875rem] font-medium tracking-wide text-text-inverse-muted md:text-left">
+          KALİTEFİLO TÜM HAKLARI SAKLIDIR.
+        </p>
+
+        <ul aria-label="Sosyal medya hesapları" className="flex flex-wrap items-center justify-center gap-1.5">
+          {SOCIAL_LINKS.map((item) => (
+            <li key={item.platform}>
+              <a
+                aria-label={item.label}
+                className="inline-flex size-11 items-center justify-center rounded-full text-text-inverse-muted transition-colors hover:bg-text-inverse/10 hover:text-accent-orange focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-orange motion-reduce:transition-none"
+                href={item.href}
+                rel="noreferrer"
+                target="_blank"
+              >
+                <SocialIcon platform={item.platform} />
+              </a>
+            </li>
+          ))}
+        </ul>
+
+        <FooterPreferenceMenus />
+      </div>
     </div>
   );
 }
@@ -103,8 +231,8 @@ function FooterContactGroup() {
 /** Public footer limited to verified brand and approved route decisions. */
 export function SiteFooter() {
   return (
-    <footer className="mt-auto w-full border-t border-navy-secondary bg-brand-navy text-text-inverse">
-      <PageContainer className="py-14 md:py-16 lg:py-20">
+    <footer className="mt-auto w-full border-t border-navy-secondary bg-brand-navy pb-[env(safe-area-inset-bottom)] text-text-inverse">
+      <PageContainer className="pb-5 pt-14 md:pb-6 md:pt-16 lg:pb-7 lg:pt-20">
         <div className="grid min-w-0 grid-cols-3 gap-x-3 gap-y-8 sm:gap-x-8 lg:grid-cols-[minmax(15rem,1.35fr)_repeat(3,minmax(0,0.65fr))] lg:items-start lg:gap-x-12">
           <div className="col-span-3 min-w-0 lg:col-span-1">
             <BrandLink tone="inverse" />
@@ -122,6 +250,7 @@ export function SiteFooter() {
           />
           <FooterContactGroup />
         </div>
+        <FooterBottomBar />
       </PageContainer>
     </footer>
   );

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 
 import { MobilePageStart, SiteFooter, SiteHeader } from "@/components/layout";
 import { SkipLink } from "@/components/navigation/skip-link";
+import { PrivacyPreferencesDialog } from "@/components/privacy";
 import { getSiteEnvironment } from "@/config/site";
 import { validateFoundationContent } from "@/lib/content-validation";
 import { createDefaultRobotsMetadata } from "@/lib/route-metadata";
@@ -50,6 +51,7 @@ export default function RootLayout({
         <MobilePageStart />
         {children}
         <SiteFooter />
+        <PrivacyPreferencesDialog />
       </body>
     </html>
   );
