@@ -12,6 +12,7 @@ import { RelatedVehicleCarouselControls } from "./related-vehicle-carousel-contr
 import { VehicleOfferControls } from "./vehicle-offer-controls";
 
 export type VehicleDetailProps = {
+  locale?: "en" | "tr";
   relatedVehicles: readonly VehiclePortfolioRecord[];
   vehicle: VehiclePortfolioRecord;
 };
@@ -20,22 +21,23 @@ type TechnicalSpecification = readonly [label: string, value: string];
 
 function getAdditionalTechnicalSpecifications(
   featureLabels: readonly string[],
+  locale: "en" | "tr",
 ): readonly TechnicalSpecification[] {
   const specifications = new Map<string, string>();
 
   for (const feature of featureLabels) {
-    const luggageVolume = feature.match(/^(\d+(?:[.,]\d+)?)\s*L bagaj$/i);
+    const luggageVolume = feature.match(/^(\d+(?:[.,]\d+)?)\s*L (?:bagaj|luggage capacity)$/i);
     if (luggageVolume) {
-      specifications.set("Bagaj hacmi", `${luggageVolume[1]} L`);
+      specifications.set(locale === "en" ? "Luggage capacity" : "Bagaj hacmi", `${luggageVolume[1]} L`);
       continue;
     }
 
     const loadVolume = feature.match(/(\d+(?:[.,]\d+)?)\s*m³/i);
-    if (loadVolume && feature.toLocaleLowerCase("tr-TR").includes("yük")) {
-      const approximate = /^Yaklaşık\b/i.test(feature) ? "Yaklaşık " : "";
-      const upperLimit = /kadar/i.test(feature) ? "'e kadar" : "";
+    if (loadVolume && /yük|cargo|load volume/i.test(feature)) {
+      const approximate = /^(?:Yaklaşık|Approximately)\b/i.test(feature) ? (locale === "en" ? "Approximately " : "Yaklaşık ") : "";
+      const upperLimit = /kadar|up to/i.test(feature) ? (locale === "en" ? " maximum" : "'e kadar") : "";
       specifications.set(
-        "Yük hacmi",
+        locale === "en" ? "Cargo volume" : "Yük hacmi",
         `${approximate}${loadVolume[1]} m³${upperLimit}`,
       );
       continue;
@@ -43,13 +45,13 @@ function getAdditionalTechnicalSpecifications(
 
     const torque = feature.match(/(?:^|\/\s*)(\d+)\s*Nm$/i);
     if (torque) {
-      specifications.set("Tork", `${torque[1]} Nm`);
+      specifications.set(locale === "en" ? "Torque" : "Tork", `${torque[1]} Nm`);
       continue;
     }
 
     const wltpRange = feature.match(/^(\d+)\s*km WLTP$/i);
     if (wltpRange) {
-      specifications.set("WLTP menzili", `${wltpRange[1]} km`);
+      specifications.set(locale === "en" ? "WLTP range" : "WLTP menzili", `${wltpRange[1]} km`);
       continue;
     }
 
@@ -58,7 +60,7 @@ function getAdditionalTechnicalSpecifications(
     );
     if (batteryCapacity) {
       specifications.set(
-        "Batarya kapasitesi",
+        locale === "en" ? "Battery capacity" : "Batarya kapasitesi",
         `${batteryCapacity[1]} kWh`,
       );
       continue;
@@ -69,7 +71,7 @@ function getAdditionalTechnicalSpecifications(
     );
     if (energyConsumption) {
       specifications.set(
-        "Enerji tüketimi",
+        locale === "en" ? "Energy consumption" : "Enerji tüketimi",
         `${energyConsumption[1]} kWh/100 km`,
       );
       continue;
@@ -80,19 +82,19 @@ function getAdditionalTechnicalSpecifications(
     );
     if (fuelConsumption) {
       specifications.set(
-        "Yakıt tüketimi",
+        locale === "en" ? "Fuel consumption" : "Yakıt tüketimi",
         `${fuelConsumption[1]} L/100 km`,
       );
       continue;
     }
 
     if (/^RWD$/i.test(feature)) {
-      specifications.set("Çekiş sistemi", "Arkadan çekiş (RWD)");
+      specifications.set(locale === "en" ? "Drivetrain" : "Çekiş sistemi", locale === "en" ? "Rear-wheel drive (RWD)" : "Arkadan çekiş (RWD)");
       continue;
     }
 
-    if (/^Arkadan çekiş$/i.test(feature)) {
-      specifications.set("Çekiş sistemi", "Arkadan çekiş");
+    if (/^(?:Arkadan çekiş|Rear-wheel drive)$/i.test(feature)) {
+      specifications.set(locale === "en" ? "Drivetrain" : "Çekiş sistemi", locale === "en" ? "Rear-wheel drive" : "Arkadan çekiş");
     }
   }
 
@@ -101,19 +103,21 @@ function getAdditionalTechnicalSpecifications(
 
 function VehicleMedia({
   eager = false,
+  locale = "tr",
   vehicle,
 }: {
   eager?: boolean;
+  locale?: "en" | "tr";
   vehicle: VehiclePortfolioRecord;
 }) {
   if (!vehicle.coverImage) {
     return (
       <div
-        aria-label={`${vehicle.make} ${vehicle.model} için doğrulanmış araç görseli mevcut değil`}
+        aria-label={locale === "en" ? `No verified vehicle image is available for ${vehicle.make} ${vehicle.model}` : `${vehicle.make} ${vehicle.model} için doğrulanmış araç görseli mevcut değil`}
         className="flex aspect-[16/10] size-full items-center justify-center bg-[linear-gradient(145deg,#f2f4f6,#e6e8ec)] px-6 text-center text-body text-text-secondary"
         role="img"
       >
-        Doğrulanmış araç görseli mevcut değil
+        {locale === "en" ? "No verified vehicle image is available" : "Doğrulanmış araç görseli mevcut değil"}
       </div>
     );
   }
@@ -132,15 +136,15 @@ function VehicleMedia({
   );
 }
 
-function RelatedVehicleCard({ vehicle }: { vehicle: VehiclePortfolioRecord }) {
+function RelatedVehicleCard({ locale = "tr", vehicle }: { locale?: "en" | "tr"; vehicle: VehiclePortfolioRecord }) {
   const cardImage = getVehicleCardImage(vehicle);
 
   return (
     <article className="h-full min-w-0" data-related-vehicle={vehicle.slug}>
       <a
-        aria-label={`${vehicle.make} ${vehicle.model} araç detayını incele`}
+        aria-label={locale === "en" ? `View ${vehicle.make} ${vehicle.model} vehicle details` : `${vehicle.make} ${vehicle.model} araç detayını incele`}
         className="group flex h-full min-w-0 flex-col overflow-hidden rounded-card border border-border-subtle bg-surface-card text-inherit no-underline shadow-[0_0.5rem_1.5rem_rgb(24_33_54_/_0.06)] transition-[border-color,box-shadow] hover:border-corporate-blue hover:shadow-[0_0.75rem_1.75rem_rgb(24_33_54_/_0.12)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus motion-reduce:transition-none"
-        href={getVehicleDetailPath(vehicle.slug)}
+        href={locale === "en" ? `/en/vehicles/${vehicle.slug}/` : getVehicleDetailPath(vehicle.slug)}
       >
         <div className="overflow-hidden bg-surface-muted" data-vehicle-media="true">
           {/* Static card derivatives avoid delivering the larger detail image here. */}
@@ -165,12 +169,13 @@ function RelatedVehicleCard({ vehicle }: { vehicle: VehiclePortfolioRecord }) {
           <VehicleCardFacts
             className="mt-5 border-t border-border-subtle pt-4"
             fuelLabel={vehicle.fuelLabel}
+            locale={locale}
             transmissionLabel={vehicle.transmissionLabel}
           />
           <div className="mt-auto border-t border-border-subtle pt-5">
-            <VehicleListPrice listPrice={vehicle.listPrice} />
+            <VehicleListPrice listPrice={vehicle.listPrice} locale={locale} />
             <span className="mt-4 inline-flex min-h-11 w-full items-center justify-center rounded-control bg-accent-orange px-4 text-label font-semibold text-brand-navy transition-colors group-hover:bg-orange-dark group-focus-visible:bg-orange-dark motion-reduce:transition-none">
-              Aracı İncele
+              {locale === "en" ? "View Vehicle" : "Aracı İncele"}
             </span>
           </div>
         </div>
@@ -180,18 +185,19 @@ function RelatedVehicleCard({ vehicle }: { vehicle: VehiclePortfolioRecord }) {
 }
 
 export function VehicleDetail({
+  locale = "tr",
   relatedVehicles,
   vehicle,
 }: VehicleDetailProps) {
   const specifications = [
-    ["Model yılı", vehicle.modelYearLabel],
-    ["Kategori", vehicle.categoryLabel],
-    ["Segment ve gövde", vehicle.segmentLabel],
-    ["Yakıt tipi", vehicle.fuelLabel],
-    ["Vites tipi", vehicle.transmissionLabel],
-    ...(vehicle.powerHp ? [["Motor gücü", `${vehicle.powerHp} HP`]] : []),
-    ...(vehicle.seats ? [["Koltuk sayısı", `${vehicle.seats}`]] : []),
-    ...getAdditionalTechnicalSpecifications(vehicle.featureLabels),
+    [locale === "en" ? "Model year" : "Model yılı", vehicle.modelYearLabel],
+    [locale === "en" ? "Category" : "Kategori", vehicle.categoryLabel],
+    [locale === "en" ? "Segment and body" : "Segment ve gövde", vehicle.segmentLabel],
+    [locale === "en" ? "Fuel type" : "Yakıt tipi", vehicle.fuelLabel],
+    [locale === "en" ? "Transmission" : "Vites tipi", vehicle.transmissionLabel],
+    ...(vehicle.powerHp ? [[locale === "en" ? "Engine power" : "Motor gücü", `${vehicle.powerHp} HP`]] : []),
+    ...(vehicle.seats ? [[locale === "en" ? "Number of seats" : "Koltuk sayısı", `${vehicle.seats}`]] : []),
+    ...getAdditionalTechnicalSpecifications(vehicle.featureLabels, locale),
   ] as const;
 
   if (relatedVehicles.length < 4) {
@@ -201,7 +207,7 @@ export function VehicleDetail({
   return (
     <>
       <Section
-        aria-label={`${vehicle.make} ${vehicle.model} araç bilgileri`}
+        aria-label={locale === "en" ? `${vehicle.make} ${vehicle.model} vehicle information` : `${vehicle.make} ${vehicle.model} araç bilgileri`}
         className="pb-10 pt-0 md:pb-12"
         data-vehicle-detail={vehicle.slug}
         spacing="none"
@@ -212,10 +218,10 @@ export function VehicleDetail({
             <div className="min-w-0 space-y-6">
               <figure className="overflow-hidden rounded-panel border border-border-subtle bg-surface-card p-3 shadow-[0_0.5rem_1.5rem_rgb(24_33_54_/_0.06)] sm:p-5">
                 <div className="overflow-hidden rounded-card bg-surface-muted">
-                  <VehicleMedia eager vehicle={vehicle} />
+                  <VehicleMedia eager locale={locale} vehicle={vehicle} />
                 </div>
                 <figcaption className="px-1 pt-4 text-label text-text-secondary">
-                  Araç görseli model ailesini temsil edebilir; donanım ve renk farklılık gösterebilir.
+                  {locale === "en" ? "The vehicle image may represent the model family; equipment and colour may differ." : "Araç görseli model ailesini temsil edebilir; donanım ve renk farklılık gösterebilir."}
                 </figcaption>
               </figure>
 
@@ -224,7 +230,7 @@ export function VehicleDetail({
                 data-vehicle-technical-section="true"
               >
                 <h2 className="text-heading-md font-semibold text-text-primary">
-                  Teknik Özellikler
+                  {locale === "en" ? "Technical Specifications" : "Teknik Özellikler"}
                 </h2>
                 <dl className="mt-6 grid gap-x-8 sm:grid-cols-2">
                   {specifications.map(([label, value]) => (
@@ -255,6 +261,7 @@ export function VehicleDetail({
               <VehicleCardFacts
                 className="mt-6 border-y border-border-subtle py-5"
                 fuelLabel={vehicle.fuelLabel}
+                locale={locale}
                 transmissionLabel={vehicle.transmissionLabel}
               />
 
@@ -262,6 +269,7 @@ export function VehicleDetail({
                 fuelLabel={vehicle.fuelLabel}
                 image={getVehicleCardImage(vehicle)}
                 listPrice={vehicle.listPrice}
+                locale={locale}
                 make={vehicle.make}
                 model={vehicle.model}
                 slug={vehicle.slug}
@@ -286,9 +294,9 @@ export function VehicleDetail({
               className="text-heading-lg font-semibold text-text-primary"
               id="related-vehicles-title"
             >
-              İlginizi Çekebilecek Diğer Araçlar
+              {locale === "en" ? "Other Vehicles You May Be Interested In" : "İlginizi Çekebilecek Diğer Araçlar"}
             </h2>
-            <RelatedVehicleCarouselControls trackId="related-vehicles-track" />
+            <RelatedVehicleCarouselControls locale={locale} trackId="related-vehicles-track" />
           </div>
 
           <ul
@@ -301,7 +309,7 @@ export function VehicleDetail({
                 className="w-[86%] shrink-0 snap-start sm:w-[calc((100%-1.25rem)/2)] xl:w-[calc((100%-3.75rem)/4)]"
                 key={relatedVehicle.id}
               >
-                <RelatedVehicleCard vehicle={relatedVehicle} />
+                <RelatedVehicleCard locale={locale} vehicle={relatedVehicle} />
               </li>
             ))}
           </ul>

@@ -32,6 +32,7 @@ export function SiteHeader({ locale = "tr" }: { locale?: "en" | "tr" }) {
               ariaLabel={locale === "en" ? "Main menu" : "Ana menü"}
               className="justify-self-center"
               items={items}
+              locale={locale}
             />
           </div>
           <MobileNavigation locale={locale} />

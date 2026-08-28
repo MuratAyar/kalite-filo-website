@@ -11,10 +11,20 @@ export function NewsletterSignupDemo({ locale = "tr" }: { locale?: "en" | "tr" }
   const dialogRef = useRef<HTMLDialogElement>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
+  const [consentError, setConsentError] = useState(false);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const form = event.currentTarget;
+    const consentInput = form.elements.namedItem("consent");
+
+    if (!(consentInput instanceof HTMLInputElement) || !consentInput.checked) {
+      setConsentError(true);
+      if (consentInput instanceof HTMLInputElement) consentInput.focus();
+      return;
+    }
+
+    setConsentError(false);
 
     if (!form.checkValidity()) {
       form.reportValidity();
@@ -58,6 +68,7 @@ export function NewsletterSignupDemo({ locale = "tr" }: { locale?: "en" | "tr" }
       <form
         aria-describedby="newsletter-preview-status newsletter-submit-status"
         className="grid min-w-0 gap-3"
+        noValidate
         onSubmit={handleSubmit}
       >
         <input name="consent_text_version" type="hidden" value={CONSENT_TEXT_VERSION} />
@@ -96,18 +107,37 @@ export function NewsletterSignupDemo({ locale = "tr" }: { locale?: "en" | "tr" }
           </Button>
         </div>
 
-        <label className="flex items-start gap-2 text-xs leading-5 text-text-inverse-muted">
-          <input className="mt-1 size-4 shrink-0 accent-accent-orange" name="consent" required type="checkbox" value="onaylandi" />
-          <span>
-            <Link
-              className="font-semibold text-text-inverse underline decoration-current/50 underline-offset-2 hover:text-accent-orange"
-              href={locale === "en" ? "/en/privacy-notice/" : "/aydinlatma-metni/"}
-            >
-              {locale === "en" ? "Privacy Notice" : "Aydınlatma metnini"}
-            </Link>{" "}
-            {locale === "en" ? " and consent to receiving Kalite Filo newsletters at my email address." : " okudum ve Kalite Filo e-bültenlerinin e-posta adresime gönderilmesini kabul ediyorum."}
-          </span>
-        </label>
+        <div className="grid gap-1.5">
+          <label className={`flex items-start gap-2 text-xs leading-5 ${consentError ? "text-error" : "text-text-inverse-muted"}`}>
+            <input
+              aria-describedby={consentError ? "newsletter-consent-error" : undefined}
+              aria-invalid={consentError}
+              className="mt-1 size-4 shrink-0 accent-accent-orange"
+              name="consent"
+              onChange={(event) => {
+                if (event.currentTarget.checked) setConsentError(false);
+              }}
+              required
+              type="checkbox"
+              value="onaylandi"
+            />
+            <span>
+              <Link
+                className={`font-semibold underline decoration-current/50 underline-offset-2 hover:text-accent-orange ${consentError ? "text-error" : "text-text-inverse"}`}
+                href={locale === "en" ? "/en/privacy-notice/" : "/aydinlatma-metni/"}
+              >
+                {locale === "en" ? "Privacy Notice" : "Aydınlatma metnini"}
+              </Link>{" "}
+              {locale === "en" ? " and consent to receiving Kalite Filo newsletters at my email address." : " okudum ve Kalite Filo e-bültenlerinin e-posta adresime gönderilmesini kabul ediyorum."}
+            </span>
+          </label>
+          {consentError ? (
+            <p className="flex items-center gap-1.5 text-xs font-semibold text-error" id="newsletter-consent-error" role="alert">
+              <span aria-hidden="true" className="flex size-4 shrink-0 items-center justify-center rounded-full border border-current text-[0.65rem] leading-none">!</span>
+              <span>{locale === "en" ? "Please accept the privacy notice and newsletter consent to continue." : "Devam etmek için aydınlatma metnini ve e-bülten onayını kabul etmelisiniz."}</span>
+            </p>
+          ) : null}
+        </div>
 
         <p aria-live="polite" className={errorMessage ? "text-xs text-error" : "sr-only"} id="newsletter-submit-status">
           {errorMessage}

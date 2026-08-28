@@ -37,7 +37,7 @@ export function MobileNavigation({
           <path className="group-open:hidden" d="M4 7h16M4 12h16M4 17h16" stroke="currentColor" strokeLinecap="round" strokeWidth="2" />
           <path className="hidden group-open:block" d="m6 6 12 12M18 6 6 18" stroke="currentColor" strokeLinecap="round" strokeWidth="2" />
         </svg>
-        <CartCountBadge variant="mobile-menu" />
+        <CartCountBadge locale={locale} variant="mobile-menu" />
       </summary>
       <div className="absolute inset-x-0 top-full z-50 grid gap-3 border-t border-border-subtle bg-surface-card px-gutter py-4 shadow-[0_1rem_2rem_rgb(24_33_54_/_0.12)]">
         <PrimaryNavigation
@@ -51,6 +51,7 @@ export function MobileNavigation({
           ariaLabel={locale === "en" ? "Mobile main menu" : "Mobil ana menü"}
           documentNavigation
           items={items}
+          locale={locale}
           orientation="vertical"
         />
       </div>

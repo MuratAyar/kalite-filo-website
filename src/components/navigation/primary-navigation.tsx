@@ -39,6 +39,7 @@ export type PrimaryNavigationProps = {
   className?: string;
   documentNavigation?: boolean;
   items: readonly PublicNavigationItem[];
+  locale?: "en" | "tr";
   orientation?: keyof typeof listClasses;
 };
 
@@ -51,6 +52,7 @@ export function PrimaryNavigation({
   className,
   documentNavigation = false,
   items,
+  locale = "tr",
   orientation = "horizontal",
 }: PrimaryNavigationProps) {
   const currentRouteId = getCurrentPublicNavigationRouteId(usePathname());
@@ -159,7 +161,7 @@ export function PrimaryNavigation({
             actionCurrentClassName ?? "",
             true,
           )}
-          <CartCountBadge />
+          <CartCountBadge locale={locale} />
         </div>
       ) : null}
     </>

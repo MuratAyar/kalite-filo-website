@@ -3,6 +3,7 @@
 import { Button } from "@/components/ui";
 
 export type RelatedVehicleCarouselControlsProps = {
+  locale?: "en" | "tr";
   trackId: string;
 };
 
@@ -30,6 +31,7 @@ function ArrowIcon({ direction }: { direction: "left" | "right" }) {
 }
 
 export function RelatedVehicleCarouselControls({
+  locale = "tr",
   trackId,
 }: RelatedVehicleCarouselControlsProps) {
   function scrollTrack(direction: -1 | 1) {
@@ -57,7 +59,7 @@ export function RelatedVehicleCarouselControls({
     <div className="flex shrink-0 items-center gap-2" data-related-vehicles-controls="true">
       <Button
         aria-controls={trackId}
-        aria-label="Önceki araçları göster"
+        aria-label={locale === "en" ? "Show previous vehicles" : "Önceki araçları göster"}
         className="group transition-[background-color,border-color,color,box-shadow] duration-200 hover:!border-corporate-blue hover:!bg-corporate-blue hover:!text-text-inverse hover:shadow-[0_0.5rem_1rem_rgb(1_68_153_/_0.2)] motion-reduce:transition-none"
         data-related-vehicles-control="previous"
         onClick={() => scrollTrack(-1)}
@@ -69,7 +71,7 @@ export function RelatedVehicleCarouselControls({
       </Button>
       <Button
         aria-controls={trackId}
-        aria-label="Sonraki araçları göster"
+        aria-label={locale === "en" ? "Show next vehicles" : "Sonraki araçları göster"}
         className="group transition-[background-color,border-color,color,box-shadow] duration-200 hover:!border-corporate-blue hover:!bg-corporate-blue hover:!text-text-inverse hover:shadow-[0_0.5rem_1rem_rgb(1_68_153_/_0.2)] motion-reduce:transition-none"
         data-related-vehicles-control="next"
         onClick={() => scrollTrack(1)}

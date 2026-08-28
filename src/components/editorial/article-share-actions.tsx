@@ -6,10 +6,11 @@ import { Icon } from "@/components/ui/icon";
 
 type ArticleShareActionsProps = {
   canonicalUrl: string;
+  locale?: "en" | "tr";
   title: string;
 };
 
-export function ArticleShareActions({ canonicalUrl, title }: ArticleShareActionsProps) {
+export function ArticleShareActions({ canonicalUrl, locale = "tr", title }: ArticleShareActionsProps) {
   const dialogRef = useRef<HTMLDialogElement>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [shareUrl, setShareUrl] = useState(canonicalUrl);
@@ -45,9 +46,9 @@ export function ArticleShareActions({ canonicalUrl, title }: ArticleShareActions
   async function copyArticleLink() {
     try {
       await writeToClipboard(getCurrentPageUrl());
-      setStatus("Makale bağlantısı kopyalandı.");
+      setStatus(locale === "en" ? "Article link copied." : "Makale bağlantısı kopyalandı.");
     } catch {
-      setStatus("Bağlantı kopyalanamadı.");
+      setStatus(locale === "en" ? "The link could not be copied." : "Bağlantı kopyalanamadı.");
     }
   }
 
@@ -82,7 +83,7 @@ export function ArticleShareActions({ canonicalUrl, title }: ArticleShareActions
   return (
     <div data-article-share-actions="true">
       <div className="flex flex-wrap gap-2.5">
-        <button aria-label="Makaleyi paylaş" className={actionClassName} onClick={openShareDialog} type="button">
+        <button aria-label={locale === "en" ? "Share article" : "Makaleyi paylaş"} className={actionClassName} onClick={openShareDialog} type="button">
           <Icon size="sm">
             <circle cx="18" cy="5" r="2.25" />
             <circle cx="6" cy="12" r="2.25" />
@@ -90,13 +91,13 @@ export function ArticleShareActions({ canonicalUrl, title }: ArticleShareActions
             <path d="m8 11 7.8-4.6M8 13l7.8 4.6" />
           </Icon>
         </button>
-        <a aria-label="Makaleyi e-posta ile paylaş" className={actionClassName} href={emailHref}>
+        <a aria-label={locale === "en" ? "Share article by email" : "Makaleyi e-posta ile paylaş"} className={actionClassName} href={emailHref}>
           <Icon size="sm">
             <rect height="14" rx="2" width="18" x="3" y="5" />
             <path d="m4 7 8 6 8-6" />
           </Icon>
         </a>
-        <button aria-label="Makale bağlantısını kopyala" className={actionClassName} onClick={copyArticleLink} type="button">
+        <button aria-label={locale === "en" ? "Copy article link" : "Makale bağlantısını kopyala"} className={actionClassName} onClick={copyArticleLink} type="button">
           <Icon size="sm">
             <path d="M10 13a5 5 0 0 0 7.1.1l2-2a5 5 0 0 0-7.1-7.1l-1.1 1.1" />
             <path d="M14 11a5 5 0 0 0-7.1-.1l-2 2A5 5 0 0 0 12 20l1.1-1.1" />
@@ -120,10 +121,10 @@ export function ArticleShareActions({ canonicalUrl, title }: ArticleShareActions
         <div className="overflow-hidden rounded-panel">
           <div className="flex items-center justify-between gap-4 bg-brand-navy px-5 py-4 text-text-inverse">
             <h3 className="text-body-lg font-semibold" id="article-share-dialog-title">
-              Makaleyi paylaş
+              {locale === "en" ? "Share article" : "Makaleyi paylaş"}
             </h3>
             <button
-              aria-label="Paylaşım penceresini kapat"
+              aria-label={locale === "en" ? "Close sharing dialog" : "Paylaşım penceresini kapat"}
               className="inline-flex size-11 shrink-0 items-center justify-center rounded-pill border border-text-inverse/30 text-text-inverse transition-colors hover:border-accent-orange hover:text-accent-orange"
               onClick={closeShareDialog}
               type="button"
@@ -141,7 +142,7 @@ export function ArticleShareActions({ canonicalUrl, title }: ArticleShareActions
               onClick={copyArticleLink}
               type="button"
             >
-              Bağlantıyı kopyala
+              {locale === "en" ? "Copy link" : "Bağlantıyı kopyala"}
               <Icon size="sm">
                 <rect height="14" rx="2" width="11" x="9" y="7" />
                 <path d="M15 7V5a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v11a2 2 0 0 0 2 2h3" />
@@ -154,7 +155,7 @@ export function ArticleShareActions({ canonicalUrl, title }: ArticleShareActions
               rel="noopener noreferrer"
               target="_blank"
             >
-              X&apos;te paylaş
+              {locale === "en" ? "Share on X" : "X'te paylaş"}
               <span aria-hidden="true" className="text-heading-md leading-none">X</span>
             </a>
             <a
@@ -165,7 +166,7 @@ export function ArticleShareActions({ canonicalUrl, title }: ArticleShareActions
               rel="noopener noreferrer"
               target="_blank"
             >
-              WhatsApp&apos;ta paylaş
+              {locale === "en" ? "Share on WhatsApp" : "WhatsApp'ta paylaş"}
               <Icon size="sm">
                 <path d="M20 11.5a8 8 0 0 1-11.8 7L4 19.5l1.1-4A8 8 0 1 1 20 11.5Z" />
                 <path d="M9 8.5c.5 2.6 2 4.1 4.7 4.8" />
