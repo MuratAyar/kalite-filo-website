@@ -4,12 +4,14 @@ import { classNames } from "@/components/ui/class-names";
 
 export type BrandLinkProps = {
   className?: string;
+  homeHref?: "/" | "/en/";
   tone?: "default" | "inverse";
 };
 
 /** Approved image wordmark on light surfaces; accessible text on navy. */
 export function BrandLink({
   className,
+  homeHref = "/",
   tone = "default",
 }: BrandLinkProps) {
   const isInverse = tone === "inverse";
@@ -24,7 +26,7 @@ export function BrandLink({
           : "text-corporate-blue focus-visible:outline-focus",
         className,
       )}
-      href="/"
+      href={homeHref}
     >
       {isInverse ? (
         <span className="text-heading-md font-bold tracking-tight">

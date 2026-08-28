@@ -8,7 +8,7 @@ Vehicle-card presentation reconciliation: 2026-08-14
 
 ## Outcome
 
-The Phase 1 Home page follows the supplied updated Stitch composition with a photographic hero, quick vehicle finder, four verified-portfolio vehicle cards, commercial and fleet media splits, four fleet-solution cards, photographic quote banner, four supplied Filo Rehberi cards, and an interactive no-storage newsletter demonstration before the shared footer.
+The Phase 1 Home page follows the supplied updated Stitch composition with a photographic hero, quick vehicle finder, four verified-portfolio vehicle cards, commercial and fleet media splits, four fleet-solution cards, photographic quote banner, four supplied Filo Rehberi cards, and a consent-aware newsletter registration before the shared footer.
 
 Home remains deliberately unpublished: route status `foundation`, `indexable: false`, and `sitemap: false`. The production export therefore keeps canonical `https://kalitefilo.com.tr/` and page-level `noindex, nofollow`; the sitemap remains empty.
 
@@ -38,7 +38,7 @@ Current content authority is explicit:
 - Fleet Solution card actions retain real approved destinations and explicitly suppress the ordinary inline-link underline while preserving focus indication and an arrow cue.
 - The shared `ConversionBanner` uses a local operations image with a right-side reveal and right-to-left navy fade.
 - Editorial Preview renders four supplied article records that have verified local covers in the reference card rhythm, using their supplied categories, titles, dates, reading times, alt text, and local WebP images. The complete 18-record corpus and category-aware static detail routes are available under `/filo-rehberi/`.
-- The newsletter strip demonstrates the requested interaction without pretending to subscribe anyone. Native email validation runs locally; submission is prevented, no request or browser storage occurs, the input is cleared, and an accessible native dialog explicitly confirms that the address was neither sent nor saved. The input’s former blue selected-state frame is replaced by a visible orange focus treatment; keyboard focus is not removed. A real provider, endpoint, consent lifecycle, and storage remain unresolved.
+- The newsletter strip validates email and explicit newsletter consent, then posts to the approved static-host PHP boundary. Records are written to a locked CSV store outside the public document root so release extraction does not overwrite them. New registrations remain `pending`; confirmation, unsubscribe and IYS synchronization are deliberately not represented as completed until those later workflows exist. The input’s former blue selected-state frame is replaced by a visible orange focus treatment; keyboard focus is not removed.
 - The global footer retains the responsive brand / Hızlı Linkler / Kurumsal / Bize Ulaşın structure. It now shows the owner-verified phone `05317158068` and email `info@kalitefilo.com.tr`, uses the compact footer label `SSS`, and links to three approved noindex skeletons: KVKK ve Güvenlik, Çerez Politikası, and Kullanım Koşulları. No address, legal body text, legal company title, or copyright claim was invented.
 - Header navigation is geometrically centered from 1024px upward and follows the requested order: Hakkımızda, Araç Listesi, Sıkça Sorulan Sorular, Filo Rehberi. Mobile uses the same order. Customer login remains absent because it is categorically excluded from Phase 1 by the permanent project guardrails.
 - The approved blue/orange image logo remains in the light header. The footer retains the accessible inverse text treatment because the blue part of the supplied logo lacks contrast on navy.
@@ -67,7 +67,7 @@ Authored Client Components: **4**.
 1. `src/components/navigation/primary-navigation.tsx` — existing route-aware navigation.
 2. `src/components/vehicles/vehicle-query-state.tsx` — query-only result island required because a Server Component `searchParams` prop would introduce request-time rendering and violate static export.
 3. `src/components/home/vehicle-finder-fields.tsx` — dependent make/model selection only.
-4. `src/components/home/newsletter-signup-demo.tsx` — no-storage email validation and native dialog only.
+4. `src/components/home/newsletter-signup-demo.tsx` — newsletter email/consent validation, PHP submission and accessible result dialog.
 
 Every Home section, `RootLayout`, `SiteHeader`, `SiteFooter`, native mobile disclosure, `/arac-listesi/` page, and all card/media compositions remain Server Components. No dependency was added.
 
@@ -86,7 +86,7 @@ The final production export was loaded in real headless Edge at 320, 390, 768, 1
 - the verified phone/email, compact `SSS` label, and three legal links were present in the footer;
 - the newsletter input had no blue input outline; its surrounding focus treatment computed to orange `rgb(255, 179, 67)`;
 - the centered desktop navigation appeared in the exact requested order from 1024px upward;
-- the newsletter demo opened its native confirmation dialog, cleared the field, and added no network resource; and
+- the newsletter interaction opened its native confirmation dialog after a successful endpoint response; and
 - the browser resource list contained no external origin.
 
 The earlier query smoke checkpoint loaded `/araclar/?marka=Ford&model=Transit` against the former query-only skeleton. Current catalogue filtering accepts an exact model beneath its selected make; its final integrated query and responsive smoke results belong in `docs/vehicles-status.md`. The local Home hero request returned HTTP 200 at this checkpoint.
@@ -193,7 +193,7 @@ That checkpoint’s static route report was:
 - article author/reviewer decisions, final editorial/legal review, and publication approval; 18 supplied Markdown bodies now have category-aware static detail pages but remain noindex;
 - explicit production approval and provenance record for each newly generated Home image;
 - verified company identity, address, remaining contact channels, legal body texts, copyright wording, claims, and service levels; the supplied phone/email and three legal route names alone do not resolve these items;
-- approved newsletter provider, legal basis/consent, retention, double opt-in, unsubscribe, and result behavior before controls can be enabled;
+- approved retention period, double opt-in/confirmation, unsubscribe and IYS synchronization workflows before a pending registration may be treated as confirmed or IYS-approved;
 - licensed local Plus Jakarta Sans files if that design typeface remains required;
 - final visual/content review, screen-reader and representative-browser QA; and
 - Apache/cPanel staging deployment verification.

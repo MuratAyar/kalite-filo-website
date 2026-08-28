@@ -40,17 +40,19 @@ function FooterFlag({ language }: { language: Language }) {
   );
 }
 
-export function FooterPreferenceMenus() {
+export function FooterPreferenceMenus({ locale = "tr" }: { locale?: "en" | "tr" }) {
   const menusRef = useRef<HTMLDivElement>(null);
-  const [language, setLanguage] = useState<Language>("TR");
+  const transitionTimerRef = useRef<number | null>(null);
+  const [language, setLanguage] = useState<Language>(locale === "en" ? "EN" : "TR");
   const [currency, setCurrency] = useState<Currency>("TRY");
+  const [isLoading, setIsLoading] = useState(false);
   const selectedCurrency = CURRENCIES.find((item) => item.code === currency) ?? CURRENCIES[3];
   const summaryClasses =
     "flex min-h-11 cursor-pointer list-none items-center justify-center gap-2 rounded-pill border border-text-inverse/20 bg-navy-secondary px-3 text-label font-semibold text-text-inverse transition-colors marker:hidden hover:border-accent-orange hover:text-accent-orange focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-orange motion-reduce:transition-none";
   const menuClasses =
     "absolute bottom-full right-0 z-20 mb-2 min-w-32 overflow-hidden rounded-card border border-border-subtle bg-surface-card py-1 text-text-primary shadow-lg";
   const optionClasses =
-    "flex min-h-11 w-full items-center gap-2 px-3 text-left text-label font-medium transition-colors hover:bg-surface-muted focus-visible:outline-2 focus-visible:outline-offset-[-0.2rem] focus-visible:outline-corporate-blue";
+    "flex min-h-11 w-full items-center gap-2 border-l-4 border-transparent px-3 text-left text-label font-medium transition-[background-color,border-color,color,transform,box-shadow] duration-150 hover:translate-x-0.5 hover:border-corporate-blue hover:bg-corporate-blue hover:text-white hover:shadow-[inset_0_0_0_1px_rgb(255_255_255_/_0.12)] focus-visible:outline-2 focus-visible:outline-offset-[-0.2rem] focus-visible:outline-corporate-blue motion-reduce:transform-none motion-reduce:transition-none";
 
   useEffect(() => {
     const closeMenus = (event: PointerEvent) => {
@@ -64,8 +66,21 @@ export function FooterPreferenceMenus() {
     };
 
     document.addEventListener("pointerdown", closeMenus);
-    return () => document.removeEventListener("pointerdown", closeMenus);
+    return () => {
+      document.removeEventListener("pointerdown", closeMenus);
+      if (transitionTimerRef.current !== null) window.clearTimeout(transitionTimerRef.current);
+    };
   }, []);
+
+  const closeAllMenus = () => {
+    menusRef.current?.querySelectorAll("details[open]").forEach((menu) => menu.removeAttribute("open"));
+  };
+
+  const startLoading = (complete: () => void, delay: number) => {
+    closeAllMenus();
+    setIsLoading(true);
+    transitionTimerRef.current = window.setTimeout(complete, delay);
+  };
 
   const closeOtherMenu = (currentMenu: HTMLDetailsElement) => {
     if (!currentMenu.open) {
@@ -81,21 +96,37 @@ export function FooterPreferenceMenus() {
 
   return (
     <div className="flex items-center justify-center gap-2 md:justify-end" ref={menusRef}>
-      <details
-        className="group relative"
-        onToggle={(event) => closeOtherMenu(event.currentTarget)}
-      >
-        <summary aria-label="Dil seçeneklerini göster" className={summaryClasses}>
+      {isLoading ? (
+        <div
+          aria-live="polite"
+          className="inline-flex min-h-11 min-w-40 items-center justify-center gap-2 rounded-pill border border-accent-orange bg-navy-secondary px-4 text-label font-semibold text-accent-orange"
+          role="status"
+        >
+          <span aria-hidden="true" className="size-4 animate-spin rounded-full border-2 border-current border-r-transparent motion-reduce:animate-none" />
+          <span>{locale === "en" ? "Loading…" : "Yükleniyor…"}</span>
+        </div>
+      ) : (
+        <>
+          <details
+            className="group relative"
+            onToggle={(event) => closeOtherMenu(event.currentTarget)}
+          >
+        <summary aria-label={locale === "en" ? "Show language options" : "Dil seçeneklerini göster"} className={summaryClasses}>
           <FooterFlag language={language} />
           <span>{language}</span>
         </summary>
-        <div aria-label="Dil seçenekleri" className={menuClasses} role="menu">
+        <div aria-label={locale === "en" ? "Language options" : "Dil seçenekleri"} className={menuClasses} role="menu">
           {(["TR", "EN"] as const).map((option) => (
             <button
               aria-checked={language === option}
               className={`${optionClasses} ${language === option ? "bg-surface-muted font-semibold" : ""}`}
               key={option}
               onClick={(event) => {
+                if (option !== language) {
+                  event.currentTarget.closest("details")?.removeAttribute("open");
+                  startLoading(() => window.location.assign(option === "EN" ? "/en/" : "/"), 250);
+                  return;
+                }
                 setLanguage(option);
                 event.currentTarget.closest("details")?.removeAttribute("open");
               }}
@@ -107,25 +138,31 @@ export function FooterPreferenceMenus() {
             </button>
           ))}
         </div>
-      </details>
+          </details>
 
-      <details
-        className="group relative"
-        onToggle={(event) => closeOtherMenu(event.currentTarget)}
-      >
-        <summary aria-label="Para birimi seçeneklerini göster" className={summaryClasses}>
+          <details
+            className="group relative"
+            onToggle={(event) => closeOtherMenu(event.currentTarget)}
+          >
+        <summary aria-label={locale === "en" ? "Show currency options" : "Para birimi seçeneklerini göster"} className={summaryClasses}>
           <span aria-hidden="true">{selectedCurrency.symbol}</span>
           <span>{selectedCurrency.code}</span>
         </summary>
-        <div aria-label="Para birimi seçenekleri" className={menuClasses} role="menu">
+        <div aria-label={locale === "en" ? "Currency options" : "Para birimi seçenekleri"} className={menuClasses} role="menu">
           {CURRENCIES.map((option) => (
             <button
               aria-checked={currency === option.code}
               className={`${optionClasses} ${currency === option.code ? "bg-surface-muted font-semibold" : ""}`}
               key={option.code}
               onClick={(event) => {
-                setCurrency(option.code);
                 event.currentTarget.closest("details")?.removeAttribute("open");
+                if (option.code !== currency) {
+                  startLoading(() => {
+                    setCurrency(option.code);
+                    setIsLoading(false);
+                    transitionTimerRef.current = null;
+                  }, 400);
+                }
               }}
               role="menuitemradio"
               type="button"
@@ -137,7 +174,9 @@ export function FooterPreferenceMenus() {
             </button>
           ))}
         </div>
-      </details>
+          </details>
+        </>
+      )}
     </div>
   );
 }

@@ -18,6 +18,7 @@ export type PageHeaderProps = Omit<
   "children" | "title"
 > & {
   breadcrumbs?: readonly BreadcrumbItem[];
+  breadcrumbsAriaLabel?: string;
   children?: ReactNode;
   eyebrow?: string;
   headingId?: string;
@@ -31,6 +32,7 @@ export type PageHeaderProps = Omit<
 /** The sole H1-bearing heading region for a standard public page. */
 export function PageHeader({
   breadcrumbs,
+  breadcrumbsAriaLabel,
   children,
   className,
   eyebrow,
@@ -57,7 +59,7 @@ export function PageHeader({
       >
         <PageContainer>
           <Stack gap="sm">
-            {breadcrumbs ? <Breadcrumbs items={breadcrumbs} /> : null}
+            {breadcrumbs ? <Breadcrumbs ariaLabel={breadcrumbsAriaLabel} items={breadcrumbs} /> : null}
             {mobileStartAtTitle ? (
               <div aria-hidden="true" data-mobile-title-start="true" />
             ) : null}

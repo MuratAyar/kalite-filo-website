@@ -17,6 +17,7 @@ export type EditorialPreviewProps = {
   columns?: 3 | 4;
   content: HomeEditorialCopy;
   fleetGuideHref: InternalPath;
+  locale?: "en" | "tr";
 };
 
 type ArticleWithCover = Article & {
@@ -36,6 +37,7 @@ export function EditorialPreview({
   columns = 4,
   content,
   fleetGuideHref,
+  locale = "tr",
 }: EditorialPreviewProps) {
   const categoryById = new Map(
     categories
@@ -107,10 +109,7 @@ export function EditorialPreview({
                 <Link
                   className="flex min-h-72 flex-col justify-end p-4 focus-visible:outline-2 focus-visible:-outline-offset-4 focus-visible:outline-accent-orange sm:min-h-80 sm:p-5"
                   data-editorial-preview-article-link="true"
-                  href={getFiloRehberiArticlePath(
-                    category.slug,
-                    article.slug,
-                  )}
+                  href={locale === "en" ? `/en/fleet-guide/${category.slug}/${article.slug}/` : getFiloRehberiArticlePath(category.slug, article.slug)}
                 >
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
@@ -134,12 +133,12 @@ export function EditorialPreview({
                   </h3>
                   <p className="mt-3 text-label text-text-inverse-muted">
                     <time dateTime={article.publishedAt}>
-                      {turkishDateFormatter.format(
+                      {(locale === "en" ? new Intl.DateTimeFormat("en-GB", { day: "2-digit", month: "short", timeZone: "UTC", year: "numeric" }) : turkishDateFormatter).format(
                         new Date(`${article.publishedAt}T00:00:00Z`),
                       )}
                     </time>
                     <span aria-hidden="true"> · </span>
-                    {article.readingMinutes} dk. okuma
+                    {locale === "en" ? `${article.readingMinutes} min read` : `${article.readingMinutes} dk. okuma`}
                   </p>
                 </div>
                 </Link>

@@ -3,6 +3,8 @@ import { classNames } from "@/components/ui/class-names";
 import {
   PRIMARY_NAVIGATION_ITEMS,
   QUOTE_NAVIGATION_ITEM,
+  ENGLISH_PRIMARY_NAVIGATION_ITEMS,
+  ENGLISH_QUOTE_NAVIGATION_ITEM,
 } from "@/config/public-navigation";
 
 import { PrimaryNavigation } from "./primary-navigation";
@@ -10,6 +12,7 @@ import { CartCountBadge } from "./cart-count-badge";
 
 export type MobileNavigationProps = {
   className?: string;
+  locale?: "en" | "tr";
 };
 
 /**
@@ -18,7 +21,10 @@ export type MobileNavigationProps = {
  */
 export function MobileNavigation({
   className,
+  locale = "tr",
 }: MobileNavigationProps) {
+  const items = locale === "en" ? ENGLISH_PRIMARY_NAVIGATION_ITEMS : PRIMARY_NAVIGATION_ITEMS;
+  const actionItem = locale === "en" ? ENGLISH_QUOTE_NAVIGATION_ITEM : QUOTE_NAVIGATION_ITEM;
   return (
     <details
       className={classNames(
@@ -26,7 +32,7 @@ export function MobileNavigation({
         className,
       )}
     >
-      <summary aria-label="Ana menüyü aç veya kapat" className="relative grid size-10 cursor-pointer list-none place-items-center rounded-control border border-border-subtle text-brand-navy transition-colors hover:border-corporate-blue hover:bg-surface-muted hover:text-corporate-blue motion-reduce:transition-none sm:size-11 [&::-webkit-details-marker]:hidden">
+      <summary aria-label={locale === "en" ? "Open or close the main menu" : "Ana menüyü aç veya kapat"} className="relative grid size-10 cursor-pointer list-none place-items-center rounded-control border border-border-subtle text-brand-navy transition-colors hover:border-corporate-blue hover:bg-surface-muted hover:text-corporate-blue motion-reduce:transition-none sm:size-11 [&::-webkit-details-marker]:hidden">
         <svg aria-hidden="true" className="size-5 sm:size-6" fill="none" viewBox="0 0 24 24">
           <path className="group-open:hidden" d="M4 7h16M4 12h16M4 17h16" stroke="currentColor" strokeLinecap="round" strokeWidth="2" />
           <path className="hidden group-open:block" d="m6 6 12 12M18 6 6 18" stroke="currentColor" strokeLinecap="round" strokeWidth="2" />
@@ -41,10 +47,10 @@ export function MobileNavigation({
             variant: "primary",
           })}
           actionCurrentClassName="bg-orange-dark"
-          actionItem={QUOTE_NAVIGATION_ITEM}
-          ariaLabel="Mobil ana menü"
+          actionItem={actionItem}
+          ariaLabel={locale === "en" ? "Mobile main menu" : "Mobil ana menü"}
           documentNavigation
-          items={PRIMARY_NAVIGATION_ITEMS}
+          items={items}
           orientation="vertical"
         />
       </div>

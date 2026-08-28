@@ -9,6 +9,7 @@ import { classNames } from "@/components/ui/class-names";
 export type FaqCategoryFilterProps = {
   categories: readonly FaqCategory[];
   entries: readonly FaqEntry[];
+  locale?: "en" | "tr";
 };
 
 type SelectedCategoryId = FaqCategory["id"] | "all";
@@ -16,6 +17,7 @@ type SelectedCategoryId = FaqCategory["id"] | "all";
 export function FaqCategoryFilter({
   categories,
   entries,
+  locale = "tr",
 }: FaqCategoryFilterProps) {
   const [selectedCategoryId, setSelectedCategoryId] =
     useState<SelectedCategoryId>("all");
@@ -28,7 +30,7 @@ export function FaqCategoryFilter({
       : entries.filter((entry) => entry.categoryId === selectedCategoryId);
 
   const controls = [
-    { id: "all" as const, label: "Tümü" },
+    { id: "all" as const, label: locale === "en" ? "All" : "Tümü" },
     ...categories.map((category) => ({
       id: category.id,
       label: category.label,
@@ -38,7 +40,7 @@ export function FaqCategoryFilter({
   return (
     <>
       <div
-        aria-label="Sıkça sorulan soru kategorileri"
+        aria-label={locale === "en" ? "Frequently asked question categories" : "Sıkça sorulan soru kategorileri"}
         data-faq-category-filter="true"
         role="group"
       >
@@ -71,7 +73,7 @@ export function FaqCategoryFilter({
       </div>
 
       <p aria-live="polite" className="sr-only">
-        {visibleEntries.length} soru gösteriliyor.
+        {locale === "en" ? `${visibleEntries.length} questions shown.` : `${visibleEntries.length} soru gösteriliyor.`}
       </p>
 
       <div className="mt-10 space-y-5" data-faq-list="true" id="faq-list">

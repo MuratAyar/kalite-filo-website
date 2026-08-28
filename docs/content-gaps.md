@@ -125,7 +125,7 @@ Before forms can be implemented, provide:
 
 The quote design combines privacy acknowledgement, personalization, marketing processing, and commercial-message permission in one checkbox. This conflicts with the repository legal guidance: marketing consent must be separate, optional, and unchecked, and it must not be presented as necessary to request service.
 
-Because Phase 1 prohibits a database and CRM implementation, newsletter and marketing-consent collection should be deferred unless Kalite Filo supplies an approved compliant external processor/record mechanism. Contact and quote requests may use approved PHP delivery, but not Server Actions or Next.js API routes.
+Phase 1 still prohibits a database and CRM implementation. The approved PHP boundary now records newsletter consent evidence and form-origin email leads in a locked CSV file outside the public document root. Newsletter rows remain pending until a later confirmation workflow exists; quote and contact rows are lead-only and must not be treated as newsletter or commercial-message consent. Server Actions and Next.js API routes remain prohibited.
 
 ## Unverified claims and service promises
 
@@ -185,7 +185,7 @@ Missing or unresolved:
 - real service inclusions and qualifications;
 - destination for every “Keşfet”/“Detaylı İncele” action;
 - full content/destinations for the three editorial cards;
-- approved newsletter proposition and legal flow;
+- approved newsletter retention, confirmation/unsubscribe and IYS synchronization flow;
 - licensed hero, commercial-fleet, facility, and editorial images.
 
 ### About
@@ -338,8 +338,8 @@ Do not mark content ready until:
 - [ ] FAQ answers and emergency/support channels are operationally approved.
 - [ ] Legal pages and form notices are supplied by counsel.
 - [x] The quote PHP contract and result messages are defined; contact and any
-  newsletter processing remain unresolved.
-- [ ] Newsletter/marketing is either compliant end to end or deferred.
+  newsletter confirmation, unsubscribe and IYS synchronization remain unresolved.
+- [ ] Pending newsletter registrations are not promoted to confirmed/IYS-approved until the approved downstream workflows exist.
 - [ ] Logo, font, image rights, crops, and alt-text intent are supplied.
 - [ ] Footer copyright, contact links, and every CTA destination are resolved.
 

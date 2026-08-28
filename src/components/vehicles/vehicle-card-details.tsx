@@ -13,6 +13,7 @@ type VehicleCardFactsProps = Pick<
   "fuelLabel" | "transmissionLabel"
 > & {
   className?: string;
+  locale?: "en" | "tr";
 };
 
 type VehicleListPriceProps = {
@@ -20,6 +21,7 @@ type VehicleListPriceProps = {
   compactCard?: boolean;
   offerPanel?: boolean;
   listPrice: VehiclePortfolioListPrice;
+  locale?: "en" | "tr";
 };
 
 export const vehicleCardPlaceholder = Object.freeze({
@@ -72,6 +74,7 @@ export function VehicleCardFacts({
   className,
   fuelLabel,
   transmissionLabel,
+  locale = "tr",
 }: VehicleCardFactsProps) {
   const transmissionDisplayLabel =
     getVehicleTransmissionGroup(transmissionLabel) ?? transmissionLabel;
@@ -86,7 +89,7 @@ export function VehicleCardFacts({
       data-vehicle-facts-layout="single-row"
     >
       <div className="flex min-h-10 min-w-0 items-center" data-vehicle-fact="fuel">
-        <dt className="sr-only">Yakıt tipi</dt>
+        <dt className="sr-only">{locale === "en" ? "Fuel type" : "Yakıt tipi"}</dt>
         <dd className="flex items-center gap-1.5 break-words">
           <FuelIcon />
           <span>{fuelLabel}</span>
@@ -97,7 +100,7 @@ export function VehicleCardFacts({
         data-vehicle-fact="transmission"
         data-vehicle-transmission-display={transmissionDisplayLabel}
       >
-        <dt className="sr-only">Vites tipi</dt>
+        <dt className="sr-only">{locale === "en" ? "Transmission type" : "Vites tipi"}</dt>
         <dd className="flex items-center gap-1.5 break-words">
           <TransmissionIcon />
           <span>{transmissionDisplayLabel}</span>
@@ -113,6 +116,7 @@ export function VehicleListPrice({
   compactCard = false,
   offerPanel = false,
   listPrice,
+  locale = "tr",
 }: VehicleListPriceProps) {
   const amountTry = listPrice.amountMinor / 100;
 
@@ -127,7 +131,7 @@ export function VehicleListPrice({
       data-vehicle-list-price="true"
     >
       {!compactCard && !offerPanel ? (
-        <p className="text-xs leading-4 text-text-secondary">Aylık Liste Net</p>
+        <p className="text-xs leading-4 text-text-secondary">{locale === "en" ? "Monthly Net List Price" : "Aylık Liste Net"}</p>
       ) : null}
       <p
         className={classNames(
@@ -143,7 +147,7 @@ export function VehicleListPrice({
           {formatVehicleListNetPrice(listPrice.amountMinor)}
         </data>
         <span className="ml-0.5 text-sm font-normal text-text-secondary">
-          /ay
+          {locale === "en" ? "/month" : "/ay"}
         </span>
       </p>
       <p
@@ -154,7 +158,7 @@ export function VehicleListPrice({
             : "mt-1 text-text-secondary",
         )}
       >
-        {compactCard || offerPanel ? "+ %20 KDV" : "KDV hariç"}
+        {locale === "en" ? (compactCard || offerPanel ? "+ 20% VAT" : "Excluding VAT") : (compactCard || offerPanel ? "+ %20 KDV" : "KDV hariç")}
       </p>
     </div>
   );

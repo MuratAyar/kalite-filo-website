@@ -14,7 +14,15 @@ function createFixture(name) {
   mkdirSync(path.join(root, "out"), { recursive: true });
   writeFileSync(path.join(root, "out", "index.html"), "<!doctype html>");
   mkdirSync(path.join(root, "server", "forms"), { recursive: true });
-  for (const file of ["teklif.php", "iletisim.php", "quote-mailer.php", "composer.json", "composer.lock"]) {
+  for (const file of [
+    "teklif.php",
+    "iletisim.php",
+    "bulten.php",
+    "subscriber-store.php",
+    "quote-mailer.php",
+    "composer.json",
+    "composer.lock",
+  ]) {
     writeFileSync(path.join(root, "server", "forms", file), "fixture");
   }
   return root;
@@ -49,6 +57,8 @@ test("release assembly includes the complete Composer mail runtime and no privat
   for (const relativePath of [
     "forms/teklif.php",
     "forms/iletisim.php",
+    "forms/bulten.php",
+    "forms/subscriber-store.php",
     "forms/quote-mailer.php",
     "forms/composer.json",
     "forms/composer.lock",

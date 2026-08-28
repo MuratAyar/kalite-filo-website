@@ -12,6 +12,7 @@ import {
 } from "react";
 
 import { Button } from "@/components/ui/button";
+import { CommercialEmailConsent } from "@/components/forms/commercial-email-consent";
 import { classNames } from "@/components/ui/class-names";
 import { formatVehicleListNetPrice } from "@/lib/vehicle-list-price.mjs";
 import {
@@ -46,6 +47,7 @@ const countryCallingCodes = [
   { code: "34", iso: "ES", label: "İspanya" },
   { code: "380", iso: "UA", label: "Ukrayna" },
 ] as const;
+const englishCountryNames: Readonly<Record<string, string>> = Object.freeze({ TR: "Türkiye", DE: "Germany", AT: "Austria", BE: "Belgium", BG: "Bulgaria", FR: "France", NL: "Netherlands", IT: "Italy", RU: "Russia", ES: "Spain", UA: "Ukraine" });
 
 const provinces = [
   "Adana", "Adıyaman", "Afyonkarahisar", "Ağrı", "Aksaray", "Amasya", "Ankara",
@@ -93,6 +95,14 @@ const resultMessages = {
   },
 } as const;
 
+const englishResultMessages: Record<keyof typeof resultMessages, { title: string; body: string; tone: string }> = {
+  basarili: { title: "Request received", body: "Your quotation request has been submitted successfully.", tone: resultMessages.basarili.tone },
+  dogrulama: { title: "Check the information", body: "A required field is missing or invalid. Review the form and submit it again.", tone: resultMessages.dogrulama.tone },
+  limit: { title: "Please wait", body: "Too many submissions were made in a short period. Please try again in a few minutes.", tone: resultMessages.limit.tone },
+  gonderilemedi: { title: "Request could not be submitted", body: "A technical issue occurred. Please try again later or contact us using our published details.", tone: resultMessages.gonderilemedi.tone },
+  servis_yok: { title: "The quotation service is unavailable here", body: "The local Next.js preview does not run PHP. Test submission in the staging or production cPanel environment.", tone: resultMessages.servis_yok.tone },
+};
+
 type ResultKey = keyof typeof resultMessages;
 
 function keepPersonNameCharacters(event: FormEvent<HTMLInputElement>) {
@@ -118,11 +128,11 @@ function FieldError({ error, id }: { error?: string; id: string }) {
   ) : null;
 }
 
-function validationMessageFor(field: HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement) {
-  if (field.validity.valueMissing) return requiredFieldMessage;
-  if (field.name === "telefon") return "*Geçerli bir numara giriniz.";
-  if (field.name === "eposta") return "*Geçersiz e-posta adresi.";
-  return "*Bu alanı geçerli formatta doldurunuz.";
+function validationMessageFor(field: HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement, locale: "en" | "tr" = "tr") {
+  if (field.validity.valueMissing) return locale === "en" ? "*This field is required." : requiredFieldMessage;
+  if (field.name === "telefon") return locale === "en" ? "*Enter a valid phone number." : "*Geçerli bir numara giriniz.";
+  if (field.name === "eposta") return locale === "en" ? "*Enter a valid email address." : "*Geçersiz e-posta adresi.";
+  return locale === "en" ? "*Enter this field in a valid format." : "*Bu alanı geçerli formatta doldurunuz.";
 }
 
 function focusField(form: HTMLFormElement, fieldName: string) {
@@ -235,7 +245,7 @@ function ProvinceSelect({
   );
 }
 
-function PhoneField({ error }: { error?: string }) {
+function PhoneField({ error, locale = "tr" }: { error?: string; locale?: "en" | "tr" }) {
   const [countryCode, setCountryCode] = useState("90");
   const [digits, setDigits] = useState("");
   const countryMenuRef = useRef<HTMLDetailsElement>(null);
@@ -272,7 +282,7 @@ function PhoneField({ error }: { error?: string }) {
 
   return (
     <div className="space-y-2">
-      <FieldLabel htmlFor="quote-phone">Telefon Numaranız *</FieldLabel>
+      <FieldLabel htmlFor="quote-phone">{locale === "en" ? "Phone Number" : "Telefon Numaranız"} *</FieldLabel>
       <div
         className={classNames(
           "flex min-h-12 overflow-visible rounded-control border bg-surface-card focus-within:outline-2 focus-within:outline-offset-2",
@@ -289,7 +299,7 @@ function PhoneField({ error }: { error?: string }) {
           <div className="absolute left-0 top-full z-30 mt-1 max-h-64 w-72 overflow-y-auto rounded-control border border-border-control bg-surface-card p-1 shadow-lg">
             {countryCallingCodes.map((item) => (
               <button className="flex min-h-11 w-full items-center gap-3 rounded-control px-3 text-left text-label hover:bg-surface-muted" key={item.iso} onClick={(event) => { setCountryCode(item.code); event.currentTarget.closest("details")?.removeAttribute("open"); }} type="button">
-                <CountryFlag iso={item.iso} /><span className="min-w-0 flex-1">{item.label}</span><span className="text-text-secondary">+{item.code}</span>
+                <CountryFlag iso={item.iso} /><span className="min-w-0 flex-1">{locale === "en" ? englishCountryNames[item.iso] : item.label}</span><span className="text-text-secondary">+{item.code}</span>
               </button>
             ))}
           </div>
@@ -297,7 +307,7 @@ function PhoneField({ error }: { error?: string }) {
         <input
           aria-describedby={error ? "quote-phone-error" : undefined}
           aria-invalid={error ? "true" : undefined}
-          aria-label="Telefon numaranız"
+          aria-label={locale === "en" ? "Phone number" : "Telefon numaranız"}
           autoComplete="tel-national"
           className="min-h-12 min-w-0 flex-1 border-0 bg-transparent px-4 text-body text-text-primary caret-corporate-blue outline-none"
           id="quote-phone"
@@ -331,7 +341,7 @@ function PhoneField({ error }: { error?: string }) {
   );
 }
 
-function CartItems({ items, onChange }: { items: VehicleCartItem[]; onChange: (items: VehicleCartItem[]) => void }) {
+function CartItems({ items, locale = "tr", onChange }: { items: VehicleCartItem[]; locale?: "en" | "tr"; onChange: (items: VehicleCartItem[]) => void }) {
   function changeQuantity(key: string, delta: number) {
     const next = items
       .map((item) => item.key === key ? { ...item, quantity: Math.max(0, Math.min(99, item.quantity + delta)) } : item)
@@ -341,7 +351,7 @@ function CartItems({ items, onChange }: { items: VehicleCartItem[]; onChange: (i
   }
 
   if (items.length === 0) {
-    return <div className="rounded-card border border-dashed border-border-control bg-surface-muted p-6 text-body text-text-secondary">Sepetinizde henüz araç bulunmuyor.</div>;
+    return <div className="rounded-card border border-dashed border-border-control bg-surface-muted p-6 text-body text-text-secondary">{locale === "en" ? "Your vehicle basket is empty." : "Sepetinizde henüz araç bulunmuyor."}</div>;
   }
 
   return <div className="grid gap-5">{items.map((item) => (
@@ -355,8 +365,8 @@ function CartItems({ items, onChange }: { items: VehicleCartItem[]; onChange: (i
           <p className="mt-1 text-label text-text-secondary">{item.trim}</p>
         </div>
         <dl className="grid gap-3 text-label sm:grid-cols-2">
-          <div><dt className="text-text-secondary">Kiralama Süresi</dt><dd className="font-semibold">{item.durationMonths} Ay</dd></div>
-          <div><dt className="text-text-secondary">Yıllık Kilometre</dt><dd className="font-semibold">{new Intl.NumberFormat("tr-TR").format(item.annualKilometres)} km</dd></div>
+          <div><dt className="text-text-secondary">{locale === "en" ? "Lease Term" : "Kiralama Süresi"}</dt><dd className="font-semibold">{item.durationMonths} {locale === "en" ? "months" : "Ay"}</dd></div>
+          <div><dt className="text-text-secondary">{locale === "en" ? "Annual Mileage" : "Yıllık Kilometre"}</dt><dd className="font-semibold">{new Intl.NumberFormat(locale === "en" ? "en-GB" : "tr-TR").format(item.annualKilometres)} km</dd></div>
         </dl>
         <div className="flex flex-wrap items-center justify-between gap-4 rounded-control bg-surface-muted p-3">
           <p className="text-xl font-bold text-corporate-blue">{formatVehicleListNetPrice(item.priceAmountMinor)}<span className="text-xs font-normal text-text-secondary"> /ay + %20 KDV</span></p>
@@ -372,7 +382,7 @@ function CartItems({ items, onChange }: { items: VehicleCartItem[]; onChange: (i
   ))}</div>;
 }
 
-export function QuoteForm() {
+export function QuoteForm({ locale = "tr" }: { locale?: "en" | "tr" }) {
   const [formType, setFormType] = useState<QuoteFormType>("kurumsal");
   const [result, setResult] = useState<ResultKey | null>(null);
   const [quoteNumber, setQuoteNumber] = useState<string | null>(null);
@@ -403,7 +413,7 @@ export function QuoteForm() {
     return subscribeToVehicleCart(update);
   }, []);
 
-  const resultMessage = result ? resultMessages[result] : null;
+  const resultMessage = result ? (locale === "en" ? englishResultMessages : resultMessages)[result] : null;
   const cartQuantity = cartItems.reduce((total, item) => total + item.quantity, 0);
 
   function clearFieldError(event: FormEvent<HTMLFormElement>) {
@@ -419,7 +429,7 @@ export function QuoteForm() {
 
     setValidationErrors((current) => {
       if (!target.checkValidity()) {
-        return { ...current, [fieldName]: validationMessageFor(target) };
+        return { ...current, [fieldName]: validationMessageFor(target, locale) };
       }
       const remaining = { ...current };
       delete remaining[fieldName];
@@ -438,14 +448,14 @@ export function QuoteForm() {
     const invalidFields = formFields.filter((field) => !field.checkValidity());
 
     if (formType === "sepet" && cartItems.length === 0) {
-      setValidationErrors({ sepet: "*Teklif göndermek için sepetinize en az bir araç ekleyiniz." });
+      setValidationErrors({ sepet: locale === "en" ? "*Add at least one vehicle to your basket before requesting a quote." : "*Teklif göndermek için sepetinize en az bir araç ekleyiniz." });
       window.setTimeout(() => focusElementById("quote-cart-error"), 0);
       return;
     }
 
     if (invalidFields.length > 0) {
       setValidationErrors(
-        Object.fromEntries(invalidFields.map((field) => [field.name, validationMessageFor(field)])),
+        Object.fromEntries(invalidFields.map((field) => [field.name, validationMessageFor(field, locale)])),
       );
       const firstInvalidField = invalidFields[0]?.name;
       if (firstInvalidField) {
@@ -513,7 +523,7 @@ export function QuoteForm() {
   }
 
   function goHome() {
-    window.location.assign("/");
+    window.location.assign(locale === "en" ? "/en/" : "/");
   }
 
   function selectFormType(value: QuoteFormType) {
@@ -544,7 +554,7 @@ export function QuoteForm() {
           <input autoComplete="off" id="quote-website" name="website" tabIndex={-1} type="text" />
         </div>
 
-        <div aria-label="Teklif türü" className="grid max-w-xl grid-cols-3 rounded-card border border-border-subtle bg-surface-muted p-1" role="group">
+        <div aria-label={locale === "en" ? "Quotation type" : "Teklif türü"} className="grid max-w-xl grid-cols-3 rounded-card border border-border-subtle bg-surface-muted p-1" role="group">
           {(["kurumsal", "bireysel", "sepet"] as const).map((value) => (
             <button
               aria-pressed={formType === value}
@@ -562,7 +572,7 @@ export function QuoteForm() {
               type="button"
             >
               <span className="inline-flex items-center justify-center gap-2">
-                {value === "kurumsal" ? "Kurumsal" : value === "bireysel" ? "Bireysel" : "Sepetim"}
+                {locale === "en" ? (value === "kurumsal" ? "Corporate" : value === "bireysel" ? "Individual" : "My Basket") : (value === "kurumsal" ? "Kurumsal" : value === "bireysel" ? "Bireysel" : "Sepetim")}
                 {value === "sepet" && cartQuantity > 0 ? (
                   <span
                     aria-label={`Sepette ${cartQuantity} araç var`}
@@ -578,96 +588,98 @@ export function QuoteForm() {
 
         {formType === "sepet" ? (
           <fieldset className="space-y-6">
-            <legend className="w-full border-b border-border-subtle pb-4 text-heading-md font-semibold text-corporate-blue">Araç Bilgileri</legend>
-            <p className="text-body text-text-secondary">Sepetinize eklediğiniz araçları, adetleri ve kiralama tercihlerini kontrol ediniz.</p>
-            <CartItems items={cartItems} onChange={setCartItems} />
+            <legend className="w-full border-b border-border-subtle pb-4 text-heading-md font-semibold text-corporate-blue">{locale === "en" ? "Vehicle Details" : "Araç Bilgileri"}</legend>
+            <p className="text-body text-text-secondary">{locale === "en" ? "Review the vehicles, quantities and lease preferences in your basket." : "Sepetinize eklediğiniz araçları, adetleri ve kiralama tercihlerini kontrol ediniz."}</p>
+            <CartItems items={cartItems} locale={locale} onChange={setCartItems} />
             <FieldError error={validationErrors.sepet} id="quote-cart-error" />
-            <div className="flex justify-end"><Link className="inline-flex min-h-11 items-center rounded-control border border-corporate-blue px-5 text-label font-semibold text-corporate-blue no-underline hover:bg-corporate-blue hover:text-white" href="/arac-listesi/">Araç Ekle →</Link></div>
+            <div className="flex justify-end"><Link className="inline-flex min-h-11 items-center rounded-control border border-corporate-blue px-5 text-label font-semibold text-corporate-blue no-underline hover:bg-corporate-blue hover:text-white" href={locale === "en" ? "/en/vehicles/" : "/arac-listesi/"}>{locale === "en" ? "Add a Vehicle" : "Araç Ekle"} →</Link></div>
           </fieldset>
         ) : null}
 
         <fieldset className="space-y-6">
           <legend className="w-full border-b border-border-subtle pb-4 text-heading-md font-semibold text-corporate-blue">
-            Yetkili Kişi Bilgileri
+            {locale === "en" ? "Contact Person Details" : "Yetkili Kişi Bilgileri"}
           </legend>
-          <p className="text-body text-text-secondary">Aşağıdaki yetkili kişi bilgilerini eksiksiz doldurunuz.</p>
+          <p className="text-body text-text-secondary">{locale === "en" ? "Please complete the contact details below." : "Aşağıdaki yetkili kişi bilgilerini eksiksiz doldurunuz."}</p>
           <div className="grid gap-6 md:grid-cols-2">
-            <TextField autoComplete="given-name" error={validationErrors.ad} id="quote-first-name" label="Adınız" maxLength={80} name="ad" onInput={keepPersonNameCharacters} pattern="[A-Za-zÇĞİÖŞÜçğıöşü' -]+" placeholder="Adınızı yazınız" required />
-            <TextField autoComplete="family-name" error={validationErrors.soyad} id="quote-last-name" label="Soyadınız" maxLength={80} name="soyad" onInput={keepPersonNameCharacters} pattern="[A-Za-zÇĞİÖŞÜçğıöşü' -]+" placeholder="Soyadınızı yazınız" required />
+            <TextField autoComplete="given-name" error={validationErrors.ad} id="quote-first-name" label={locale === "en" ? "First Name" : "Adınız"} maxLength={80} name="ad" onInput={keepPersonNameCharacters} pattern="[A-Za-zÇĞİÖŞÜçğıöşü' -]+" placeholder={locale === "en" ? "Enter your first name" : "Adınızı yazınız"} required />
+            <TextField autoComplete="family-name" error={validationErrors.soyad} id="quote-last-name" label={locale === "en" ? "Last Name" : "Soyadınız"} maxLength={80} name="soyad" onInput={keepPersonNameCharacters} pattern="[A-Za-zÇĞİÖŞÜçğıöşü' -]+" placeholder={locale === "en" ? "Enter your last name" : "Soyadınızı yazınız"} required />
             {formType !== "bireysel" ? (
-              <TextField autoComplete="organization-title" id="quote-title" label="Unvanınız" maxLength={120} name="unvan" placeholder="Unvanınızı yazınız" />
+              <TextField autoComplete="organization-title" id="quote-title" label={locale === "en" ? "Job Title" : "Unvanınız"} maxLength={120} name="unvan" placeholder={locale === "en" ? "Enter your job title" : "Unvanınızı yazınız"} />
             ) : (
-              <TextField error={validationErrors.tc_kimlik_no} id="quote-identity" inputMode="numeric" label="T.C. Kimlik Numaranız" maxLength={11} name="tc_kimlik_no" pattern="[1-9][0-9]{10}" placeholder="11 haneli T.C. kimlik numaranız" required />
+              <TextField error={validationErrors.tc_kimlik_no} id="quote-identity" inputMode="numeric" label={locale === "en" ? "Turkish Identity Number" : "T.C. Kimlik Numaranız"} maxLength={11} name="tc_kimlik_no" pattern="[1-9][0-9]{10}" placeholder={locale === "en" ? "Enter the 11-digit identity number" : "11 haneli T.C. kimlik numaranız"} required />
             )}
-            <PhoneField error={validationErrors.telefon} />
-            <TextField autoComplete="email" error={validationErrors.eposta} id="quote-email" inputMode="email" label="E-Postanız" maxLength={254} name="eposta" placeholder="E-postanızı yazınız" required type="email" />
+            <PhoneField error={validationErrors.telefon} locale={locale} />
+            <TextField autoComplete="email" error={validationErrors.eposta} id="quote-email" inputMode="email" label={locale === "en" ? "Email Address" : "E-Postanız"} maxLength={254} name="eposta" placeholder={locale === "en" ? "Enter your email address" : "E-postanızı yazınız"} required type="email" />
           </div>
         </fieldset>
 
         {formType !== "bireysel" ? (
           <fieldset className="space-y-6">
             <legend className="w-full border-b border-border-subtle pb-4 text-heading-md font-semibold text-corporate-blue">
-              Şirket Bilgileri
+              {locale === "en" ? "Company Details" : "Şirket Bilgileri"}
             </legend>
             <p className="text-body text-text-secondary">
-              Bizimle iletişim kurmak ve uzman ekibimizle iletişime geçmek için lütfen aşağıdaki şirket bilgilerini eksiksiz doldurunuz.
+              {locale === "en" ? "Please provide the company information required for our team to assess your request." : "Bizimle iletişim kurmak ve uzman ekibimizle iletişime geçmek için lütfen aşağıdaki şirket bilgilerini eksiksiz doldurunuz."}
             </p>
             <div className="grid gap-6 md:grid-cols-2">
-              <ProvinceSelect error={validationErrors.il} id="quote-city" label="İl" name="il" placeholder="Şehrinizi seçiniz" />
-              <TextField autoComplete="address-level2" error={validationErrors.ilce} id="quote-district" label="İlçe" maxLength={80} name="ilce" placeholder="İlçenizi yazınız" required />
-              <TextField autoComplete="url" id="quote-company-website" label="Firma Web Sitesi" maxLength={200} name="firma_web_sitesi" placeholder="Web sitenizi yazınız" />
+              <ProvinceSelect error={validationErrors.il} id="quote-city" label={locale === "en" ? "Province" : "İl"} name="il" placeholder={locale === "en" ? "Select a province" : "Şehrinizi seçiniz"} />
+              <TextField autoComplete="address-level2" error={validationErrors.ilce} id="quote-district" label={locale === "en" ? "District" : "İlçe"} maxLength={80} name="ilce" placeholder={locale === "en" ? "Enter the district" : "İlçenizi yazınız"} required />
+              <TextField autoComplete="url" id="quote-company-website" label={locale === "en" ? "Company Website" : "Firma Web Sitesi"} maxLength={200} name="firma_web_sitesi" placeholder={locale === "en" ? "Enter the website address" : "Web sitenizi yazınız"} />
               <div className="space-y-2">
-                <FieldLabel htmlFor="quote-company-type">Şirket Tipi *</FieldLabel>
+                <FieldLabel htmlFor="quote-company-type">{locale === "en" ? "Company Type" : "Şirket Tipi"} *</FieldLabel>
                 <select aria-describedby={validationErrors.sirket_tipi ? "quote-company-type-error" : undefined} aria-invalid={validationErrors.sirket_tipi ? "true" : undefined} className={fieldClassName} defaultValue="" id="quote-company-type" name="sirket_tipi" required>
-                  <option disabled value="">Şirket tipini seçiniz</option>
-                  <option value="Anonim Şirket">Anonim Şirket</option>
-                  <option value="Limited Şirket">Limited Şirket</option>
-                  <option value="Şahıs Şirketi">Şahıs Şirketi</option>
-                  <option value="Kooperatif">Kooperatif</option>
-                  <option value="Diğer">Diğer</option>
+                  <option disabled value="">{locale === "en" ? "Select company type" : "Şirket tipini seçiniz"}</option>
+                  <option value="Anonim Şirket">{locale === "en" ? "Joint-Stock Company" : "Anonim Şirket"}</option>
+                  <option value="Limited Şirket">{locale === "en" ? "Limited Company" : "Limited Şirket"}</option>
+                  <option value="Şahıs Şirketi">{locale === "en" ? "Sole Proprietorship" : "Şahıs Şirketi"}</option>
+                  <option value="Kooperatif">{locale === "en" ? "Cooperative" : "Kooperatif"}</option>
+                  <option value="Diğer">{locale === "en" ? "Other" : "Diğer"}</option>
                 </select>
                 <FieldError error={validationErrors.sirket_tipi} id="quote-company-type-error" />
               </div>
-              <TextField autoComplete="organization" error={validationErrors.sirket_unvani} id="quote-company-title" label="Şirket Unvanı" maxLength={200} name="sirket_unvani" placeholder="Şirket unvanını yazınız" required />
-              <ProvinceSelect error={validationErrors.vergi_dairesi_ili} id="quote-tax-city" label="Vergi Dairesi İli" name="vergi_dairesi_ili" placeholder="Vergi dairesi ilini seçiniz" />
-              <TextField error={validationErrors.vergi_dairesi} id="quote-tax-office" label="Vergi Dairesi" maxLength={120} name="vergi_dairesi" placeholder="Vergi dairesini yazınız" required />
-              <TextField error={validationErrors.vergi_numarasi} id="quote-tax-number" inputMode="numeric" label="Vergi Numarası" maxLength={10} name="vergi_numarasi" pattern="[0-9]{10}" placeholder="_ _ _ _ _ _ _ _ _ _" required />
+              <TextField autoComplete="organization" error={validationErrors.sirket_unvani} id="quote-company-title" label={locale === "en" ? "Registered Company Name" : "Şirket Unvanı"} maxLength={200} name="sirket_unvani" placeholder={locale === "en" ? "Enter the registered company name" : "Şirket unvanını yazınız"} required />
+              <ProvinceSelect error={validationErrors.vergi_dairesi_ili} id="quote-tax-city" label={locale === "en" ? "Tax Office Province" : "Vergi Dairesi İli"} name="vergi_dairesi_ili" placeholder={locale === "en" ? "Select the tax office province" : "Vergi dairesi ilini seçiniz"} />
+              <TextField error={validationErrors.vergi_dairesi} id="quote-tax-office" label={locale === "en" ? "Tax Office" : "Vergi Dairesi"} maxLength={120} name="vergi_dairesi" placeholder={locale === "en" ? "Enter the tax office" : "Vergi dairesini yazınız"} required />
+              <TextField error={validationErrors.vergi_numarasi} id="quote-tax-number" inputMode="numeric" label={locale === "en" ? "Tax Number" : "Vergi Numarası"} maxLength={10} name="vergi_numarasi" pattern="[0-9]{10}" placeholder="_ _ _ _ _ _ _ _ _ _" required />
             </div>
           </fieldset>
         ) : null}
 
         {formType === "sepet" ? (
           <div className="space-y-2">
-            <FieldLabel htmlFor="quote-note">İletmek İstediğiniz Not</FieldLabel>
-            <textarea className={classNames(fieldClassName, "min-h-32 py-3")} id="quote-note" maxLength={2000} name="not" placeholder="Notunuzu yazınız" />
+            <FieldLabel htmlFor="quote-note">{locale === "en" ? "Additional Notes" : "İletmek İstediğiniz Not"}</FieldLabel>
+            <textarea className={classNames(fieldClassName, "min-h-32 py-3")} id="quote-note" maxLength={2000} name="not" placeholder={locale === "en" ? "Enter any relevant notes" : "Notunuzu yazınız"} />
           </div>
         ) : <fieldset className="space-y-6">
           <legend className="w-full border-b border-border-subtle pb-4 text-heading-md font-semibold text-corporate-blue">
-            Araç Bilgileri
+            {locale === "en" ? "Vehicle Requirements" : "Araç Bilgileri"}
           </legend>
-          <p className="text-body text-text-secondary">Aşağıdaki teklif almak istediğiniz araç bilgilerini eksiksiz doldurunuz.</p>
+          <p className="text-body text-text-secondary">{locale === "en" ? "Provide the vehicle and usage requirements for your quotation." : "Aşağıdaki teklif almak istediğiniz araç bilgilerini eksiksiz doldurunuz."}</p>
           <div className="grid gap-6 md:grid-cols-2">
-            <TextField error={validationErrors.kiralama_suresi} id="quote-duration" inputMode="numeric" label="Kiralama Süresi (Ay)" max={120} min={12} name="kiralama_suresi" placeholder="En az 12 ay giriniz" required type="number" />
-            <TextField error={validationErrors.arac_sayisi} id="quote-count" inputMode="numeric" label="Kiralanacak Araç Sayısı" max={999} min={1} name="arac_sayisi" placeholder="Araç sayısı giriniz" required type="number" />
-            <TextField error={validationErrors.arac_markasi} id="quote-make" label="Araç Markası" maxLength={100} name="arac_markasi" placeholder="Marka giriniz" required />
-            <TextField error={validationErrors.arac_modeli} id="quote-model" label="Araç Modeli" maxLength={120} name="arac_modeli" placeholder="Model giriniz" required />
-            <TextField error={validationErrors.yillik_km} id="quote-distance" inputMode="numeric" label="Yıllık KM Limiti" max={500000} min={1000} name="yillik_km" placeholder="Limit giriniz" required step={1000} type="number" />
+            <TextField error={validationErrors.kiralama_suresi} id="quote-duration" inputMode="numeric" label={locale === "en" ? "Lease Term (Months)" : "Kiralama Süresi (Ay)"} max={120} min={12} name="kiralama_suresi" placeholder={locale === "en" ? "Minimum 12 months" : "En az 12 ay giriniz"} required type="number" />
+            <TextField error={validationErrors.arac_sayisi} id="quote-count" inputMode="numeric" label={locale === "en" ? "Number of Vehicles" : "Kiralanacak Araç Sayısı"} max={999} min={1} name="arac_sayisi" placeholder={locale === "en" ? "Enter vehicle quantity" : "Araç sayısı giriniz"} required type="number" />
+            <TextField error={validationErrors.arac_markasi} id="quote-make" label={locale === "en" ? "Vehicle Make" : "Araç Markası"} maxLength={100} name="arac_markasi" placeholder={locale === "en" ? "Enter a make" : "Marka giriniz"} required />
+            <TextField error={validationErrors.arac_modeli} id="quote-model" label={locale === "en" ? "Vehicle Model" : "Araç Modeli"} maxLength={120} name="arac_modeli" placeholder={locale === "en" ? "Enter a model" : "Model giriniz"} required />
+            <TextField error={validationErrors.yillik_km} id="quote-distance" inputMode="numeric" label={locale === "en" ? "Annual Mileage Limit" : "Yıllık KM Limiti"} max={500000} min={1000} name="yillik_km" placeholder={locale === "en" ? "Enter annual mileage" : "Limit giriniz"} required step={1000} type="number" />
             {formType === "bireysel" ? (
-              <TextField id="quote-campaign" label="Kampanya Kodu" maxLength={60} name="kampanya_kodu" placeholder="Varsa kampanya kodunu giriniz" />
+              <TextField id="quote-campaign" label={locale === "en" ? "Campaign Code" : "Kampanya Kodu"} maxLength={60} name="kampanya_kodu" placeholder={locale === "en" ? "Enter a campaign code, if applicable" : "Varsa kampanya kodunu giriniz"} />
             ) : null}
             <div className="space-y-2 md:col-span-2">
-              <FieldLabel htmlFor="quote-note">İletmek İstediğiniz Not</FieldLabel>
-              <textarea className={classNames(fieldClassName, "min-h-32 py-3")} id="quote-note" maxLength={2000} name="not" placeholder="Notunuzu yazınız" />
+              <FieldLabel htmlFor="quote-note">{locale === "en" ? "Additional Notes" : "İletmek İstediğiniz Not"}</FieldLabel>
+              <textarea className={classNames(fieldClassName, "min-h-32 py-3")} id="quote-note" maxLength={2000} name="not" placeholder={locale === "en" ? "Enter any relevant notes" : "Notunuzu yazınız"} />
             </div>
           </div>
           {formType === "bireysel" ? (
-            <p className="text-body text-text-secondary">Bu formda kiralama süresi en az 12 aydır.</p>
+            <p className="text-body text-text-secondary">{locale === "en" ? "The minimum lease term for this form is 12 months." : "Bu formda kiralama süresi en az 12 aydır."}</p>
           ) : null}
         </fieldset>}
 
-        <div className="flex justify-end border-t border-border-subtle pt-8">
+        <CommercialEmailConsent id="quote-commercial-email-consent" locale={locale} />
+
+        <div className="flex justify-end">
           <Button className="w-full sm:w-auto sm:min-w-56" disabled={submissionState === "submitting"} type="submit">
-            {submissionState === "submitting" ? "Gönderiliyor…" : "Formu Gönder"}
+            {submissionState === "submitting" ? (locale === "en" ? "Submitting…" : "Gönderiliyor…") : (locale === "en" ? "Submit Form" : "Formu Gönder")}
             <span aria-hidden="true">→</span>
           </Button>
         </div>
@@ -687,11 +699,11 @@ export function QuoteForm() {
       >
         <div className="p-6 text-center sm:p-8">
           <div aria-hidden="true" className="mx-auto grid size-14 place-items-center rounded-full bg-success-surface text-2xl text-success">✓</div>
-          <h2 className="mt-5 text-heading-md font-semibold" id="quote-success-title">Tebrikler, teklif formunuz başarıyla gönderildi</h2>
-          <p className="mt-3 text-body text-text-secondary">Talebiniz ekibimize ulaştı. Değerlendirme sürecinde teklif numaranızı kullanabilirsiniz.</p>
-          <p className="mt-5 text-label text-text-secondary">Teklif numaranız:</p>
+          <h2 className="mt-5 text-heading-md font-semibold" id="quote-success-title">{locale === "en" ? "Your quotation form has been submitted" : "Tebrikler, teklif formunuz başarıyla gönderildi"}</h2>
+          <p className="mt-3 text-body text-text-secondary">{locale === "en" ? "Your request has reached our team. You can use the reference number during the review process." : "Talebiniz ekibimize ulaştı. Değerlendirme sürecinde teklif numaranızı kullanabilirsiniz."}</p>
+          <p className="mt-5 text-label text-text-secondary">{locale === "en" ? "Your quotation reference:" : "Teklif numaranız:"}</p>
           <p className="mt-1 font-mono text-body-lg font-bold tracking-[0.12em] text-corporate-blue">{quoteNumber}</p>
-          <Button className="mt-7 w-full" onClick={goHome}>Anasayfaya Dön</Button>
+          <Button className="mt-7 w-full" onClick={goHome}>{locale === "en" ? "Return to Home" : "Anasayfaya Dön"}</Button>
         </div>
       </dialog>
     </div>

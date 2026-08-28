@@ -8,12 +8,14 @@ export type FaqPageContentProps = {
   categories: readonly FaqCategory[];
   contactHref: InternalPath;
   entries: readonly FaqEntry[];
+  locale?: "en" | "tr";
 };
 
 export function FaqPageContent({
   categories,
   contactHref,
   entries,
+  locale = "tr",
 }: FaqPageContentProps) {
   const approvedCategories = categories.filter(
     (category) => category.publicationStatus === "approved",
@@ -29,12 +31,13 @@ export function FaqPageContent({
     >
       <PageContainer className="max-w-6xl">
         <h2 className="sr-only" id="faq-list-title">
-          Soru ve cevaplar
+          {locale === "en" ? "Questions and answers" : "Soru ve cevaplar"}
         </h2>
 
         <FaqCategoryFilter
           categories={approvedCategories}
           entries={approvedEntries}
+          locale={locale}
         />
 
         <aside
@@ -43,10 +46,10 @@ export function FaqPageContent({
         >
           <div>
             <h2 className="text-heading-lg font-semibold text-balance">
-              Aradığınız cevabı bulamadınız mı?
+              {locale === "en" ? "Couldn’t find the answer you need?" : "Aradığınız cevabı bulamadınız mı?"}
             </h2>
             <p className="mt-3 max-w-2xl text-body-lg text-text-inverse-muted">
-              Sorunuz için iletişim sayfasından bize ulaşabilirsiniz.
+              {locale === "en" ? "Contact us through the contact page and let us know how we can help." : "Sorunuz için iletişim sayfasından bize ulaşabilirsiniz."}
             </p>
           </div>
           <ActionLink
@@ -55,7 +58,7 @@ export function FaqPageContent({
             size="primary"
             variant="primary"
           >
-            İletişime Geçin
+            {locale === "en" ? "Contact Us" : "İletişime Geçin"}
             <span aria-hidden="true">→</span>
           </ActionLink>
         </aside>

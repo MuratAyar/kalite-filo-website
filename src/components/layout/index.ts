@@ -13,4 +13,6 @@ export { MobilePageStart } from "./mobile-page-start";
 export { Section, type SectionProps } from "./section";
 export { SiteFooter } from "./site-footer";
 export { SiteHeader } from "./site-header";
+export { EnglishSiteFooter } from "./english-site-footer";
+export { EnglishSiteHeader } from "./english-site-header";
 export { Stack, type StackProps } from "./stack";

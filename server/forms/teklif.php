@@ -2,6 +2,7 @@
 declare(strict_types=1);
 
 require_once __DIR__ . '/quote-mailer.php';
+require_once __DIR__ . '/subscriber-store.php';
 
 const MAX_BODY_BYTES = 32768;
 const RATE_LIMIT_WINDOW_SECONDS = 600;
@@ -218,6 +219,7 @@ $lastName = normalized_field('soyad', 160, true);
 $countryCode = digits_only(normalized_field('ulke_kodu', 4, true));
 $phone = normalized_field('telefon', 32, true);
 $email = normalized_field('eposta', 254, true);
+$commercialEmailConsent = normalized_field('ticari_iletisim_onayi', 20, false);
 $title = normalized_field('unvan', 240, false);
 $identityNumber = digits_only(normalized_field('tc_kimlik_no', 11, !$isCorporate));
 
@@ -313,6 +315,9 @@ if (!$isCorporate && !is_valid_turkish_identity_number($identityNumber)) {
 if ($isCorporate && preg_match('/^[0-9]{10}$/', $taxNumber) !== 1) {
     $fieldErrors['vergi_numarasi'] = '*Vergi numarası 10 rakamdan oluşmalıdır.';
 }
+if ($commercialEmailConsent !== '' && $commercialEmailConsent !== 'onaylandi') {
+    $fieldErrors['ticari_iletisim_onayi'] = '*Ticari elektronik ileti tercihi geçerli değildir.';
+}
 if ($fieldErrors !== []) {
     respond_result('dogrulama', null, $fieldErrors);
 }
@@ -386,4 +391,14 @@ $sent = kalite_filo_send_quote_email([
     'reply_to_address' => $email,
     'reply_to_name' => $firstName . ' ' . $lastName,
 ]);
+if ($sent) {
+    try {
+        kalite_filo_store_form_contact($email, 'website_quote_form');
+        if ($commercialEmailConsent === 'onaylandi') {
+            kalite_filo_store_commercial_email_consent($email, 'website_quote_form');
+        }
+    } catch (Throwable $exception) {
+        error_log('Kalite Filo quote contact storage failed: ' . $exception->getMessage());
+    }
+}
 respond_result($sent ? 'basarili' : 'gonderilemedi', $sent ? $quoteNumber : null);

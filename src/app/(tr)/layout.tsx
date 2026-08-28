@@ -7,7 +7,7 @@ import { getSiteEnvironment } from "@/config/site";
 import { validateFoundationContent } from "@/lib/content-validation";
 import { createDefaultRobotsMetadata } from "@/lib/route-metadata";
 
-import "./globals.css";
+import "../globals.css";
 
 const siteEnvironment = getSiteEnvironment();
 validateFoundationContent();

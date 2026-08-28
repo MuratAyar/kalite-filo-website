@@ -4,6 +4,8 @@ import {
   getApprovedRouteById,
   type ApprovedRoute,
 } from "./routes";
+import { ENGLISH_STATIC_PATHS } from "./localized-routes";
+import { asInternalPath } from "@/lib";
 
 export const PUBLIC_STATIC_ROUTE_IDS = [
   "home",
@@ -15,6 +17,7 @@ export const PUBLIC_STATIC_ROUTE_IDS = [
   "privacy-security",
   "cookie-policy",
   "terms-of-use",
+  "form-privacy-notice",
   "quote",
 ] as const;
 
@@ -83,3 +86,22 @@ export const FOOTER_NAVIGATION_ITEMS: readonly PublicNavigationItem[] =
   );
 
 export const QUOTE_NAVIGATION_ITEM = createNavigationItems(["quote"])[0];
+
+const englishLabels: Readonly<Record<PublicStaticRouteId, string>> = Object.freeze({
+  home: "Home", about: "About Us", vehicles: "Vehicles", "fleet-guide": "Fleet Guide", faq: "FAQ",
+  contact: "Contact", "privacy-security": "Data Protection", "cookie-policy": "Cookie Policy",
+  "terms-of-use": "Terms of Use", "form-privacy-notice": "Privacy Notice", quote: "Request a Quote",
+});
+const englishPathsSource: Readonly<Record<PublicStaticRouteId, string>> = Object.freeze({
+  home: ENGLISH_STATIC_PATHS.home, about: ENGLISH_STATIC_PATHS.about, vehicles: ENGLISH_STATIC_PATHS.vehicles,
+  "fleet-guide": ENGLISH_STATIC_PATHS.fleetGuide, faq: ENGLISH_STATIC_PATHS.faq, contact: ENGLISH_STATIC_PATHS.contact,
+  "privacy-security": ENGLISH_STATIC_PATHS.dataProtection, "cookie-policy": ENGLISH_STATIC_PATHS.cookiePolicy,
+  "terms-of-use": ENGLISH_STATIC_PATHS.termsOfUse, "form-privacy-notice": ENGLISH_STATIC_PATHS.privacyNotice, quote: ENGLISH_STATIC_PATHS.quote,
+});
+const englishPaths = Object.freeze(Object.fromEntries(Object.entries(englishPathsSource).map(([id, path]) => [id, asInternalPath(path, `English navigation ${id}`)]))) as Readonly<Record<PublicStaticRouteId, InternalPath>>;
+function createEnglishNavigationItems(ids: readonly PublicStaticRouteId[]): readonly PublicNavigationItem[] {
+  return Object.freeze(ids.map((id) => Object.freeze({ id, label: englishLabels[id], path: englishPaths[id] })));
+}
+export const ENGLISH_PRIMARY_NAVIGATION_ITEMS = createEnglishNavigationItems(["about", "vehicles", "faq", "fleet-guide"]);
+export const ENGLISH_FOOTER_NAVIGATION_ITEMS = createEnglishNavigationItems(["about", "vehicles", "fleet-guide", "faq", "contact", "privacy-security", "cookie-policy", "terms-of-use", "quote"]);
+export const ENGLISH_QUOTE_NAVIGATION_ITEM = createEnglishNavigationItems(["quote"])[0];

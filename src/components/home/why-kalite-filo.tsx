@@ -6,6 +6,7 @@ import { HomeIcon, type HomeIconName } from "./home-icon";
 
 export type WhyKaliteFiloProps = {
   content: HomeWhyCopy;
+  imageAlt?: string;
 };
 
 const stepIcons: readonly HomeIconName[] = [
@@ -14,7 +15,7 @@ const stepIcons: readonly HomeIconName[] = [
   "clipboard",
 ];
 
-export function WhyKaliteFilo({ content }: WhyKaliteFiloProps) {
+export function WhyKaliteFilo({ content, imageAlt = "Filo planlamasını temsil eden yerleşim görseli" }: WhyKaliteFiloProps) {
   return (
     <Section
       aria-labelledby="why-kalite-filo-title"
@@ -54,7 +55,7 @@ export function WhyKaliteFilo({ content }: WhyKaliteFiloProps) {
           <div className="relative aspect-video min-h-0 overflow-hidden rounded-card border border-border-subtle bg-surface-muted md:min-h-64">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
-              alt="Filo planlamasını temsil eden yerleşim görseli"
+              alt={imageAlt}
               className="size-full object-cover"
               height="720"
               loading="lazy"

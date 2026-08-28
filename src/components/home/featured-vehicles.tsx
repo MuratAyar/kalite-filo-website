@@ -17,12 +17,14 @@ export type FeaturedVehiclesProps = {
   content: HomeFeaturedVehiclesCopy;
   vehicles: readonly VehiclePortfolioRecord[];
   vehiclesHref: InternalPath;
+  locale?: "en" | "tr";
 };
 
 export function FeaturedVehicles({
   content,
   vehicles,
   vehiclesHref,
+  locale = "tr",
 }: FeaturedVehiclesProps) {
   const featuredVehicles = vehicles
     .filter((vehicle) => vehicle.featured && vehicle.coverImage)
@@ -75,10 +77,10 @@ export function FeaturedVehicles({
                   key={vehicle.id}
                 >
                   <a
-                    aria-label={`${vehicle.make} ${vehicle.model} araç detayını incele`}
+                    aria-label={locale === "en" ? `View ${vehicle.make} ${vehicle.model} details` : `${vehicle.make} ${vehicle.model} araç detayını incele`}
                     className="group flex h-full flex-col overflow-hidden rounded-card border border-border-subtle bg-surface-card text-inherit no-underline shadow-[0_0.5rem_1.5rem_rgb(24_33_54_/_0.05)] transition-[border-color,box-shadow] hover:border-corporate-blue hover:shadow-[0_0.75rem_1.75rem_rgb(24_33_54_/_0.12)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus motion-reduce:transition-none"
                     data-vehicle-card-link="true"
-                    href={getVehicleDetailPath(vehicle.slug)}
+                    href={locale === "en" ? `/en/vehicles/${vehicle.slug}/` : getVehicleDetailPath(vehicle.slug)}
                   >
                     <div
                       className="relative aspect-[4/3] overflow-hidden bg-surface-muted"
@@ -108,15 +110,16 @@ export function FeaturedVehicles({
                       className="mt-2 border-t border-border-subtle pt-2 sm:mt-4 sm:pt-4"
                       fuelLabel={vehicle.fuelLabel}
                       transmissionLabel={vehicle.transmissionLabel}
+                      locale={locale}
                     />
 
                     <div className="mt-auto flex flex-col gap-3 border-t border-border-subtle pt-4 2xl:flex-row 2xl:items-end 2xl:justify-between">
-                    <VehicleListPrice compactCard listPrice={vehicle.listPrice} />
+                    <VehicleListPrice compactCard listPrice={vehicle.listPrice} locale={locale} />
                       <span
                         className="inline-flex min-h-11 w-full shrink-0 items-center justify-center rounded-control bg-accent-orange px-4 text-label font-semibold text-brand-navy transition-colors group-hover:bg-orange-dark group-focus-visible:bg-orange-dark motion-reduce:transition-none 2xl:w-auto"
                         data-vehicle-card-cta="true"
                       >
-                        Aracı İncele
+                        {locale === "en" ? "View Vehicle" : "Aracı İncele"}
                       </span>
                     </div>
                   </div>

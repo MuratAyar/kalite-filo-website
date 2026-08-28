@@ -1,13 +1,13 @@
 import { PageContainer, Section } from "@/components/layout";
 import { CardSurface, SectionHeading } from "@/components/ui";
-import { aboutPageContent } from "@/data/about";
+import type { AboutPageContent } from "@/data/about";
 
 import { AboutIcon, type AboutIconName } from "./about-icon";
 
 export function OperationalExcellence({
   content,
 }: {
-  content: typeof aboutPageContent.operational;
+  content: AboutPageContent["operational"];
 }) {
   return (
     <Section

@@ -3,6 +3,7 @@
 import { useRef, useState, type FormEvent } from "react";
 
 import { Button } from "@/components/ui/button";
+import { CommercialEmailConsent } from "@/components/forms/commercial-email-consent";
 
 type FieldErrors = Partial<Record<"isim" | "eposta" | "mesaj", string>>;
 type ContactResult = "basarili" | "dogrulama" | "limit" | "gonderilemedi" | "servis_yok";
@@ -19,13 +20,13 @@ const resultMessages: Record<ContactResult, { body: string; title: string }> = {
   servis_yok: { body: "Form gönderim servisi bu yerel önizlemede çalışmıyor. Form, PHP destekli staging ve production ortamında gönderilebilir.", title: "Gönderim servisi kullanılamıyor" },
 };
 
-function validationMessageFor(field: HTMLInputElement | HTMLTextAreaElement) {
-  if (field.validity.valueMissing) return "*Bu alan boş bırakılamaz.";
-  if (field.validity.typeMismatch) return "*Geçersiz e-posta adresi.";
-  return "*Bu alan geçerli formatta doldurulmalıdır.";
+function validationMessageFor(field: HTMLInputElement | HTMLTextAreaElement, locale: "en" | "tr") {
+  if (field.validity.valueMissing) return locale === "en" ? "*This field is required." : "*Bu alan boş bırakılamaz.";
+  if (field.validity.typeMismatch) return locale === "en" ? "*Enter a valid email address." : "*Geçersiz e-posta adresi.";
+  return locale === "en" ? "*Enter a valid value." : "*Bu alan geçerli formatta doldurulmalıdır.";
 }
 
-export function ContactForm() {
+export function ContactForm({ locale = "tr" }: { readonly locale?: "en" | "tr" }) {
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
   const [result, setResult] = useState<ContactResult | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -49,7 +50,7 @@ export function ContactForm() {
     const fields = Array.from(form.querySelectorAll<HTMLInputElement | HTMLTextAreaElement>("input:not([type='hidden']), textarea"));
     const invalidFields = fields.filter((field) => !field.checkValidity());
     if (invalidFields.length > 0) {
-      setFieldErrors(Object.fromEntries(invalidFields.map((field) => [field.name, validationMessageFor(field)])));
+      setFieldErrors(Object.fromEntries(invalidFields.map((field) => [field.name, validationMessageFor(field, locale)])));
       setResult("dogrulama");
       invalidFields[0]?.focus();
       return;
@@ -75,7 +76,7 @@ export function ContactForm() {
       const payload = (await response.json()) as ContactResponse;
       if (!response.ok || payload.result !== "basarili") {
         if (payload.result === "dogrulama" && payload.fieldErrors) {
-          setFieldErrors(payload.fieldErrors);
+          setFieldErrors(locale === "en" ? Object.fromEntries(Object.keys(payload.fieldErrors).map((key) => [key, "*Enter a valid value."])) : payload.fieldErrors);
           const firstInvalid = Object.keys(payload.fieldErrors)[0];
           const target = firstInvalid ? form.elements.namedItem(firstInvalid) : null;
           if (target instanceof HTMLElement) window.requestAnimationFrame(() => target.focus());
@@ -93,27 +94,34 @@ export function ContactForm() {
     }
   }
 
-  const resultMessage = result ? resultMessages[result] : null;
+  const englishResultMessages: typeof resultMessages = {
+    basarili: { title: "Your message has been sent", body: "Your message has reached our team. We will contact you as soon as possible." },
+    dogrulama: { title: "Check your information", body: "Review the highlighted fields and submit the form again." },
+    limit: { title: "Submission limit reached", body: "Several submissions were made in a short period. Please try again later." },
+    gonderilemedi: { title: "Message could not be sent", body: "A technical problem occurred. Please try again later or use our contact details." },
+    servis_yok: { title: "Submission service unavailable", body: "The form service is unavailable in this local preview. It can be used in the PHP-enabled staging and production environments." },
+  };
+  const resultMessage = result ? (locale === "en" ? englishResultMessages : resultMessages)[result] : null;
 
   return (
     <form acceptCharset="UTF-8" action="/forms/iletisim.php" aria-busy={submitting} className="space-y-5" method="post" noValidate onInput={clearFieldError} onSubmit={handleSubmit}>
       <div aria-hidden="true" className="absolute -left-[10000px] size-px overflow-hidden">
-        <label htmlFor="contact-website">Web sitesi</label>
+        <label htmlFor="contact-website">{locale === "en" ? "Website" : "Web sitesi"}</label>
         <input autoComplete="off" id="contact-website" name="website" tabIndex={-1} type="text" />
       </div>
       <div className="space-y-2">
-        <label className="block text-label font-semibold" htmlFor="contact-name">İsim Soyisim <span aria-hidden="true">*</span></label>
-        <input aria-describedby={fieldErrors.isim ? "contact-name-error" : undefined} aria-invalid={fieldErrors.isim ? true : undefined} autoComplete="name" className={fieldClassName} id="contact-name" name="isim" placeholder="Adınız Soyadınız" required type="text" />
+        <label className="block text-label font-semibold" htmlFor="contact-name">{locale === "en" ? "Full Name" : "İsim Soyisim"} <span aria-hidden="true">*</span></label>
+        <input aria-describedby={fieldErrors.isim ? "contact-name-error" : undefined} aria-invalid={fieldErrors.isim ? true : undefined} autoComplete="name" className={fieldClassName} id="contact-name" name="isim" placeholder={locale === "en" ? "Your full name" : "Adınız Soyadınız"} required type="text" />
         {fieldErrors.isim ? <p className="text-label text-error" id="contact-name-error">{fieldErrors.isim}</p> : null}
       </div>
       <div className="space-y-2">
-        <label className="block text-label font-semibold" htmlFor="contact-email">E-posta <span aria-hidden="true">*</span></label>
-        <input aria-describedby={fieldErrors.eposta ? "contact-email-error" : undefined} aria-invalid={fieldErrors.eposta ? true : undefined} autoComplete="email" className={fieldClassName} id="contact-email" name="eposta" placeholder="ornek@sirket.com" required type="email" />
+        <label className="block text-label font-semibold" htmlFor="contact-email">{locale === "en" ? "Email" : "E-posta"} <span aria-hidden="true">*</span></label>
+        <input aria-describedby={fieldErrors.eposta ? "contact-email-error" : undefined} aria-invalid={fieldErrors.eposta ? true : undefined} autoComplete="email" className={fieldClassName} id="contact-email" name="eposta" placeholder={locale === "en" ? "name@company.com" : "ornek@sirket.com"} required type="email" />
         {fieldErrors.eposta ? <p className="text-label text-error" id="contact-email-error">{fieldErrors.eposta}</p> : null}
       </div>
       <div className="space-y-2">
-        <label className="block text-label font-semibold" htmlFor="contact-message">Mesaj</label>
-        <textarea className={`${fieldClassName} min-h-36 resize-y py-3`} id="contact-message" name="mesaj" placeholder="Mesajınız..." rows={5} />
+        <label className="block text-label font-semibold" htmlFor="contact-message">{locale === "en" ? "Message" : "Mesaj"}</label>
+        <textarea className={`${fieldClassName} min-h-36 resize-y py-3`} id="contact-message" name="mesaj" placeholder={locale === "en" ? "Your message..." : "Mesajınız..."} rows={5} />
       </div>
       {resultMessage ? (
         <div className={`rounded-card border p-4 text-body ${result === "basarili" ? "border-success bg-success-surface text-success" : "border-error bg-error-surface text-error"}`} ref={resultRef} role={result === "basarili" ? "status" : "alert"} tabIndex={-1}>
@@ -121,7 +129,8 @@ export function ContactForm() {
           <p className="mt-1 text-label">{resultMessage.body}</p>
         </div>
       ) : null}
-      <Button disabled={submitting} fullWidth type="submit">{submitting ? "Gönderiliyor..." : "Gönder"} <span aria-hidden="true">→</span></Button>
+      <CommercialEmailConsent id="contact-commercial-email-consent" locale={locale} />
+      <Button disabled={submitting} fullWidth type="submit">{submitting ? (locale === "en" ? "Sending..." : "Gönderiliyor...") : (locale === "en" ? "Send" : "Gönder")} <span aria-hidden="true">→</span></Button>
     </form>
   );
 }

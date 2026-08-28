@@ -63,3 +63,30 @@ sınırını kullanır. Teklif alıcısını değiştirmez; özel yapılandırma
 `contact_recipient_address` ve `contact_recipient_name` alanlarına gönderir.
 Gerçek parola ve SMTP kimliği yalnızca document root dışındaki özel
 `kalite-filo-mail.php` dosyasında tutulmalıdır.
+
+## E-bülten ve kalıcı iletişim kaydı
+
+`bulten.php`, açık e-bülten onayıyla gelen adresleri `subscriber-store.php`
+üzerinden kaydeder. Teklif ve iletişim formlarında kullanılan e-posta adresleri
+de aynı denetim dosyasına yazılır; ancak bu kayıtlar pazarlama izni sayılmaz.
+Varsayılan kalıcı dosya document root ve release klasörlerinin dışındadır:
+
+```text
+/home/<cpanel-kullanıcısı>/private/kalite-filo-data/newsletter-contacts.csv
+```
+
+Yol gerektiğinde `KALITE_FILO_CONTACT_STORE_PATH` ile mutlak bir konuma
+taşınabilir. Dosya kilitli ve atomik güncellenir, izinleri `0600` yapılır. Şema:
+`id`, `email`, `status`, `consent_source`, `consent_text_version`, `consent_at`,
+`confirmed_at`, `unsubscribed_at`, `created_at`, `updated_at`, `iys_status`,
+`iys_synced_at`.
+
+E-bülten kaydı başlangıçta `pending` / `pending` durumundadır. Double opt-in ve
+gerçek İYS entegrasyonu henüz bulunmadığından `confirmed_at`, `iys_synced_at`
+boş kalır; kayıt otomatik olarak `active` veya `approved` ilan edilmez. Teklif ve
+iletişim kaynakları `lead_only` / `not_requested` olarak tutulur.
+
+cPanel File Manager'da hesap ana dizinine çıkıp `private` →
+`kalite-filo-data` → `newsletter-contacts.csv` yolundan dosya indirilebilir.
+Yeni release yalnızca document root'a açıldığı sürece bu dosya korunur. Yine de
+cPanel yedeğine bu özel dizin ayrıca dahil edilmelidir.

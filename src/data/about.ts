@@ -174,3 +174,13 @@ export const aboutPageContent = {
     ],
   } satisfies HomeEditorialCopy & { readonly articleIds: readonly string[] },
 } as const;
+
+type WidenContent<T> = T extends string
+  ? string
+  : T extends readonly (infer Item)[]
+    ? readonly WidenContent<Item>[]
+    : T extends object
+      ? { readonly [Key in keyof T]: WidenContent<T[Key]> }
+      : T;
+
+export type AboutPageContent = WidenContent<typeof aboutPageContent>;

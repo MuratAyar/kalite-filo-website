@@ -5,6 +5,7 @@ import { PrimaryNavigation } from "@/components/navigation/primary-navigation";
 import { PrivacySettingsButton } from "@/components/privacy";
 import {
   FOOTER_NAVIGATION_ITEMS,
+  ENGLISH_FOOTER_NAVIGATION_ITEMS,
   type PublicNavigationItem,
 } from "@/config/public-navigation";
 import { contactInformation } from "@/data/site";
@@ -64,18 +65,13 @@ const QUICK_LINK_IDS = new Set([
 function selectFooterItems(
   routeIds: ReadonlySet<string>,
 ): readonly PublicNavigationItem[] {
-  return FOOTER_NAVIGATION_ITEMS.filter((item) => routeIds.has(item.id));
+  return selectFooterItemsFrom(FOOTER_NAVIGATION_ITEMS, routeIds);
 }
 
-const QUICK_LINK_ITEMS = selectFooterItems(QUICK_LINK_IDS);
-const CORPORATE_ITEMS = selectFooterItems(
-  new Set([
-    "about",
-    "privacy-security",
-    "cookie-policy",
-    "terms-of-use",
-  ]),
-);
+function selectFooterItemsFrom(items: readonly PublicNavigationItem[], routeIds: ReadonlySet<string>): readonly PublicNavigationItem[] {
+  return items.filter((item) => routeIds.has(item.id));
+}
+
 const CONTACT_ITEMS = selectFooterItems(new Set(["contact"]));
 
 const contactLinkClasses =
@@ -105,16 +101,16 @@ function FooterNavigationGroup({
   );
 }
 
-function FooterContactGroup() {
+function FooterContactGroup({ locale = "tr" }: { locale?: "en" | "tr" }) {
   return (
     <div className="min-w-0">
       <h2 className="mb-3 text-body font-semibold text-text-inverse">
-        Bize Ulaşın
+        {locale === "en" ? "Contact Us" : "Bize Ulaşın"}
       </h2>
       <PrimaryNavigation
-        ariaLabel="Alt bilgi iletişim bağlantıları"
+        ariaLabel={locale === "en" ? "Footer contact links" : "Alt bilgi iletişim bağlantıları"}
         className="[&_ul]:!grid-cols-1"
-        items={CONTACT_ITEMS}
+        items={locale === "en" ? selectFooterItemsFrom(ENGLISH_FOOTER_NAVIGATION_ITEMS, new Set(["contact"])) : CONTACT_ITEMS}
         orientation="footer"
       />
       <address className="not-italic">
@@ -143,7 +139,7 @@ function FooterContactGroup() {
           ))}
         </ul>
       </address>
-      <PrivacySettingsButton />
+      <PrivacySettingsButton locale={locale} />
     </div>
   );
 }
@@ -198,19 +194,19 @@ function SocialIcon({ platform }: { platform: SocialPlatform }) {
   }
 }
 
-function FooterBottomBar() {
+function FooterBottomBar({ locale = "tr" }: { locale?: "en" | "tr" }) {
   return (
     <div className="mt-10 border-t border-text-inverse/15 pt-4 md:mt-12 lg:mt-16">
       <div className="grid min-w-0 items-center gap-3 md:grid-cols-[1fr_auto_1fr]">
         <p className="text-center text-[0.6875rem] font-medium tracking-wide text-text-inverse-muted md:text-left">
-          KALİTEFİLO TÜM HAKLARI SAKLIDIR.
+          {locale === "en" ? "KALITE FILO. ALL RIGHTS RESERVED." : "KALİTEFİLO TÜM HAKLARI SAKLIDIR."}
         </p>
 
-        <ul aria-label="Sosyal medya hesapları" className="flex flex-wrap items-center justify-center gap-1.5">
+        <ul aria-label={locale === "en" ? "Social media accounts" : "Sosyal medya hesapları"} className="flex flex-wrap items-center justify-center gap-1.5">
           {SOCIAL_LINKS.map((item) => (
             <li key={item.platform}>
               <a
-                aria-label={item.label}
+                aria-label={locale === "en" ? `Kalite Filo ${item.platform} account` : item.label}
                 className="inline-flex size-11 items-center justify-center rounded-full text-text-inverse-muted transition-colors hover:bg-text-inverse/10 hover:text-accent-orange focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-orange motion-reduce:transition-none"
                 href={item.href}
                 rel="noreferrer"
@@ -222,35 +218,38 @@ function FooterBottomBar() {
           ))}
         </ul>
 
-        <FooterPreferenceMenus />
+        <FooterPreferenceMenus locale={locale} />
       </div>
     </div>
   );
 }
 
 /** Public footer limited to verified brand and approved route decisions. */
-export function SiteFooter() {
+export function SiteFooter({ locale = "tr" }: { locale?: "en" | "tr" }) {
+  const footerItems = locale === "en" ? ENGLISH_FOOTER_NAVIGATION_ITEMS : FOOTER_NAVIGATION_ITEMS;
+  const quickItems = selectFooterItemsFrom(footerItems, QUICK_LINK_IDS);
+  const corporateItems = selectFooterItemsFrom(footerItems, new Set(["about", "privacy-security", "cookie-policy", "terms-of-use"]));
   return (
     <footer className="mt-auto w-full border-t border-navy-secondary bg-brand-navy pb-[env(safe-area-inset-bottom)] text-text-inverse">
       <PageContainer className="pb-5 pt-14 md:pb-6 md:pt-16 lg:pb-7 lg:pt-20">
         <div className="grid min-w-0 grid-cols-3 gap-x-3 gap-y-8 sm:gap-x-8 lg:grid-cols-[minmax(15rem,1.35fr)_repeat(3,minmax(0,0.65fr))] lg:items-start lg:gap-x-12">
           <div className="col-span-3 min-w-0 lg:col-span-1">
-            <BrandLink tone="inverse" />
+            <BrandLink homeHref={locale === "en" ? "/en/" : "/"} tone="inverse" />
           </div>
 
           <FooterNavigationGroup
-            ariaLabel="Alt bilgi hızlı bağlantıları"
-            items={QUICK_LINK_ITEMS}
-            title="Hızlı Linkler"
+            ariaLabel={locale === "en" ? "Footer quick links" : "Alt bilgi hızlı bağlantıları"}
+            items={quickItems}
+            title={locale === "en" ? "Quick Links" : "Hızlı Linkler"}
           />
           <FooterNavigationGroup
-            ariaLabel="Alt bilgi kurumsal bağlantıları"
-            items={CORPORATE_ITEMS}
-            title="Kurumsal"
+            ariaLabel={locale === "en" ? "Footer corporate links" : "Alt bilgi kurumsal bağlantıları"}
+            items={corporateItems}
+            title={locale === "en" ? "Corporate" : "Kurumsal"}
           />
-          <FooterContactGroup />
+          <FooterContactGroup locale={locale} />
         </div>
-        <FooterBottomBar />
+        <FooterBottomBar locale={locale} />
       </PageContainer>
     </footer>
   );

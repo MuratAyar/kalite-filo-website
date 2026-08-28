@@ -1,13 +1,15 @@
 import { PageContainer, Section } from "@/components/layout";
 import { CardSurface, SectionHeading } from "@/components/ui";
-import { aboutPageContent } from "@/data/about";
+import type { AboutPageContent } from "@/data/about";
 
 import { AboutIcon, type AboutIconName } from "./about-icon";
 
 export function ServiceNetwork({
   content,
+  imageAlt = "Kurumsal yerleşke otoparkında sıralanmış araçlar",
 }: {
-  content: typeof aboutPageContent.network;
+  content: AboutPageContent["network"];
+  imageAlt?: string;
 }) {
   return (
     <Section
@@ -27,7 +29,7 @@ export function ServiceNetwork({
           <figure className="relative min-h-64 overflow-hidden rounded-card border border-border-subtle bg-surface-muted sm:min-h-96 lg:min-h-[31rem]">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
-              alt="Kurumsal yerleşke otoparkında sıralanmış araçlar"
+              alt={imageAlt}
               className="absolute inset-0 size-full object-cover"
               height="720"
               loading="lazy"

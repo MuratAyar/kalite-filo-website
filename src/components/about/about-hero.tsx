@@ -1,14 +1,15 @@
 import { PageContainer, Section } from "@/components/layout";
 import { ActionLink, Button } from "@/components/ui";
-import { aboutPageContent } from "@/data/about";
+import type { AboutPageContent } from "@/data/about";
 
 import { AboutIcon } from "./about-icon";
 
 export type AboutHeroProps = {
-  content: typeof aboutPageContent.hero;
+  content: AboutPageContent["hero"];
+  imageAlts?: readonly [string, string];
 };
 
-export function AboutHero({ content }: AboutHeroProps) {
+export function AboutHero({ content, imageAlts = ["Ticari araçların bulunduğu kurumsal araç sahası", "Şehir yolunda hareket eden kurumsal otomobil"] }: AboutHeroProps) {
   return (
     <Section
       aria-labelledby="about-hero-title"
@@ -56,7 +57,7 @@ export function AboutHero({ content }: AboutHeroProps) {
             <figure className="relative row-span-2 min-h-0 overflow-hidden rounded-card border border-border-subtle bg-surface-muted sm:col-span-2 sm:row-span-1 sm:min-h-96 lg:col-span-1 lg:row-span-2 lg:min-h-[34rem]">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
-                alt="Ticari araçların bulunduğu kurumsal araç sahası"
+                alt={imageAlts[0]}
                 className="absolute inset-0 size-full object-cover"
                 height="800"
                 src="/images/home/commercial-fleet.jpg"
@@ -66,7 +67,7 @@ export function AboutHero({ content }: AboutHeroProps) {
             <figure className="relative min-h-0 overflow-hidden rounded-card border border-border-subtle bg-surface-muted sm:min-h-56 lg:min-h-0">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
-                alt="Şehir yolunda hareket eden kurumsal otomobil"
+                alt={imageAlts[1]}
                 className="absolute inset-0 size-full object-cover"
                 height="900"
                 src="/images/home/hero-fleet-highway.jpg"

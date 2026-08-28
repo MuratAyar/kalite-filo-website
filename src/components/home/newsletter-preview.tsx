@@ -2,10 +2,7 @@ import { PageContainer } from "@/components/layout/page-container";
 
 import { NewsletterSignupDemo } from "./newsletter-signup-demo";
 
-/**
- * Static newsletter section with an isolated, no-storage interaction demo.
- */
-export function NewsletterPreview() {
+export function NewsletterPreview({ locale = "tr" }: { locale?: "en" | "tr" }) {
   return (
     <section
       aria-labelledby="newsletter-preview-title"
@@ -17,17 +14,17 @@ export function NewsletterPreview() {
             className="text-heading-md font-semibold tracking-tight"
             id="newsletter-preview-title"
           >
-            E-Bültenimize Kaydolun
+            {locale === "en" ? "Subscribe to Our Newsletter" : "E-Bültenimize Kaydolun"}
           </h2>
           <p
             className="mt-1 text-label text-text-inverse-muted"
             id="newsletter-preview-status"
           >
-            Tasarım ön izlemesinde adresiniz gönderilmez veya kaydedilmez.
+            {locale === "en" ? "Subscribe for industry developments and Kalite Filo updates." : "Sektörel yenilikler ve Kalite Filo duyuruları için kayıt talebi oluşturun."}
           </p>
         </div>
 
-        <NewsletterSignupDemo />
+        <NewsletterSignupDemo locale={locale} />
       </PageContainer>
     </section>
   );

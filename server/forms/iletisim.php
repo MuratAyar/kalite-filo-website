@@ -2,6 +2,7 @@
 declare(strict_types=1);
 
 require_once __DIR__ . '/quote-mailer.php';
+require_once __DIR__ . '/subscriber-store.php';
 
 const CONTACT_MAX_BODY_BYTES = 16384;
 const CONTACT_RATE_LIMIT_WINDOW_SECONDS = 600;
@@ -138,12 +139,16 @@ if (!contact_rate_limit_allows_request()) contact_respond('limit');
 $name = contact_field('isim', 180, true);
 $email = contact_field('eposta', 254, true);
 $message = contact_field('mesaj', 5000, false);
+$commercialEmailConsent = contact_field('ticari_iletisim_onayi', 20, false);
 $fieldErrors = [];
 if (preg_match("/^[\\p{L}][\\p{L}' -]*$/u", $name) !== 1) {
     $fieldErrors['isim'] = '*İsim yalnızca harf, boşluk, kesme işareti ve kısa çizgi içerebilir.';
 }
 if (filter_var($email, FILTER_VALIDATE_EMAIL) === false || preg_match('/[\r\n]/', $email) === 1) {
     $fieldErrors['eposta'] = '*Geçersiz e-posta adresi.';
+}
+if ($commercialEmailConsent !== '' && $commercialEmailConsent !== 'onaylandi') {
+    $fieldErrors['ticari_iletisim_onayi'] = '*Ticari elektronik ileti tercihi geçerli değildir.';
 }
 if ($fieldErrors !== []) contact_respond('dogrulama', $fieldErrors);
 
@@ -175,4 +180,14 @@ $sent = kalite_filo_send_email([
     'reply_to_address' => $email,
     'reply_to_name' => $name,
 ], 'contact');
+if ($sent) {
+    try {
+        kalite_filo_store_form_contact($email, 'website_contact_form');
+        if ($commercialEmailConsent === 'onaylandi') {
+            kalite_filo_store_commercial_email_consent($email, 'website_contact_form');
+        }
+    } catch (Throwable $exception) {
+        error_log('Kalite Filo contact storage failed: ' . $exception->getMessage());
+    }
+}
 contact_respond($sent ? 'basarili' : 'gonderilemedi');

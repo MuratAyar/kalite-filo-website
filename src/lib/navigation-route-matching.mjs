@@ -8,6 +8,16 @@ const EXACT_ROUTE_OWNERS = Object.freeze({
   "/cerez-politikasi": "cookie-policy",
   "/kullanim-kosullari": "terms-of-use",
   "/teklif-al": "quote",
+  "/en/about-us": "about",
+  "/en/vehicles": "vehicles",
+  "/en/fleet-guide": "fleet-guide",
+  "/en/frequently-asked-questions": "faq",
+  "/en/contact": "contact",
+  "/en/data-protection-and-security": "privacy-security",
+  "/en/cookie-policy": "cookie-policy",
+  "/en/terms-of-use": "terms-of-use",
+  "/en/privacy-notice": "form-privacy-notice",
+  "/en/request-a-quote": "quote",
 });
 
 /**
@@ -47,6 +57,9 @@ export function getCurrentPublicNavigationRouteId(pathname) {
   if (normalizedPath.startsWith("/filo-rehberi/")) {
     return "fleet-guide";
   }
+
+  if (normalizedPath.startsWith("/en/vehicles/")) return "vehicles";
+  if (normalizedPath.startsWith("/en/fleet-guide/")) return "fleet-guide";
 
   return undefined;
 }

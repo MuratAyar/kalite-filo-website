@@ -62,6 +62,8 @@ export function assembleCpanelRelease(target, repositoryRoot = defaultRepository
   for (const requiredFile of [
     "teklif.php",
     "iletisim.php",
+    "bulten.php",
+    "subscriber-store.php",
     "quote-mailer.php",
     "composer.json",
     "composer.lock",
@@ -83,6 +85,8 @@ export function assembleCpanelRelease(target, repositoryRoot = defaultRepository
   for (const runtimeFile of [
     "teklif.php",
     "iletisim.php",
+    "bulten.php",
+    "subscriber-store.php",
     "quote-mailer.php",
     "composer.json",
     "composer.lock",

@@ -523,20 +523,25 @@ try {
       wrapperBoxShadow: wrapperStyle.boxShadow,
     };
   })()`);
-  const newsletterDemoState = await evaluate(`(() => {
+  const newsletterDemoState = await evaluate(`(async () => {
     const input = document.querySelector('#newsletter-preview-email');
     const form = input?.form;
     const dialog = document.querySelector('[aria-labelledby="newsletter-demo-title"]');
     if (!input || !form || !dialog) return null;
-    const resourcesBefore = performance.getEntriesByType('resource').length;
+    const originalFetch = window.fetch;
+    window.fetch = async () => new Response(JSON.stringify({ result: 'basarili' }), {
+      status: 200,
+      headers: { 'Content-Type': 'application/json' },
+    });
     input.value = 'tasarim@example.com';
     input.dispatchEvent(new Event('input', { bubbles: true }));
+    form.querySelector('input[name="consent"]').checked = true;
     form.requestSubmit();
+    await new Promise((resolve) => setTimeout(resolve, 100));
+    window.fetch = originalFetch;
     return {
       dialogOpen: dialog.open,
       inputCleared: input.value === '',
-      resourcesBefore,
-      resourcesAfter: performance.getEntriesByType('resource').length,
       message: dialog.innerText,
     };
   })()`);
@@ -544,7 +549,6 @@ try {
   if (
     !newsletterDemoState?.dialogOpen ||
     !newsletterDemoState.inputCleared ||
-    newsletterDemoState.resourcesBefore !== newsletterDemoState.resourcesAfter ||
     newsletterFocusState?.inputOutlineStyle !== "none" ||
     !newsletterFocusState?.wrapperBorderColor?.includes("255, 179, 67") ||
     newsletterFocusState?.wrapperBoxShadow !== "none" ||
@@ -556,8 +560,8 @@ try {
       "rgb(24,33,54)" ||
     featuredBrowseActionState?.color?.replace(/\s/g, "") !==
       "rgb(24,33,54)" ||
-    !newsletterDemoState.message.includes("gönderilmedi") ||
-    !newsletterDemoState.message.includes("kaydedilmedi")
+    !newsletterDemoState.message.includes("Kayıt talebiniz alındı") ||
+    !newsletterDemoState.message.includes("onay bekleyen")
   ) {
     throw new Error(
       `Newsletter/featured action smoke assertion failed: ${JSON.stringify({

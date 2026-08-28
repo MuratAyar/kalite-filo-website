@@ -25,7 +25,9 @@ import { getVehicleDetailPath } from "@/lib/paths";
 import { MobileVehicleFilterDialog } from "./mobile-vehicle-filter-dialog";
 
 export type VehicleCatalogueViewProps = {
+  displayRecords?: readonly VehiclePortfolioRecord[];
   filters: VehicleCatalogueFilters;
+  locale?: "en" | "tr";
   onFiltersChange?: (filters: VehicleCatalogueCandidateFilters) => void;
   records: readonly VehiclePortfolioRecord[];
 };
@@ -35,14 +37,25 @@ type FilterFieldsProps = Pick<
   "filters" | "onFiltersChange" | "records"
 > & {
   idPrefix: string;
+  locale: "en" | "tr";
 };
 
 const selectClassName =
   "min-h-12 w-full rounded-control border border-border-subtle bg-surface-card px-3 text-body text-text-primary disabled:cursor-not-allowed disabled:bg-surface-muted disabled:text-text-secondary";
 
-function getCategoryDisplayLabel(categoryLabel: string) {
+function getCategoryDisplayLabel(categoryLabel: string, locale: "en" | "tr") {
+  if (locale === "en") return categoryLabel === "Ticari" ? "Commercial Vehicles" : categoryLabel === "Binek" ? "Passenger Cars" : categoryLabel;
   return categoryLabel === "Ticari" ? "Ticari Araçlar" : categoryLabel;
 }
+
+const text = (locale: "en" | "tr", english: string, turkish: string) => locale === "en" ? english : turkish;
+const englishFilterLabels: Readonly<Record<string, string>> = Object.freeze({
+  Binek: "Passenger Cars", Ticari: "Commercial Vehicles", Benzin: "Petrol", Dizel: "Diesel", Elektrik: "Electric",
+  Otomatik: "Automatic", "Yarı Otomatik": "Semi-Automatic", Manuel: "Manual", "B/C-SUV Elektrik": "B/C-Segment Electric SUV",
+  "Büyük Panelvan": "Large Panel Van", "D Premium Sedan": "D-Segment Premium Saloon", "D-SUV Elektrik": "D-Segment Electric SUV",
+  "Küçük Combi": "Compact Combi Van", "Küçük Panelvan": "Compact Panel Van", "Orta Panelvan": "Medium Panel Van",
+});
+const displayFilterValue = (value: string, locale: "en" | "tr") => locale === "en" ? englishFilterLabels[value] ?? value : value;
 
 function updateFilter(
   filters: VehicleCatalogueFilters,
@@ -64,6 +77,7 @@ function updateFilter(
 function FilterFields({
   filters,
   idPrefix,
+  locale,
   onFiltersChange,
   records,
 }: FilterFieldsProps) {
@@ -86,7 +100,7 @@ function FilterFields({
   };
 
   return (
-    <form action={VEHICLE_CATALOGUE_PATH} className="space-y-5" method="get">
+    <form action={locale === "en" ? "/en/vehicles/" : VEHICLE_CATALOGUE_PATH} className="space-y-5" method="get">
       {filters.category ? (
         <input name="kategori" type="hidden" value={filters.category} />
       ) : null}
@@ -96,7 +110,7 @@ function FilterFields({
           className="mb-2 block text-label font-semibold text-text-primary"
           htmlFor={`${idPrefix}-make`}
         >
-          Marka
+          {text(locale, "Make", "Marka")}
         </label>
         <select
           className={selectClassName}
@@ -104,7 +118,7 @@ function FilterFields({
           name="marka"
           {...getSelectProps("make", filters.make ?? "")}
         >
-          <option value="">Tüm Markalar</option>
+          <option value="">{text(locale, "All Makes", "Tüm Markalar")}</option>
           {options.makes.map((make) => (
             <option key={make} value={make}>
               {make}
@@ -118,7 +132,7 @@ function FilterFields({
           className="mb-2 block text-label font-semibold text-text-primary"
           htmlFor={`${idPrefix}-model`}
         >
-          Model
+          {text(locale, "Model", "Model")}
         </label>
         <select
           className={selectClassName}
@@ -128,7 +142,7 @@ function FilterFields({
           {...getSelectProps("model", filters.model ?? "")}
         >
           <option value="">
-            {filters.make ? "Tüm Modeller" : "Önce marka seçiniz"}
+            {filters.make ? text(locale, "All Models", "Tüm Modeller") : text(locale, "Select a make first", "Önce marka seçiniz")}
           </option>
           {options.models.map((model) => (
             <option key={model} value={model}>
@@ -143,7 +157,7 @@ function FilterFields({
           className="mb-2 block text-label font-semibold text-text-primary"
           htmlFor={`${idPrefix}-segment`}
         >
-          Segment
+          {text(locale, "Segment", "Segment")}
         </label>
         <select
           className={selectClassName}
@@ -151,10 +165,10 @@ function FilterFields({
           name="segment"
           {...getSelectProps("segment", filters.segment ?? "")}
         >
-          <option value="">Tüm Segmentler</option>
+          <option value="">{text(locale, "All Segments", "Tüm Segmentler")}</option>
           {options.segments.map((segment) => (
             <option key={segment} value={segment}>
-              {segment}
+              {displayFilterValue(segment, locale)}
             </option>
           ))}
         </select>
@@ -165,7 +179,7 @@ function FilterFields({
           className="mb-2 block text-label font-semibold text-text-primary"
           htmlFor={`${idPrefix}-fuel`}
         >
-          Yakıt Tipi
+          {text(locale, "Fuel Type", "Yakıt Tipi")}
         </label>
         <select
           className={selectClassName}
@@ -173,10 +187,10 @@ function FilterFields({
           name="yakit"
           {...getSelectProps("fuel", filters.fuel ?? "")}
         >
-          <option value="">Tüm Yakıt Tipleri</option>
+          <option value="">{text(locale, "All Fuel Types", "Tüm Yakıt Tipleri")}</option>
           {options.fuels.map((fuel) => (
             <option key={fuel} value={fuel}>
-              {fuel}
+              {displayFilterValue(fuel, locale)}
             </option>
           ))}
         </select>
@@ -187,7 +201,7 @@ function FilterFields({
           className="mb-2 block text-label font-semibold text-text-primary"
           htmlFor={`${idPrefix}-transmission`}
         >
-          Vites Tipi
+          {text(locale, "Transmission", "Vites Tipi")}
         </label>
         <select
           className={selectClassName}
@@ -195,10 +209,10 @@ function FilterFields({
           name="vites"
           {...getSelectProps("transmission", filters.transmission ?? "")}
         >
-          <option value="">Tüm Vites Tipleri</option>
+          <option value="">{text(locale, "All Transmission Types", "Tüm Vites Tipleri")}</option>
           {options.transmissions.map((transmission) => (
             <option key={transmission} value={transmission}>
-              {transmission}
+              {displayFilterValue(transmission, locale)}
             </option>
           ))}
         </select>
@@ -206,7 +220,7 @@ function FilterFields({
 
       {!interactive ? (
         <Button fullWidth size="secondary" type="submit" variant="outline">
-          Filtreleri Uygula
+          {text(locale, "Apply Filters", "Filtreleri Uygula")}
         </Button>
       ) : null}
     </form>
@@ -215,16 +229,18 @@ function FilterFields({
 
 function VehicleFilterPanel({
   filters,
+  locale = "tr",
   onFiltersChange,
   records,
 }: Pick<
   VehicleCatalogueViewProps,
-  "filters" | "onFiltersChange" | "records"
+  "filters" | "locale" | "onFiltersChange" | "records"
 >) {
   const panelContents = (idPrefix: string) => (
     <FilterFields
       filters={filters}
       idPrefix={idPrefix}
+      locale={locale}
       onFiltersChange={onFiltersChange}
       records={records}
     />
@@ -240,10 +256,10 @@ function VehicleFilterPanel({
           className="text-heading-md font-semibold text-text-primary"
           id="desktop-vehicle-filters-title"
         >
-          Filtrele
+          {text(locale, "Filter", "Filtrele")}
         </h2>
         <p className="mt-1 text-label text-text-secondary">
-          Size en uygun aracı bulun
+          {text(locale, "Find the right vehicle for your needs", "Size en uygun aracı bulun")}
         </p>
         <div className="mt-6">{panelContents("desktop-vehicle-filter")}</div>
         {onFiltersChange ? (
@@ -256,7 +272,7 @@ function VehicleFilterPanel({
             type="button"
             variant="outline"
           >
-            Filtreleri Temizle
+            {text(locale, "Clear Filters", "Filtreleri Temizle")}
           </Button>
         ) : null}
       </aside>
@@ -266,8 +282,10 @@ function VehicleFilterPanel({
 }
 
 function VehicleCard({
+  locale,
   vehicle,
 }: {
+  locale: "en" | "tr";
   vehicle: VehiclePortfolioRecord;
 }) {
   const cardImage = getVehicleCardImage(vehicle);
@@ -280,10 +298,10 @@ function VehicleCard({
       data-vehicle-source-id={vehicle.sourceId}
     >
       <a
-        aria-label={`${vehicle.make} ${vehicle.model} araç detayını incele`}
+        aria-label={locale === "en" ? `View details for ${vehicle.make} ${vehicle.model}` : `${vehicle.make} ${vehicle.model} araç detayını incele`}
         className="group flex h-full min-w-0 flex-col overflow-hidden rounded-card border border-border-subtle bg-surface-card text-inherit no-underline shadow-[0_0.5rem_1.5rem_rgb(24_33_54_/_0.08)] transition-[border-color,box-shadow] hover:border-corporate-blue hover:shadow-[0_0.75rem_1.75rem_rgb(24_33_54_/_0.14)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus motion-reduce:transition-none"
         data-vehicle-card-link="true"
-        href={getVehicleDetailPath(vehicle.slug)}
+        href={locale === "en" ? `/en/vehicles/${vehicle.slug}/` : getVehicleDetailPath(vehicle.slug)}
       >
         <div
           className="relative aspect-[16/11] overflow-hidden bg-surface-muted"
@@ -313,15 +331,16 @@ function VehicleCard({
           className="mt-5 border-t border-border-subtle pt-4"
           fuelLabel={vehicle.fuelLabel}
           transmissionLabel={vehicle.transmissionLabel}
+          locale={locale}
         />
 
         <div className="mt-auto flex flex-col gap-3 border-t border-border-subtle pt-5 sm:flex-row sm:items-end sm:justify-between">
-          <VehicleListPrice compactCard listPrice={vehicle.listPrice} />
+          <VehicleListPrice compactCard listPrice={vehicle.listPrice} locale={locale} />
           <span
             className="inline-flex min-h-11 w-full shrink-0 items-center justify-center rounded-control bg-accent-orange px-4 text-label font-semibold text-brand-navy transition-colors group-hover:bg-orange-dark group-focus-visible:bg-orange-dark motion-reduce:transition-none sm:w-auto"
             data-vehicle-card-cta="true"
           >
-            Aracı İncele
+            {text(locale, "View Vehicle", "Aracı İncele")}
           </span>
         </div>
         </div>
@@ -332,8 +351,9 @@ function VehicleCard({
 
 function VehicleSortControl({
   filters,
+  locale = "tr",
   onFiltersChange,
-}: Pick<VehicleCatalogueViewProps, "filters" | "onFiltersChange">) {
+}: Pick<VehicleCatalogueViewProps, "filters" | "locale" | "onFiltersChange">) {
   const currentOption = VEHICLE_SORT_OPTIONS.find(
     (option) => option.value === filters.sort,
   );
@@ -348,7 +368,7 @@ function VehicleSortControl({
         <svg aria-hidden="true" className="size-5" fill="none" viewBox="0 0 24 24">
           <path d="M8 7h11M8 12h8M8 17h5M4 5v14m0 0-2.5-2.5M4 19l2.5-2.5" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.75" />
         </svg>
-        <span>{currentOption?.label ?? "Sırala"}</span>
+        <span>{currentOption ? (locale === "en" ? (currentOption.value === "fiyat-artan" ? "Price: Low to High" : "Price: High to Low") : currentOption.label) : text(locale, "Sort", "Sırala")}</span>
       </summary>
       <div className="absolute right-0 z-20 mt-2 min-w-48 overflow-hidden rounded-card border border-border-subtle bg-surface-card p-2 shadow-[0_0.75rem_1.75rem_rgb(24_33_54_/_0.14)]">
         {VEHICLE_SORT_OPTIONS.map((option) => {
@@ -372,7 +392,7 @@ function VehicleSortControl({
               }}
               type="button"
             >
-              {option.label}
+              {locale === "en" ? (option.value === "fiyat-artan" ? "Price: Low to High" : "Price: High to Low") : option.label}
               {isSelected ? <span aria-hidden="true">✓</span> : null}
             </button>
           );
@@ -383,26 +403,29 @@ function VehicleSortControl({
 }
 
 export function VehicleCatalogueView({
+  displayRecords,
   filters,
+  locale = "tr",
   onFiltersChange,
   records,
 }: VehicleCatalogueViewProps) {
   const filteredRecords = filterVehicleCatalogue(records, filters);
+  const displayBySlug = new Map((displayRecords ?? records).map((record) => [record.slug, record]));
   const activeFilters = [
     filters.category
       ? {
           key: "category" as const,
-          label: getCategoryDisplayLabel(filters.category),
+          label: getCategoryDisplayLabel(filters.category, locale),
         }
       : null,
     filters.make ? { key: "make" as const, label: filters.make } : null,
     filters.model ? { key: "model" as const, label: filters.model } : null,
-    filters.fuel ? { key: "fuel" as const, label: filters.fuel } : null,
+    filters.fuel ? { key: "fuel" as const, label: displayFilterValue(filters.fuel, locale) } : null,
     filters.segment
-      ? { key: "segment" as const, label: filters.segment }
+      ? { key: "segment" as const, label: displayFilterValue(filters.segment, locale) }
       : null,
     filters.transmission
-      ? { key: "transmission" as const, label: filters.transmission }
+      ? { key: "transmission" as const, label: displayFilterValue(filters.transmission, locale) }
       : null,
   ].filter((filter) => filter !== null);
 
@@ -428,6 +451,7 @@ export function VehicleCatalogueView({
     >
       <VehicleFilterPanel
         filters={filters}
+        locale={locale}
         onFiltersChange={onFiltersChange}
         records={records}
       />
@@ -435,7 +459,7 @@ export function VehicleCatalogueView({
       <div className="min-w-0">
         <section aria-labelledby="vehicle-category-filter-title">
           <h2 className="sr-only" id="vehicle-category-filter-title">
-            Araç kategorileri
+            {text(locale, "Vehicle categories", "Araç kategorileri")}
           </h2>
           <ul className="flex flex-wrap gap-x-2 gap-y-2 border-b border-border-subtle sm:gap-x-5">
             {VEHICLE_CATEGORY_OPTIONS.map((option) => {
@@ -455,7 +479,7 @@ export function VehicleCatalogueView({
                       onClick={() => setCategory(option.value)}
                       type="button"
                     >
-                      {option.label}
+                      {locale === "en" ? getCategoryDisplayLabel(option.value || "All Vehicles", locale) : option.label}
                     </button>
                   ) : (
                     <a
@@ -467,11 +491,11 @@ export function VehicleCatalogueView({
                       }`}
                       href={
                         option.value
-                          ? `${VEHICLE_CATALOGUE_PATH}?${serializeVehicleCatalogueFilters({ category: option.value })}`
-                          : VEHICLE_CATALOGUE_PATH
+                          ? `${locale === "en" ? "/en/vehicles/" : VEHICLE_CATALOGUE_PATH}?${serializeVehicleCatalogueFilters({ category: option.value })}`
+                          : locale === "en" ? "/en/vehicles/" : VEHICLE_CATALOGUE_PATH
                       }
                     >
-                      {option.label}
+                      {locale === "en" ? getCategoryDisplayLabel(option.value || "All Vehicles", locale) : option.label}
                     </a>
                   )}
                 </li>
@@ -485,7 +509,7 @@ export function VehicleCatalogueView({
           className="mt-5"
         >
           <h2 className="sr-only" id="selected-vehicle-filters-title">
-            Aktif araç filtreleri ve sonuçlar
+            {text(locale, "Active vehicle filters and results", "Aktif araç filtreleri ve sonuçlar")}
           </h2>
           {onFiltersChange ? (
             <div className="mb-3 flex items-center gap-2 lg:hidden">
@@ -494,15 +518,17 @@ export function VehicleCatalogueView({
                 className="mr-auto text-xs font-semibold text-text-primary"
                 data-vehicle-mobile-result-count={filteredRecords.length}
               >
-                {filteredRecords.length} araç gösteriliyor
+                {filteredRecords.length} {text(locale, "vehicles shown", "araç gösteriliyor")}
               </p>
               <MobileVehicleFilterDialog
                 filters={filters}
+                locale={locale}
                 onFiltersChange={onFiltersChange}
                 records={records}
               />
               <VehicleSortControl
                 filters={filters}
+                locale={locale}
                 onFiltersChange={onFiltersChange}
               />
             </div>
@@ -513,7 +539,7 @@ export function VehicleCatalogueView({
               data-vehicle-filter-count={activeFilters.length}
             >
               <span className="text-label text-text-secondary">
-                Aktif Filtreler:
+                {text(locale, "Active Filters:", "Aktif Filtreler:")}
               </span>
               {activeFilters.length > 0 ? (
                 activeFilters.map((filter) => (
@@ -527,13 +553,13 @@ export function VehicleCatalogueView({
                     {filter.label}
                     {onFiltersChange ? <span aria-hidden="true">×</span> : null}
                     {onFiltersChange ? (
-                      <span className="sr-only"> filtresini kaldır</span>
+                      <span className="sr-only">{text(locale, " remove filter", " filtresini kaldır")}</span>
                     ) : null}
                   </button>
                 ))
               ) : (
                 <span className="text-label font-medium text-text-primary">
-                  Tümü
+                  {text(locale, "All", "Tümü")}
                 </span>
               )}
             </div>
@@ -543,11 +569,12 @@ export function VehicleCatalogueView({
                 className="hidden text-label font-semibold text-text-primary lg:block"
                 data-vehicle-result-count={filteredRecords.length}
               >
-                {filteredRecords.length} araç gösteriliyor
+                {filteredRecords.length} {text(locale, "vehicles shown", "araç gösteriliyor")}
               </p>
               <div className="hidden lg:block">
                 <VehicleSortControl
                   filters={filters}
+                  locale={locale}
                   onFiltersChange={onFiltersChange}
                 />
               </div>
@@ -560,7 +587,7 @@ export function VehicleCatalogueView({
             <ul className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
               {filteredRecords.map((vehicle) => (
                 <li key={vehicle.id}>
-                  <VehicleCard vehicle={vehicle} />
+                  <VehicleCard locale={locale} vehicle={displayBySlug.get(vehicle.slug) ?? vehicle} />
                 </li>
               ))}
             </ul>
@@ -570,10 +597,10 @@ export function VehicleCatalogueView({
               role="status"
             >
               <p className="text-xl font-semibold text-text-primary">
-                Bu filtrelerle eşleşen araç bulunamadı.
+                {text(locale, "No vehicles match these filters.", "Bu filtrelerle eşleşen araç bulunamadı.")}
               </p>
               <p className="mt-2 text-body text-text-secondary">
-                Filtrelerden birini kaldırarak portföyü yeniden inceleyin.
+                {text(locale, "Remove a filter to review the portfolio again.", "Filtrelerden birini kaldırarak portföyü yeniden inceleyin.")}
               </p>
               {onFiltersChange ? (
                 <Button
@@ -584,7 +611,7 @@ export function VehicleCatalogueView({
                   type="button"
                   variant="outline"
                 >
-                  Filtreleri Temizle
+                  {text(locale, "Clear Filters", "Filtreleri Temizle")}
                 </Button>
               ) : null}
             </div>

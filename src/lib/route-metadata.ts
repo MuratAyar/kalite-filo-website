@@ -7,8 +7,17 @@ import {
   type SiteEnvironment,
 } from "@/config/site";
 import { asSlug } from "@/lib/validation";
+import { ENGLISH_ARTICLE_CATEGORY_SLUGS, ENGLISH_ARTICLE_SLUGS, ENGLISH_STATIC_PATHS } from "@/config/localized-routes";
 
 type RobotsMetadata = NonNullable<Metadata["robots"]>;
+
+const englishStaticPathByRouteId: Readonly<Record<string, string>> = Object.freeze({
+  home: ENGLISH_STATIC_PATHS.home, about: ENGLISH_STATIC_PATHS.about, vehicles: ENGLISH_STATIC_PATHS.vehicles,
+  "fleet-guide": ENGLISH_STATIC_PATHS.fleetGuide, faq: ENGLISH_STATIC_PATHS.faq, contact: ENGLISH_STATIC_PATHS.contact,
+  quote: ENGLISH_STATIC_PATHS.quote, "form-privacy-notice": ENGLISH_STATIC_PATHS.privacyNotice,
+  "privacy-security": ENGLISH_STATIC_PATHS.dataProtection, "cookie-policy": ENGLISH_STATIC_PATHS.cookiePolicy,
+  "terms-of-use": ENGLISH_STATIC_PATHS.termsOfUse,
+});
 
 function createNoIndexRobots(
   siteEnvironment: SiteEnvironment,
@@ -26,6 +35,15 @@ function createNoIndexRobots(
  */
 export function createDefaultRobotsMetadata(): RobotsMetadata {
   return createNoIndexRobots(getSiteEnvironment());
+}
+
+/** Keeps a translated route behind the same verified publication gate as its Turkish counterpart. */
+export function createTranslatedRouteRobots(routeId: string): RobotsMetadata {
+  const route = getApprovedRouteById(routeId);
+  const siteEnvironment = getSiteEnvironment();
+  return siteEnvironment.allowsSearchIndexing && route.status === "published" && route.indexable
+    ? { index: true, follow: true }
+    : createNoIndexRobots(siteEnvironment);
 }
 
 /**
@@ -51,6 +69,7 @@ export function createStaticRouteMetadata(routeId: string): Metadata {
   return {
     alternates: {
       canonical: route.path,
+      ...(englishStaticPathByRouteId[routeId] ? { languages: { tr: route.path, en: englishStaticPathByRouteId[routeId], "x-default": route.path } } : {}),
     },
     robots: mayIndex
       ? {
@@ -96,8 +115,20 @@ export function createFamilyRouteMetadata(
     route.status === "published" &&
     route.indexable;
 
+  let englishPath: string | undefined;
+  if (routeId === "vehicle-detail") englishPath = `/en/vehicles/${concreteSegments[1]}/`;
+  if (routeId === "fleet-guide-category") {
+    const category = ENGLISH_ARTICLE_CATEGORY_SLUGS[concreteSegments[1] as keyof typeof ENGLISH_ARTICLE_CATEGORY_SLUGS];
+    if (category) englishPath = `/en/fleet-guide/${category}/`;
+  }
+  if (routeId === "fleet-guide-article") {
+    const category = ENGLISH_ARTICLE_CATEGORY_SLUGS[concreteSegments[1] as keyof typeof ENGLISH_ARTICLE_CATEGORY_SLUGS];
+    const article = ENGLISH_ARTICLE_SLUGS[concreteSegments[2] as keyof typeof ENGLISH_ARTICLE_SLUGS];
+    if (category && article) englishPath = `/en/fleet-guide/${category}/${article}/`;
+  }
+
   return {
-    alternates: { canonical: concretePath },
+    alternates: { canonical: concretePath, ...(englishPath ? { languages: { tr: concretePath, en: englishPath, "x-default": concretePath } } : {}) },
     robots: mayIndex
       ? { index: true, follow: true }
       : createNoIndexRobots(siteEnvironment),

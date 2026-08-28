@@ -2,6 +2,11 @@ import { readFileSync } from "node:fs";
 import path from "node:path";
 
 export type LegalContentKey =
+  | "aydinlatma-metni"
+  | "cookie-policy-en"
+  | "privacy-notice-en"
+  | "data-protection-and-security-en"
+  | "terms-of-use-en"
   | "cerez-politikasi"
   | "kullanim-kosullari"
   | "kvkk-ve-guvenlik";
@@ -13,6 +18,11 @@ export type LegalDocumentSource = {
 };
 
 const legalContentKeys = new Set<LegalContentKey>([
+  "aydinlatma-metni",
+  "cookie-policy-en",
+  "privacy-notice-en",
+  "data-protection-and-security-en",
+  "terms-of-use-en",
   "cerez-politikasi",
   "kullanim-kosullari",
   "kvkk-ve-guvenlik",

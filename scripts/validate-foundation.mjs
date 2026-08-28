@@ -71,6 +71,8 @@ const contactPhpSourcePath = path.join(
   "forms",
   "iletisim.php",
 );
+const newsletterPhpSourcePath = path.join(repositoryRoot, "server", "forms", "bulten.php");
+const subscriberStoreSourcePath = path.join(repositoryRoot, "server", "forms", "subscriber-store.php");
 const quoteMailerSourcePath = path.join(
   repositoryRoot,
   "server",
@@ -618,6 +620,8 @@ export function validateQuotePhpSource({ requireComposerLock = true } = {}) {
   for (const [sourcePath, description] of [
     [quotePhpSourcePath, "quote PHP endpoint"],
     [contactPhpSourcePath, "contact PHP endpoint"],
+    [newsletterPhpSourcePath, "newsletter PHP endpoint"],
+    [subscriberStoreSourcePath, "durable subscriber store"],
     [quoteMailerSourcePath, "authenticated SMTP boundary"],
     [quoteMailExamplePath, "secret-free mail configuration example"],
     [quoteComposerJsonPath, "quote-form Composer manifest"],
@@ -634,6 +638,8 @@ export function validateQuotePhpSource({ requireComposerLock = true } = {}) {
 
   const content = readFileSync(quotePhpSourcePath, "utf8");
   const contactContent = readFileSync(contactPhpSourcePath, "utf8");
+  const newsletterContent = readFileSync(newsletterPhpSourcePath, "utf8");
+  const subscriberStoreContent = readFileSync(subscriberStoreSourcePath, "utf8");
   const mailerContent = readFileSync(quoteMailerSourcePath, "utf8");
   const exampleContent = readFileSync(quoteMailExamplePath, "utf8");
   const composerManifest = JSON.parse(readFileSync(quoteComposerJsonPath, "utf8"));
@@ -704,7 +710,29 @@ export function validateQuotePhpSource({ requireComposerLock = true } = {}) {
     if (!pattern.test(contactContent)) fail(`The contact PHP endpoint is missing ${description}.`);
   }
 
-  const projectOwnedPhp = [content, contactContent, mailerContent, exampleContent].join("\n");
+  for (const [pattern, description] of [
+    [/REQUEST_METHOD[^;]+POST/s, "POST-only handling"],
+    [/FILTER_VALIDATE_EMAIL/, "server-side email validation"],
+    [/2026-08-28-v2/, "the approved consent-text version"],
+    [/website_newsletter/, "the newsletter consent source"],
+    [/kalite_filo_store_contact\(/, "durable subscriber persistence"],
+  ]) {
+    if (!pattern.test(newsletterContent)) fail(`The newsletter PHP endpoint is missing ${description}.`);
+  }
+  for (const [pattern, description] of [
+    [/KALITE_FILO_CONTACT_STORE_PATH/, "the absolute-path environment override"],
+    [/newsletter-contacts\.csv/, "the durable CSV filename"],
+    [/consent_text_version/, "the consent audit schema"],
+    [/iys_synced_at/, "the IYS audit schema"],
+    [/flock\(/, "exclusive file locking"],
+    [/fputcsv\(/, "CSV serialization"],
+    [/rename\(/, "atomic replacement"],
+    [/chmod\([^;]+0600/, "private file permissions"],
+  ]) {
+    if (!pattern.test(subscriberStoreContent)) fail(`The subscriber store is missing ${description}.`);
+  }
+
+  const projectOwnedPhp = [content, contactContent, newsletterContent, subscriberStoreContent, mailerContent, exampleContent].join("\n");
   if (/\bmail\s*\(/i.test(projectOwnedPhp)) {
     fail("Project-owned quote PHP must not use PHP mail().");
   }
@@ -720,6 +748,10 @@ export function validateQuotePhpSource({ requireComposerLock = true } = {}) {
     path.join(repositoryRoot, "out", "forms", "teklif.php"),
     path.join(repositoryRoot, "public", "forms", "iletisim.php"),
     path.join(repositoryRoot, "out", "forms", "iletisim.php"),
+    path.join(repositoryRoot, "public", "forms", "bulten.php"),
+    path.join(repositoryRoot, "out", "forms", "bulten.php"),
+    path.join(repositoryRoot, "public", "forms", "subscriber-store.php"),
+    path.join(repositoryRoot, "out", "forms", "subscriber-store.php"),
     path.join(repositoryRoot, "public", "forms", "quote-mailer.php"),
     path.join(repositoryRoot, "out", "forms", "quote-mailer.php"),
     path.join(repositoryRoot, "server", "forms", "kalite-filo-mail.php"),
@@ -773,13 +805,14 @@ function validatePackageAndNextConfig() {
 
 export function routeToSourcePageFile(routePath) {
   if (routePath === "/") {
-    return path.join(repositoryRoot, "src", "app", "page.tsx");
+    return path.join(repositoryRoot, "src", "app", "(tr)", "page.tsx");
   }
 
   return path.join(
     repositoryRoot,
     "src",
     "app",
+    "(tr)",
     ...routePath.slice(1, -1).split("/"),
     "page.tsx",
   );

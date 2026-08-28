@@ -12,6 +12,7 @@ import { QuickVehicleFinder } from "./quick-vehicle-finder";
 
 export type HomeHeroProps = {
   content: HomeHeroCopy;
+  locale?: "en" | "tr";
   quoteHref: InternalPath;
   vehicles: readonly VehiclePortfolioRecord[];
   vehiclesHref: InternalPath;
@@ -19,6 +20,7 @@ export type HomeHeroProps = {
 
 export function HomeHero({
   content,
+  locale,
   quoteHref,
   vehicles,
   vehiclesHref,
@@ -85,6 +87,7 @@ export function HomeHero({
             actionHref={vehiclesHref}
             actionLabel={content.finder.action.label}
             description={content.finder.body}
+            locale={locale}
             options={finderOptions}
             title={content.finder.title}
           />

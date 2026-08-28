@@ -8,7 +8,7 @@ Last reconciled: 2026-08-13
 
 The Phase 1 shared public shell and the approved static route skeleton set are implemented as a Next.js static export. Home has since gained a review implementation backed by owner-supplied vehicle and Filo Rehberi data; the remaining public routes stay minimal skeletons.
 
-The shell remains build-time static and Server Component-first. Its one narrowly scoped authored Client Component reads the browser pathname and renders the navigation links with truthful current-page state. `RootLayout`, `SiteHeader`, `SiteFooter`, `MobileNavigation`, page skeletons, and the native mobile disclosure remain Server Components. Later Home work added three separate islands for result-query display, dependent finder selects, and a no-storage newsletter demo; none broadens the shell boundary. No dependency or menu script was added.
+The shell remains build-time static and Server Component-first. Its one narrowly scoped authored Client Component reads the browser pathname and renders the navigation links with truthful current-page state. `RootLayout`, `SiteHeader`, `SiteFooter`, `MobileNavigation`, page skeletons, and the native mobile disclosure remain Server Components. Later Home work added three separate islands for result-query display, dependent finder selects, and newsletter submission; none broadens the shell boundary. No dependency or menu script was added.
 
 The registry now contains **12 decisions: 10 static routes and 2 dynamic families**. All 10 static routes are implemented, unpublished, non-indexable, and excluded from the sitemap. The two approved dynamic route families remain registry decisions only; no vehicle or article detail page has been created even though owner-supplied local records now exist.
 
@@ -126,7 +126,7 @@ The dependency-free validator requires a source page and exported `index.html` f
 - excluded customer-login content; and
 - the existing runtime, dependency, external-asset, publication, sitemap, and route-family guardrails.
 
-The current validator allowlists exactly four narrow boundaries: shell route awareness, vehicle query display, dependent finder fields, and the no-storage newsletter demo. It rejects any other `use client` boundary, validates the local transparent PNG signature/dimensions/size in both `public/` and `out/`, and verifies every exported route contains the local logo with intrinsic dimensions and accessible alt text.
+The current validator allowlists narrow interactive boundaries, including shell route awareness, vehicle query display, dependent finder fields, and newsletter submission. It rejects unapproved `use client` boundaries, validates the local transparent PNG signature/dimensions/size in both `public/` and `out/`, and verifies every exported route contains the local logo with intrinsic dimensions and accessible alt text.
 
 Dependency-free route-matching tests cover all current navigation destinations, both approved future detail families, Home, an unknown path, trailing slashes, queries, and fragments. The exact current suite total belongs to the final integrated validation record below rather than this historical shell checkpoint.
 
@@ -198,7 +198,7 @@ Still unresolved and intentionally absent:
 - FAQ answers;
 - contact/quote forms, legal/consent copy, PHP endpoints, mail delivery, validation, and result states;
 - legal body content for the three implemented noindex skeletons;
-- functional newsletter processing, analytics, cookies/consent, and third-party integrations;
+- newsletter double opt-in, unsubscribe and IYS synchronization; analytics and third-party integrations;
 - final visual approval, true mobile/tablet designs, manual WCAG/browser testing, Apache configuration, and staging deployment verification.
 
 This document remains the shell checkpoint record, reconciled with the later Home/content/footer work. It does not claim that any route is published.

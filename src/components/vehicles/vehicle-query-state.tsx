@@ -14,11 +14,15 @@ import {
 import { VehicleCatalogueView } from "./vehicle-catalogue-view";
 
 export type VehicleQueryStateProps = {
+  displayRecords?: readonly VehiclePortfolioRecord[];
+  locale?: "en" | "tr";
   records: readonly VehiclePortfolioRecord[];
 };
 
 /** The only query-aware boundary for the statically exported vehicle index. */
 export function VehicleQueryState({
+  displayRecords,
+  locale = "tr",
   records,
 }: VehicleQueryStateProps) {
   const searchParams = useSearchParams();
@@ -41,6 +45,8 @@ export function VehicleQueryState({
   return (
     <VehicleCatalogueView
       filters={filters}
+      displayRecords={displayRecords}
+      locale={locale}
       onFiltersChange={replaceFilters}
       records={records}
     />

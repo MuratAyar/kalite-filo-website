@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 
 type LegalDocumentProps = {
   readonly markdown: string;
+  readonly locale?: "en" | "tr";
 };
 
 type TableOfContentsItem = {
@@ -11,6 +12,11 @@ type TableOfContentsItem = {
 };
 
 const approvedInternalLinks = new Map([
+  ["/aydinlatma-metni", "/aydinlatma-metni/"],
+  ["/en/data-protection-and-security/", "/en/data-protection-and-security/"],
+  ["/en/privacy-notice/", "/en/privacy-notice/"],
+  ["/en/cookie-policy/", "/en/cookie-policy/"],
+  ["/en/terms-of-use/", "/en/terms-of-use/"],
   ["/cerez-politikasi", "/cerez-politikasi/"],
   ["/kullanim-kosullari", "/kullanim-kosullari/"],
   ["/kvkk-ve-guvenlik", "/kvkk-ve-guvenlik/"],
@@ -302,7 +308,7 @@ function LegalDocumentBody({ markdown }: LegalDocumentProps) {
   return <div>{nodes}</div>;
 }
 
-export function LegalDocument({ markdown }: LegalDocumentProps) {
+export function LegalDocument({ markdown, locale = "tr" }: LegalDocumentProps) {
   const tableOfContents = getTableOfContents(markdown);
 
   return (
@@ -312,9 +318,9 @@ export function LegalDocument({ markdown }: LegalDocumentProps) {
       </article>
       <aside className="rounded-card border border-border-subtle bg-surface-card p-5 lg:sticky lg:top-24">
         <h2 className="text-label font-semibold tracking-wide text-text-primary uppercase">
-          İçindekiler
+          {locale === "en" ? "Contents" : "İçindekiler"}
         </h2>
-        <nav aria-label="Sayfa içeriği" className="mt-4">
+        <nav aria-label={locale === "en" ? "Page contents" : "Sayfa içeriği"} className="mt-4">
           <ol className="space-y-3">
             {tableOfContents.map((item) => (
               <li key={item.id}>

@@ -13,6 +13,7 @@ type FilterKey = "make" | "model" | "fuel" | "transmission" | "segment";
 
 type MobileVehicleFilterDialogProps = {
   filters: VehicleCatalogueFilters;
+  locale?: "en" | "tr";
   onFiltersChange: (filters: VehicleCatalogueCandidateFilters) => void;
   records: readonly VehiclePortfolioRecord[];
 };
@@ -32,9 +33,15 @@ const filterKeys: readonly FilterKey[] = [
   "transmission",
   "segment",
 ];
+const englishValues: Readonly<Record<string, string>> = Object.freeze({
+  Benzin: "Petrol", Dizel: "Diesel", Elektrik: "Electric", Otomatik: "Automatic", "Yarı Otomatik": "Semi-Automatic", Manuel: "Manual",
+  "B/C-SUV Elektrik": "B/C-Segment Electric SUV", "Büyük Panelvan": "Large Panel Van", "D Premium Sedan": "D-Segment Premium Saloon",
+  "D-SUV Elektrik": "D-Segment Electric SUV", "Küçük Combi": "Compact Combi Van", "Küçük Panelvan": "Compact Panel Van", "Orta Panelvan": "Medium Panel Van",
+});
 
 export function MobileVehicleFilterDialog({
   filters,
+  locale = "tr",
   onFiltersChange,
   records,
 }: MobileVehicleFilterDialogProps) {
@@ -98,7 +105,7 @@ export function MobileVehicleFilterDialog({
         <svg aria-hidden="true" className="size-5" fill="none" viewBox="0 0 24 24">
           <path d="M4 6h16M7 12h10m-7 6h4" stroke="currentColor" strokeLinecap="round" strokeWidth="1.75" />
         </svg>
-        Filtrele
+        {locale === "en" ? "Filter" : "Filtrele"}
       </button>
 
       {isOpen ? (
@@ -110,10 +117,10 @@ export function MobileVehicleFilterDialog({
         >
           <header className="flex min-h-14 items-center justify-between bg-brand-navy px-4 text-text-inverse">
             <h2 className="text-lg font-semibold" id="mobile-filter-dialog-title">
-              {activeFilter ? filterLabels[activeFilter] : "Araçları Filtrele"}
+              {activeFilter ? (locale === "en" ? ({ make: "Make", model: "Model", fuel: "Fuel Type", transmission: "Transmission", segment: "Segment" } as Record<FilterKey, string>)[activeFilter] : filterLabels[activeFilter]) : (locale === "en" ? "Filter Vehicles" : "Araçları Filtrele")}
             </h2>
             <button
-              aria-label="Filtreleri kapat"
+              aria-label={locale === "en" ? "Close filters" : "Filtreleri kapat"}
               className="inline-flex size-11 shrink-0 items-center justify-center rounded-pill bg-surface-card text-error transition-colors hover:bg-error-surface motion-reduce:transition-none"
               onClick={closeDialog}
               ref={closeButtonRef}
@@ -133,13 +140,13 @@ export function MobileVehicleFilterDialog({
           <div className="min-h-0 flex-1 overflow-y-auto px-2 py-1">
             {activeFilter ? (
               <fieldset>
-                <legend className="sr-only">{filterLabels[activeFilter]} seçimi</legend>
+                <legend className="sr-only">{locale === "en" ? `${({ make: "Make", model: "Model", fuel: "Fuel Type", transmission: "Transmission", segment: "Segment" } as Record<FilterKey, string>)[activeFilter]} selection` : `${filterLabels[activeFilter]} seçimi`}</legend>
                 <button
                   className="flex min-h-12 w-full items-center gap-2 border-b border-border-subtle px-3 text-left text-label font-semibold text-corporate-blue"
                   onClick={() => setActiveFilter(null)}
                   type="button"
                 >
-                  <span aria-hidden="true">←</span> Tüm filtreler
+                  <span aria-hidden="true">←</span> {locale === "en" ? "All filters" : "Tüm filtreler"}
                 </button>
                 {values[activeFilter].map((value) => {
                   const checked = filters[activeFilter] === value;
@@ -155,13 +162,13 @@ export function MobileVehicleFilterDialog({
                         onChange={() => selectValue(activeFilter, value)}
                         type="checkbox"
                       />
-                      {value}
+                      {locale === "en" ? englishValues[value] ?? value : value}
                     </label>
                   );
                 })}
                 {values[activeFilter].length === 0 ? (
                   <p className="px-3 py-6 text-body text-text-secondary">
-                    Önce bir marka seçiniz.
+                    {locale === "en" ? "Select a make first." : "Önce bir marka seçiniz."}
                   </p>
                 ) : null}
               </fieldset>
@@ -178,10 +185,10 @@ export function MobileVehicleFilterDialog({
                         type="button"
                       >
                         <span>
-                          {filterLabels[key]}
+                          {locale === "en" ? ({ make: "Make", model: "Model", fuel: "Fuel Type", transmission: "Transmission", segment: "Segment" } as Record<FilterKey, string>)[key] : filterLabels[key]}
                           {filters[key] ? (
                             <span className="ml-2 text-label font-normal text-corporate-blue">
-                              {filters[key]}
+                              {locale === "en" ? englishValues[filters[key] ?? ""] ?? filters[key] : filters[key]}
                             </span>
                           ) : null}
                         </span>
@@ -203,14 +210,14 @@ export function MobileVehicleFilterDialog({
               }}
               type="button"
             >
-              ↻ Sıfırla
+              ↻ {locale === "en" ? "Reset" : "Sıfırla"}
             </button>
             <button
               className="inline-flex min-h-12 items-center justify-center rounded-pill bg-accent-orange px-6 text-label font-semibold text-brand-navy transition-colors hover:bg-orange-dark motion-reduce:transition-none"
               onClick={closeDialog}
               type="button"
             >
-              Uygun Aracı Bul <span aria-hidden="true" className="ml-2">›</span>
+              {locale === "en" ? "Find a Suitable Vehicle" : "Uygun Aracı Bul"} <span aria-hidden="true" className="ml-2">›</span>
             </button>
           </footer>
         </div>

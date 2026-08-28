@@ -11,6 +11,7 @@ import { getModelsForSelectedMake } from "@/lib/vehicle-finder-options.mjs";
 export type VehicleFinderFieldsProps = {
   actionHref: InternalPath;
   actionLabel: string;
+  locale?: "en" | "tr";
   options: readonly VehicleFinderOptionGroup[];
 };
 
@@ -21,6 +22,7 @@ const selectClassName =
 export function VehicleFinderFields({
   actionHref,
   actionLabel,
+  locale = "tr",
   options,
 }: VehicleFinderFieldsProps) {
   const [selectedMake, setSelectedMake] = useState("");
@@ -54,7 +56,7 @@ export function VehicleFinderFields({
           className="mb-1 block text-label font-semibold text-text-inverse sm:mb-2"
           htmlFor="quick-vehicle-make"
         >
-          Marka Seçiniz
+          {locale === "en" ? "Select Make" : "Marka Seçiniz"}
         </label>
         <select
           className={selectClassName}
@@ -68,7 +70,9 @@ export function VehicleFinderFields({
           value={selectedMake}
         >
           <option className="bg-brand-navy text-text-inverse" value="">
-            {hasApprovedOptions ? "Tüm Markalar" : "Portföy verisi bekleniyor"}
+            {hasApprovedOptions
+              ? locale === "en" ? "All Makes" : "Tüm Markalar"
+              : locale === "en" ? "Portfolio data pending" : "Portföy verisi bekleniyor"}
           </option>
           {options.map((option) => (
             <option
@@ -86,7 +90,7 @@ export function VehicleFinderFields({
           className="mb-1 block text-label font-semibold text-text-inverse sm:mb-2"
           htmlFor="quick-vehicle-model"
         >
-          Model Seçiniz
+          {locale === "en" ? "Select Model" : "Model Seçiniz"}
         </label>
         <select
           className={selectClassName}
@@ -97,7 +101,9 @@ export function VehicleFinderFields({
           value={selectedModel}
         >
           <option className="bg-brand-navy text-text-inverse" value="">
-            {selectedMake ? "Tüm Modeller" : "Önce marka seçiniz"}
+            {selectedMake
+              ? locale === "en" ? "All Models" : "Tüm Modeller"
+              : locale === "en" ? "Select a make first" : "Önce marka seçiniz"}
           </option>
           {models.map((model) => (
             <option
@@ -122,7 +128,9 @@ export function VehicleFinderFields({
       </Button>
       {!hasApprovedOptions ? (
         <p className="text-sm leading-6 text-text-inverse-muted">
-          Doğrulanmış portföy seçenekleri eklendiğinde araç arama kullanılabilir.
+          {locale === "en"
+            ? "Vehicle search will be available when verified portfolio options are added."
+            : "Doğrulanmış portföy seçenekleri eklendiğinde araç arama kullanılabilir."}
         </p>
       ) : null}
     </form>

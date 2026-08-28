@@ -108,6 +108,15 @@
     "sitemap": false
   },
   {
+    "id": "form-privacy-notice",
+    "kind": "static",
+    "path": "/aydinlatma-metni/",
+    "label": "Aydınlatma Metni",
+    "status": "canonical-path",
+    "indexable": false,
+    "sitemap": false
+  },
+  {
     "id": "quote",
     "kind": "static",
     "path": "/teklif-al/",

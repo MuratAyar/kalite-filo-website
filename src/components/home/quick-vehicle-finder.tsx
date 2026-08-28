@@ -7,6 +7,7 @@ export type QuickVehicleFinderProps = {
   actionHref: InternalPath;
   actionLabel: string;
   description: string;
+  locale?: "en" | "tr";
   options: readonly VehicleFinderOptionGroup[];
   title: string;
 };
@@ -19,6 +20,7 @@ export function QuickVehicleFinder({
   actionHref,
   actionLabel,
   description,
+  locale,
   options,
   title,
 }: QuickVehicleFinderProps) {
@@ -31,6 +33,7 @@ export function QuickVehicleFinder({
       <VehicleFinderFields
         actionHref={actionHref}
         actionLabel={actionLabel}
+        locale={locale}
         options={options}
       />
     </aside>

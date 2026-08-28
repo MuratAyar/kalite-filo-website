@@ -8,25 +8,27 @@ import { getFiloRehberiArticlePath } from "@/lib/paths";
 export function QuoteSidebar({
   article,
   category,
+  locale = "tr",
 }: {
   article: Article;
   category: ArticleCategory;
+  locale?: "en" | "tr";
 }) {
   const phone = contactInformation.phones[0];
   const email = contactInformation.emails[0];
-  const articleHref = getFiloRehberiArticlePath(category.slug, article.slug);
+  const articleHref = locale === "en" ? `/en/fleet-guide/${category.slug}/${article.slug}/` : getFiloRehberiArticlePath(category.slug, article.slug);
 
   return (
-    <aside aria-label="Teklif desteği" className="space-y-6 lg:sticky lg:top-28 lg:self-start">
+    <aside aria-label={locale === "en" ? "Quotation support" : "Teklif desteği"} className="space-y-6 lg:sticky lg:top-28 lg:self-start">
       <section className="rounded-panel bg-brand-navy p-6 text-text-inverse shadow-panel sm:p-8">
         <div className="flex items-center gap-3 text-accent-orange">
           <svg aria-hidden="true" className="size-7" fill="none" viewBox="0 0 24 24">
             <path d="M4 13v-1a8 8 0 0 1 16 0v1M4 13h2v5H4a2 2 0 0 1-2-2v-1a2 2 0 0 1 2-2Zm16 0h-2v5h2a2 2 0 0 0 2-2v-1a2 2 0 0 0-2-2ZM18 18c0 2-2 3-5 3" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.7" />
           </svg>
-          <h2 className="text-heading-md font-semibold text-text-inverse">Teklif Desteği</h2>
+          <h2 className="text-heading-md font-semibold text-text-inverse">{locale === "en" ? "Quotation Support" : "Teklif Desteği"}</h2>
         </div>
         <p className="mt-4 text-body text-text-inverse-muted">
-          Form hakkında bilgi almak için doğrulanmış iletişim kanallarımızı kullanabilirsiniz.
+          {locale === "en" ? "Use our verified contact channels if you need assistance with the form." : "Form hakkında bilgi almak için doğrulanmış iletişim kanallarımızı kullanabilirsiniz."}
         </p>
         <div className="mt-6 space-y-3 border-t border-white/15 pt-6">
           <a className="flex min-h-11 items-center gap-3 rounded-control text-body text-text-inverse hover:text-accent-orange focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-orange" href={phone.href}>
@@ -52,7 +54,7 @@ export function QuoteSidebar({
             <h2 className="mt-2 text-body-lg font-semibold text-text-primary">{article.title}</h2>
             <p className="mt-2 line-clamp-3 text-body text-text-secondary">{article.excerpt}</p>
             <span className="mt-4 inline-flex items-center gap-2 text-label font-semibold text-corporate-blue">
-              İncele <span aria-hidden="true">→</span>
+              {locale === "en" ? "Read Article" : "İncele"} <span aria-hidden="true">→</span>
             </span>
           </div>
         </a>

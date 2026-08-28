@@ -376,7 +376,7 @@ test("rejects excluded customer and runtime-system routes", () => {
 test("maps directory-style routes to their source and export files", () => {
   assert.equal(
     routeToSourcePageFile("/hakkimizda/"),
-    path.join(repositoryRoot, "src", "app", "hakkimizda", "page.tsx"),
+    path.join(repositoryRoot, "src", "app", "(tr)", "hakkimizda", "page.tsx"),
   );
   assert.equal(
     routeToOutputFile("/hakkimizda/"),
@@ -384,7 +384,7 @@ test("maps directory-style routes to their source and export files", () => {
   );
   assert.equal(
     routeToSourcePageFile("/"),
-    path.join(repositoryRoot, "src", "app", "page.tsx"),
+    path.join(repositoryRoot, "src", "app", "(tr)", "page.tsx"),
   );
 });
 

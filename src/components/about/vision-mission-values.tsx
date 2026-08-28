@@ -1,10 +1,10 @@
 import { PageContainer, Section } from "@/components/layout";
-import { aboutPageContent } from "@/data/about";
+import type { AboutPageContent } from "@/data/about";
 
 import { AboutIcon, type AboutIconName } from "./about-icon";
 
 type VisionMissionValuesProps = {
-  content: typeof aboutPageContent.visionMissionValues;
+  content: AboutPageContent["visionMissionValues"];
 };
 
 export function VisionMissionValues({ content }: VisionMissionValuesProps) {

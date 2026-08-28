@@ -10,6 +10,7 @@ export type FleetGuideListingProps = {
   articles: readonly Article[];
   categories: readonly ArticleCategory[];
   initialCategoryId?: ArticleCategory["id"];
+  locale?: "en" | "tr";
 };
 
 const ARTICLES_PER_PAGE = 6;
@@ -17,28 +18,31 @@ const dateFormatter = new Intl.DateTimeFormat("tr-TR", {
   day: "2-digit", month: "short", timeZone: "UTC", year: "numeric",
 });
 
-function ArticleMeta({ article }: { article: Article }) {
+function ArticleMeta({ article, locale }: { article: Article; locale: "en" | "tr" }) {
+  const formatter = locale === "en" ? new Intl.DateTimeFormat("en-GB", {
+    day: "2-digit", month: "short", timeZone: "UTC", year: "numeric",
+  }) : dateFormatter;
   return (
     <p className="flex flex-wrap items-center gap-x-3 gap-y-1 text-label text-text-secondary">
       <time dateTime={article.publishedAt}>
-        {dateFormatter.format(new Date(`${article.publishedAt}T00:00:00Z`))}
+        {formatter.format(new Date(`${article.publishedAt}T00:00:00Z`))}
       </time>
       <span aria-hidden="true" className="text-border-control">·</span>
-      <span>{article.readingMinutes} dk. okuma</span>
+      <span>{locale === "en" ? `${article.readingMinutes} min read` : `${article.readingMinutes} dk. okuma`}</span>
     </p>
   );
 }
 
-function ArticleMedia({ article, eager = false }: { article: Article; eager?: boolean }) {
+function ArticleMedia({ article, eager = false, locale }: { article: Article; eager?: boolean; locale: "en" | "tr" }) {
   if (!article.coverImage) {
     return (
       <div
-        aria-label={`${article.title} için onaylı kapak görseli henüz mevcut değil.`}
+        aria-label={locale === "en" ? `No approved cover image is currently available for ${article.title}.` : `${article.title} için onaylı kapak görseli henüz mevcut değil.`}
         className="absolute inset-0 grid place-items-center bg-[linear-gradient(135deg,var(--kf-brand-navy),var(--kf-corporate-blue))] p-6 text-center text-label font-semibold text-text-inverse"
         data-fleet-guide-cover-placeholder="true"
         role="img"
       >
-        <span aria-hidden="true">Filo Rehberi</span>
+        <span aria-hidden="true">{locale === "en" ? "Fleet Guide" : "Filo Rehberi"}</span>
       </div>
     );
   }
@@ -50,7 +54,7 @@ function ArticleMedia({ article, eager = false }: { article: Article; eager?: bo
   );
 }
 
-export function FleetGuideListing({ articles, categories, initialCategoryId }: FleetGuideListingProps) {
+export function FleetGuideListing({ articles, categories, initialCategoryId, locale = "tr" }: FleetGuideListingProps) {
   const selectedCategoryId = initialCategoryId ?? "all";
   const [currentPage, setCurrentPage] = useState(1);
   const listingStartRef = useRef<HTMLDivElement>(null);
@@ -71,16 +75,16 @@ export function FleetGuideListing({ articles, categories, initialCategoryId }: F
     currentPage * ARTICLES_PER_PAGE,
   );
   const controls = [
-    { href: "/filo-rehberi/" as const, id: "all" as const, label: "Tüm İçerikler" },
+    { href: locale === "en" ? "/en/fleet-guide/" : "/filo-rehberi/", id: "all" as const, label: locale === "en" ? "All Articles" : "Tüm İçerikler" },
     ...approvedCategories.map((item) => ({
-      href: getFiloRehberiCategoryPath(item.slug), id: item.id, label: item.label,
+      href: locale === "en" ? `/en/fleet-guide/${item.slug}/` : getFiloRehberiCategoryPath(item.slug), id: item.id, label: item.label,
     })),
   ];
 
   function articlePath(article: Article) {
     const category = categoriesById.get(article.categoryId);
     if (!category) throw new Error(`Unknown category for article ${article.id}.`);
-    return getFiloRehberiArticlePath(category.slug, article.slug);
+    return locale === "en" ? `/en/fleet-guide/${category.slug}/${article.slug}/` : getFiloRehberiArticlePath(category.slug, article.slug);
   }
 
   useEffect(() => {
@@ -99,7 +103,7 @@ export function FleetGuideListing({ articles, categories, initialCategoryId }: F
   return (
     <div data-fleet-guide-listing="true" data-fleet-guide-page-count={pageCount}
       data-fleet-guide-page-size={ARTICLES_PER_PAGE} data-fleet-guide-record-count={approvedArticles.length}>
-      <div aria-label="Filo Rehberi kategorileri" className="border-b border-border-subtle outline-none"
+      <div aria-label={locale === "en" ? "Fleet Guide categories" : "Filo Rehberi kategorileri"} className="border-b border-border-subtle outline-none"
         data-fleet-guide-category-filter="true" ref={listingStartRef} tabIndex={-1}>
         <ul className="mobile-category-track flex gap-x-7 gap-y-2 sm:flex-wrap">
           {controls.map((control) => {
@@ -120,7 +124,7 @@ export function FleetGuideListing({ articles, categories, initialCategoryId }: F
       </div>
 
       <p aria-live="polite" className="sr-only">
-        {visibleArticles.length} içerikten {visibleGridArticles.length} tanesi, sayfa {currentPage} / {pageCount} gösteriliyor.
+        {locale === "en" ? `${visibleGridArticles.length} of ${visibleArticles.length} articles are shown, page ${currentPage} of ${pageCount}.` : `${visibleArticles.length} içerikten ${visibleGridArticles.length} tanesi, sayfa ${currentPage} / ${pageCount} gösteriliyor.`}
       </p>
 
       <div className="mt-10" id="fleet-guide-content">
@@ -129,11 +133,11 @@ export function FleetGuideListing({ articles, categories, initialCategoryId }: F
             <Link className="group grid h-full outline-none lg:grid-cols-2"
               data-fleet-guide-article-link="true" href={articlePath(featuredArticle)}>
               <div className="relative min-h-64 overflow-hidden bg-surface-muted lg:min-h-[25rem]">
-                <ArticleMedia article={featuredArticle} eager />
-                <span className="absolute top-5 left-5 rounded-pill bg-orange-light px-3 py-1 text-xs font-semibold text-orange-dark">Öne Çıkan</span>
+                <ArticleMedia article={featuredArticle} eager locale={locale} />
+                <span className="absolute top-5 left-5 rounded-pill bg-orange-light px-3 py-1 text-xs font-semibold text-orange-dark">{locale === "en" ? "Featured" : "Öne Çıkan"}</span>
               </div>
               <div className="flex flex-col justify-center p-6 md:p-8 lg:p-10">
-                <ArticleMeta article={featuredArticle} />
+                <ArticleMeta article={featuredArticle} locale={locale} />
                 <p className="mt-6 text-label font-semibold text-corporate-blue">{categoriesById.get(featuredArticle.categoryId)?.label}</p>
                 <h3 className="mt-3 text-heading-lg font-semibold text-balance text-text-primary group-hover:text-corporate-blue">{featuredArticle.title}</h3>
                 <p className="mt-5 max-w-2xl text-body-lg text-pretty text-text-secondary">{featuredArticle.excerpt}</p>
@@ -141,7 +145,7 @@ export function FleetGuideListing({ articles, categories, initialCategoryId }: F
             </Link>
           </article>
         ) : (
-          <p className="rounded-card border border-border-subtle bg-surface-card p-6 text-body text-text-secondary">Bu kategoride gösterilecek içerik bulunmuyor.</p>
+          <p className="rounded-card border border-border-subtle bg-surface-card p-6 text-body text-text-secondary">{locale === "en" ? "There are no articles available in this category." : "Bu kategoride gösterilecek içerik bulunmuyor."}</p>
         )}
 
         {gridArticles.length > 0 ? (
@@ -152,13 +156,13 @@ export function FleetGuideListing({ articles, categories, initialCategoryId }: F
                   <Link className="group flex h-full flex-col outline-none"
                     data-fleet-guide-article-link="true" href={articlePath(article)}>
                     <div className="relative aspect-video overflow-hidden bg-surface-muted">
-                      <ArticleMedia article={article} />
+                      <ArticleMedia article={article} locale={locale} />
                       <span className="absolute top-4 left-4 rounded-pill bg-surface-card/95 px-3 py-1 text-xs font-semibold text-brand-navy">{categoriesById.get(article.categoryId)?.label}</span>
                     </div>
                     <div className="flex flex-1 flex-col p-6">
                       <h3 className="text-heading-md font-semibold text-balance text-text-primary group-hover:text-corporate-blue">{article.title}</h3>
                       <p className="mt-4 flex-1 text-body text-pretty text-text-secondary">{article.excerpt}</p>
-                      <div className="mt-6 border-t border-border-subtle pt-5"><ArticleMeta article={article} /></div>
+                      <div className="mt-6 border-t border-border-subtle pt-5"><ArticleMeta article={article} locale={locale} /></div>
                     </div>
                   </Link>
                 </article>
@@ -168,14 +172,14 @@ export function FleetGuideListing({ articles, categories, initialCategoryId }: F
         ) : null}
 
         {pageCount > 1 ? (
-          <nav aria-label="Filo Rehberi sayfaları" className="mt-10 flex flex-wrap items-center justify-center gap-2" data-fleet-guide-pagination="true">
+          <nav aria-label={locale === "en" ? "Fleet Guide pages" : "Filo Rehberi sayfaları"} className="mt-10 flex flex-wrap items-center justify-center gap-2" data-fleet-guide-pagination="true">
             <button className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-control border border-border-control bg-surface-card px-3 text-label font-semibold text-text-primary transition-colors hover:border-corporate-blue hover:text-corporate-blue disabled:cursor-not-allowed disabled:opacity-40 motion-reduce:transition-none"
               data-fleet-guide-page-control="previous" disabled={currentPage === 1}
               onClick={() => changePage(Math.max(1, currentPage - 1))} type="button">
-              <span aria-hidden="true">←</span><span className="sr-only">Önceki sayfa</span>
+              <span aria-hidden="true">←</span><span className="sr-only">{locale === "en" ? "Previous page" : "Önceki sayfa"}</span>
             </button>
             {Array.from({ length: pageCount }, (_, index) => index + 1).map((page) => (
-              <button aria-current={currentPage === page ? "page" : undefined} aria-label={`${page}. sayfa`}
+              <button aria-current={currentPage === page ? "page" : undefined} aria-label={locale === "en" ? `Page ${page}` : `${page}. sayfa`}
                 className={classNames(
                   "inline-flex min-h-11 min-w-11 items-center justify-center rounded-control border px-3 text-label font-semibold transition-colors motion-reduce:transition-none",
                   currentPage === page ? "border-corporate-blue bg-corporate-blue text-text-inverse" : "border-border-control bg-surface-card text-text-primary hover:border-corporate-blue hover:text-corporate-blue",
@@ -185,7 +189,7 @@ export function FleetGuideListing({ articles, categories, initialCategoryId }: F
             <button className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-control border border-border-control bg-surface-card px-3 text-label font-semibold text-text-primary transition-colors hover:border-corporate-blue hover:text-corporate-blue disabled:cursor-not-allowed disabled:opacity-40 motion-reduce:transition-none"
               data-fleet-guide-page-control="next" disabled={currentPage === pageCount}
               onClick={() => changePage(Math.min(pageCount, currentPage + 1))} type="button">
-              <span aria-hidden="true">→</span><span className="sr-only">Sonraki sayfa</span>
+              <span aria-hidden="true">→</span><span className="sr-only">{locale === "en" ? "Next page" : "Sonraki sayfa"}</span>
             </button>
           </nav>
         ) : null}
