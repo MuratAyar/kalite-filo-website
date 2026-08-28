@@ -121,7 +121,7 @@ function inline(value: string): ReactNode[] {
       if (part.startsWith("`") && part.endsWith("`")) {
         return (
           <code
-            className="rounded-control bg-surface-muted px-1.5 py-0.5 text-[0.9em] text-text-primary"
+            className="break-all whitespace-normal rounded-control bg-surface-muted px-1.5 py-0.5 text-[0.9em] text-text-primary"
             key={index}
           >
             {part.slice(1, -1)}
@@ -198,7 +198,7 @@ function LegalDocumentBody({ markdown }: LegalDocumentProps) {
       if (head) {
         nodes.push(
           <div
-            className="mt-6 overflow-x-auto rounded-card border border-border-subtle bg-surface-card"
+            className="mt-6 max-w-full overflow-x-auto overscroll-x-contain rounded-card border border-border-subtle bg-surface-card"
             key={`table-${index}`}
           >
             <table className="w-full min-w-[42rem] border-collapse text-left text-body">
@@ -305,18 +305,18 @@ function LegalDocumentBody({ markdown }: LegalDocumentProps) {
     );
   }
 
-  return <div>{nodes}</div>;
+  return <div className="min-w-0 [overflow-wrap:anywhere]">{nodes}</div>;
 }
 
 export function LegalDocument({ markdown, locale = "tr" }: LegalDocumentProps) {
   const tableOfContents = getTableOfContents(markdown);
 
   return (
-    <div className="grid items-start gap-8 lg:grid-cols-[minmax(0,1fr)_18rem] xl:gap-12">
-      <article className="min-w-0 rounded-panel border border-border-subtle bg-surface-card px-5 py-7 shadow-sm sm:px-8 sm:py-10 lg:px-10">
+    <div className="grid max-w-full min-w-0 items-start gap-8 lg:grid-cols-[minmax(0,1fr)_18rem] xl:gap-12">
+      <article className="min-w-0 rounded-panel border border-border-subtle bg-surface-card px-5 py-7 shadow-sm [overflow-wrap:anywhere] sm:px-8 sm:py-10 lg:px-10">
         <LegalDocumentBody markdown={markdown} />
       </article>
-      <aside className="rounded-card border border-border-subtle bg-surface-card p-5 lg:sticky lg:top-24">
+      <aside className="min-w-0 rounded-card border border-border-subtle bg-surface-card p-5 [overflow-wrap:anywhere] lg:sticky lg:top-24">
         <h2 className="text-label font-semibold tracking-wide text-text-primary uppercase">
           {locale === "en" ? "Contents" : "İçindekiler"}
         </h2>
