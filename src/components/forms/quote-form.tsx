@@ -548,6 +548,7 @@ export function QuoteForm({ locale = "tr" }: { locale?: "en" | "tr" }) {
 
       <form acceptCharset="UTF-8" action="/forms/teklif.php" aria-busy={submissionState === "submitting"} className="space-y-12" method="post" noValidate onChange={clearFieldError} onInput={clearFieldError} onSubmit={handleSubmit}>
         <input name="form_turu" type="hidden" value={formType} />
+        <input name="locale" type="hidden" value={locale} />
         {formType === "sepet" ? <input name="sepet_json" type="hidden" value={JSON.stringify(cartItems)} /> : null}
         <div aria-hidden="true" className="absolute -left-[10000px] top-auto size-px overflow-hidden">
           <label htmlFor="quote-website">Web sitesi</label>

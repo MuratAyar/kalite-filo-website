@@ -9,7 +9,7 @@ function kalite_filo_contact_store_columns(): array
     return [
         'id', 'email', 'status', 'consent_source', 'consent_text_version',
         'consent_at', 'confirmed_at', 'unsubscribed_at', 'created_at',
-        'updated_at', 'iys_status', 'iys_synced_at',
+        'updated_at', 'iys_status', 'iys_synced_at', 'recipient_type',
     ];
 }
 
@@ -60,11 +60,15 @@ function kalite_filo_store_contact(array $record): array
             $input = fopen($path, 'rb');
             if ($input === false) throw new RuntimeException('Contact store could not be read.');
             $header = fgetcsv($input);
-            if ($header !== false && $header !== $columns) {
+            $legacyColumns = array_slice($columns, 0, -1);
+            if ($header !== false && $header !== $columns && $header !== $legacyColumns) {
                 fclose($input);
                 throw new RuntimeException('Contact store schema is not recognized.');
             }
             while (($values = fgetcsv($input)) !== false) {
+                if ($header === $legacyColumns && count($values) === count($legacyColumns)) {
+                    $values[] = 'BIREYSEL';
+                }
                 if (count($values) !== count($columns)) continue;
                 $row = array_combine($columns, $values);
                 if (!is_array($row)) continue;
@@ -86,7 +90,11 @@ function kalite_filo_store_contact(array $record): array
             'updated_at' => $now,
             'iys_status' => (string) ($record['iys_status'] ?? 'not_requested'),
             'iys_synced_at' => (string) ($record['iys_synced_at'] ?? ''),
+            'recipient_type' => strtoupper((string) ($record['recipient_type'] ?? 'BIREYSEL')),
         ];
+        if (!in_array($incoming['recipient_type'], ['BIREYSEL', 'TACIR'], true)) {
+            throw new InvalidArgumentException('Unknown IYS recipient type.');
+        }
 
         $stored = null;
         foreach ($rows as &$row) {
@@ -128,17 +136,18 @@ function kalite_filo_store_contact(array $record): array
     }
 }
 
-function kalite_filo_store_form_contact(string $email, string $source): void
+function kalite_filo_store_form_contact(string $email, string $source, string $recipientType = 'BIREYSEL'): void
 {
     kalite_filo_store_contact([
         'email' => $email,
         'status' => 'lead_only',
         'consent_source' => $source,
         'iys_status' => 'not_requested',
+        'recipient_type' => $recipientType,
     ]);
 }
 
-function kalite_filo_store_commercial_email_consent(string $email, string $source): void
+function kalite_filo_store_commercial_email_consent(string $email, string $source, string $recipientType = 'BIREYSEL'): void
 {
     kalite_filo_store_contact([
         'email' => $email,
@@ -147,5 +156,6 @@ function kalite_filo_store_commercial_email_consent(string $email, string $sourc
         'consent_text_version' => 'commercial-email-consent-2026-08-v1',
         'consent_at' => gmdate('Y-m-d H:i:s'),
         'iys_status' => 'pending',
+        'recipient_type' => $recipientType,
     ]);
 }

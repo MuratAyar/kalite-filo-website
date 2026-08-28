@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/quote-mailer.php';
 require_once __DIR__ . '/subscriber-store.php';
+require_once __DIR__ . '/customer-mailer.php';
 
 const CONTACT_MAX_BODY_BYTES = 16384;
 const CONTACT_RATE_LIMIT_WINDOW_SECONDS = 600;
@@ -140,6 +141,7 @@ $name = contact_field('isim', 180, true);
 $email = contact_field('eposta', 254, true);
 $message = contact_field('mesaj', 5000, false);
 $commercialEmailConsent = contact_field('ticari_iletisim_onayi', 20, false);
+$locale = contact_field('locale', 2, false) === 'en' ? 'en' : 'tr';
 $fieldErrors = [];
 if (preg_match("/^[\\p{L}][\\p{L}' -]*$/u", $name) !== 1) {
     $fieldErrors['isim'] = '*İsim yalnızca harf, boşluk, kesme işareti ve kısa çizgi içerebilir.';
@@ -188,6 +190,9 @@ if ($sent) {
         }
     } catch (Throwable $exception) {
         error_log('Kalite Filo contact storage failed: ' . $exception->getMessage());
+    }
+    if (!kalite_filo_send_customer_confirmation($email, $name, 'contact', $commercialEmailConsent === 'onaylandi', $locale)) {
+        error_log('Kalite Filo contact confirmation delivery failed.');
     }
 }
 contact_respond($sent ? 'basarili' : 'gonderilemedi');

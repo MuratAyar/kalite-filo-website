@@ -72,6 +72,7 @@ export function NewsletterSignupDemo({ locale = "tr" }: { locale?: "en" | "tr" }
         onSubmit={handleSubmit}
       >
         <input name="consent_text_version" type="hidden" value={CONSENT_TEXT_VERSION} />
+        <input name="locale" type="hidden" value={locale} />
         <div aria-hidden="true" className="absolute -left-[9999px]" role="presentation">
           <label htmlFor="newsletter-website">Website</label>
           <input autoComplete="off" id="newsletter-website" name="website" tabIndex={-1} />
@@ -158,7 +159,7 @@ export function NewsletterSignupDemo({ locale = "tr" }: { locale?: "en" | "tr" }
           </div>
           <h3 className="mt-5 text-heading-md font-semibold tracking-tight" id="newsletter-demo-title">{locale === "en" ? "Your subscription request has been received" : "Kayıt talebiniz alındı"}</h3>
           <p className="mt-3 text-body text-text-secondary" id="newsletter-demo-description">
-            {locale === "en" ? "Your email address has been recorded as a pending newsletter subscription. The applicable İYS process will also be completed." : "E-posta adresiniz onay bekleyen bülten kaydı olarak güvenli biçimde kaydedildi. İYS durumu ayrıca tamamlanacaktır."}
+            {locale === "en" ? "Your newsletter consent has been recorded. The applicable İYS registration will be completed separately, and a confirmation email has been sent to your address." : "E-bülten onayınız kaydedildi. İYS kaydı ayrıca tamamlanacak ve adresinize bir bilgilendirme e-postası gönderilmiştir."}
           </p>
           <form className="mt-6 flex justify-end" method="dialog">
             <Button size="compact" type="submit">{locale === "en" ? "Close" : "Tamam"}</Button>

@@ -191,3 +191,50 @@ function kalite_filo_send_quote_email(array $message): bool
 {
     return kalite_filo_send_email($message, 'quote');
 }
+
+/**
+ * Sends a transactional or consent-backed welcome message to a validated form user.
+ *
+ * @param array{subject: string, html_body: string, text_body: string} $message
+ */
+function kalite_filo_send_customer_email(array $message, string $recipientAddress, string $recipientName): bool
+{
+    try {
+        if (
+            filter_var($recipientAddress, FILTER_VALIDATE_EMAIL) === false
+            || preg_match('/[\r\n]/', $recipientAddress) === 1
+            || trim($recipientName) === ''
+            || preg_match('/[\r\n]/', $recipientName) === 1
+        ) {
+            throw new InvalidArgumentException('Customer mail recipient is invalid.');
+        }
+
+        require_once __DIR__ . '/vendor/autoload.php';
+        $config = kalite_filo_load_mail_config();
+        $mail = new PHPMailer(true);
+        $mail->isSMTP();
+        $mail->SMTPAuth = true;
+        $mail->Host = (string) $config['host'];
+        $mail->Port = (int) $config['port'];
+        $mail->Username = (string) $config['username'];
+        $mail->Password = (string) $config['password'];
+        $mail->SMTPSecure = $config['encryption'] === 'smtps'
+            ? PHPMailer::ENCRYPTION_SMTPS
+            : PHPMailer::ENCRYPTION_STARTTLS;
+        $mail->Timeout = 15;
+        $mail->SMTPDebug = 0;
+        $mail->CharSet = PHPMailer::CHARSET_UTF8;
+
+        $mail->setFrom((string) $config['from_address'], (string) $config['from_name']);
+        $mail->addAddress(trim($recipientAddress), trim($recipientName));
+        $mail->isHTML(true);
+        $mail->Subject = $message['subject'];
+        $mail->Body = $message['html_body'];
+        $mail->AltBody = $message['text_body'];
+
+        return $mail->send();
+    } catch (Throwable $exception) {
+        error_log('Kalite Filo customer SMTP delivery failed [' . get_class($exception) . '].');
+        return false;
+    }
+}

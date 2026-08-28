@@ -79,14 +79,52 @@ Yol gerektiğinde `KALITE_FILO_CONTACT_STORE_PATH` ile mutlak bir konuma
 taşınabilir. Dosya kilitli ve atomik güncellenir, izinleri `0600` yapılır. Şema:
 `id`, `email`, `status`, `consent_source`, `consent_text_version`, `consent_at`,
 `confirmed_at`, `unsubscribed_at`, `created_at`, `updated_at`, `iys_status`,
-`iys_synced_at`.
+`iys_synced_at`, `recipient_type`.
 
-E-bülten kaydı başlangıçta `pending` / `pending` durumundadır. Double opt-in ve
-gerçek İYS entegrasyonu henüz bulunmadığından `confirmed_at`, `iys_synced_at`
-boş kalır; kayıt otomatik olarak `active` veya `approved` ilan edilmez. Teklif ve
-iletişim kaynakları `lead_only` / `not_requested` olarak tutulur.
+Double opt-in ve gerçek İYS entegrasyonu birbirinden ayrıdır. Açık checkbox onayı bulunan kayıt
+yerelde `approved` / `pending` olur; `iys_synced_at` ancak İYS yüklemesi
+doğrulandıktan sonra doldurulmalıdır. Onaysız teklif ve iletişim kaynakları
+`lead_only` / `not_requested` olarak tutulur.
 
 cPanel File Manager'da hesap ana dizinine çıkıp `private` →
 `kalite-filo-data` → `newsletter-contacts.csv` yolundan dosya indirilebilir.
 Yeni release yalnızca document root'a açıldığı sürece bu dosya korunur. Yine de
 cPanel yedeğine bu özel dizin ayrıca dahil edilmelidir.
+
+## Kullanıcı bilgilendirme e-postaları
+
+Başarılı e-bülten, iletişim ve teklif işlemlerinden sonra kullanıcıya SMTP ile
+bir alındı e-postası gönderilir. E-bülten kaydı veya ticari ileti checkbox onayı
+varsa ileti, öne çıkan araç ve Filo Rehberi kartlarını da içerir. Onaysız
+iletişim/teklif taleplerinde yalnızca işlemsel alındı mesajı gönderilir.
+
+Özel `kalite-filo-mail.php` yapılandırmasındaki `from_address` üretimde
+`noreply@kalitefilo.com.tr`, `from_name` ise `Kalite Filo` olmalıdır. SMTP
+sunucusunda bu adresten göndermeye izin veren kimlik kullanılmalıdır. Kullanıcı
+e-postasının gönderilememesi, daha önce başarıyla teslim alınmış formu geri
+almaz; olay PHP hata günlüğüne yazılır.
+
+## Her akşam İYS CSV çıktısı
+
+`export-iys-daily.php` yalnızca PHP CLI altında çalışır. Son başarılı çalışmadan
+itibaren gelen `approved` ve İYS durumu `pending`/`failed` olan izinleri e-posta
+adresine göre tekilleştirir. Kayıt varsa şu dizinde tarihli çıktı oluşturur:
+
+```text
+/home/<cpanel-kullanıcısı>/private/kalite-filo-data/iys-email-permissions-YYYY-MM-DD.csv
+```
+
+Yeni izin yoksa CSV oluşturulmaz. cPanel Cron Jobs ekranında Europe/Istanbul
+saat dilimi doğrulandıktan sonra her gün 20.00 için aşağıdaki biçimde bir görev
+tanımlanmalıdır (PHP CLI ve hesap yolu cPanel'deki gerçek değerlerle değiştirilir):
+
+```cron
+0 20 * * * /usr/local/bin/php /home/<cpanel-kullanıcısı>/public_html/forms/export-iys-daily.php
+```
+
+İlk canlı kullanımdan önce İYS portalından indirilen güncel CSV şablonunun alan
+adları ve kabul ettiği enum değerleri, üretilen `recipient`, `consentDate`,
+`type`, `recipientType`, `source` alanlarıyla karşılaştırılmalıdır. Portal
+şablonu değişmişse exporter da canlıya çıkmadan güncellenmelidir. Dosya üretimi
+İYS'ye yükleme anlamına gelmez; yetkili kişi dosyayı portala yükleyip sonuç
+raporunu kontrol etmelidir.

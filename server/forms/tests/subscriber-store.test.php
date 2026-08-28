@@ -34,7 +34,7 @@ function subscriber_test_rows(string $path): array
 try {
     $newsletter = kalite_filo_store_contact([
         'email' => ' Test@Example.com ',
-        'status' => 'pending',
+        'status' => 'approved',
         'consent_source' => 'website_newsletter',
         'consent_text_version' => '2026-08-27-v1',
         'consent_at' => '2026-08-27 20:42:15',
@@ -42,7 +42,7 @@ try {
     ]);
     subscriber_test_assert($newsletter['id'] === '1', 'The first contact must receive ID 1.');
     subscriber_test_assert($newsletter['email'] === 'test@example.com', 'Email addresses must be normalized.');
-    subscriber_test_assert($newsletter['status'] === 'pending', 'Newsletter consent must remain pending until confirmation.');
+    subscriber_test_assert($newsletter['status'] === 'approved', 'Explicit newsletter consent must be stored as approved locally.');
 
     $updated = kalite_filo_store_contact([
         'email' => 'test@example.com',

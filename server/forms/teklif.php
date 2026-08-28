@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/quote-mailer.php';
 require_once __DIR__ . '/subscriber-store.php';
+require_once __DIR__ . '/customer-mailer.php';
 
 const MAX_BODY_BYTES = 32768;
 const RATE_LIMIT_WINDOW_SECONDS = 600;
@@ -220,6 +221,7 @@ $countryCode = digits_only(normalized_field('ulke_kodu', 4, true));
 $phone = normalized_field('telefon', 32, true);
 $email = normalized_field('eposta', 254, true);
 $commercialEmailConsent = normalized_field('ticari_iletisim_onayi', 20, false);
+$locale = normalized_field('locale', 2, false) === 'en' ? 'en' : 'tr';
 $title = normalized_field('unvan', 240, false);
 $identityNumber = digits_only(normalized_field('tc_kimlik_no', 11, !$isCorporate));
 
@@ -393,12 +395,16 @@ $sent = kalite_filo_send_quote_email([
 ]);
 if ($sent) {
     try {
-        kalite_filo_store_form_contact($email, 'website_quote_form');
+        $recipientType = $isCorporate ? 'TACIR' : 'BIREYSEL';
+        kalite_filo_store_form_contact($email, 'website_quote_form', $recipientType);
         if ($commercialEmailConsent === 'onaylandi') {
-            kalite_filo_store_commercial_email_consent($email, 'website_quote_form');
+            kalite_filo_store_commercial_email_consent($email, 'website_quote_form', $recipientType);
         }
     } catch (Throwable $exception) {
         error_log('Kalite Filo quote contact storage failed: ' . $exception->getMessage());
+    }
+    if (!kalite_filo_send_customer_confirmation($email, $firstName . ' ' . $lastName, 'quote', $commercialEmailConsent === 'onaylandi', $locale, $quoteNumber)) {
+        error_log('Kalite Filo quote confirmation delivery failed.');
     }
 }
 respond_result($sent ? 'basarili' : 'gonderilemedi', $sent ? $quoteNumber : null);

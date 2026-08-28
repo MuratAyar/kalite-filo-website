@@ -105,6 +105,7 @@ export function ContactForm({ locale = "tr" }: { readonly locale?: "en" | "tr" }
 
   return (
     <form acceptCharset="UTF-8" action="/forms/iletisim.php" aria-busy={submitting} className="space-y-5" method="post" noValidate onInput={clearFieldError} onSubmit={handleSubmit}>
+      <input name="locale" type="hidden" value={locale} />
       <div aria-hidden="true" className="absolute -left-[10000px] size-px overflow-hidden">
         <label htmlFor="contact-website">{locale === "en" ? "Website" : "Web sitesi"}</label>
         <input autoComplete="off" id="contact-website" name="website" tabIndex={-1} type="text" />

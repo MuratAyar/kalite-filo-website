@@ -6,10 +6,10 @@ return [
     'port' => 465,
     'encryption' => 'smtps',
 
-    'username' => 'CHANGE_ME',
+    'username' => 'noreply@kalitefilo.com.tr',
     'password' => 'CHANGE_ME',
 
-    'from_address' => 'CHANGE_ME',
+    'from_address' => 'noreply@kalitefilo.com.tr',
     'from_name' => 'Kalite Filo',
 
     'recipient_address' => 'CHANGE_ME',

@@ -2,6 +2,7 @@
 declare(strict_types=1);
 
 require_once __DIR__ . '/subscriber-store.php';
+require_once __DIR__ . '/customer-mailer.php';
 
 const NEWSLETTER_CONSENT_VERSION = '2026-08-28-v2';
 const NEWSLETTER_MAX_BODY_BYTES = 4096;
@@ -43,6 +44,7 @@ if (trim((string) ($_POST['website'] ?? '')) !== '') newsletter_respond('basaril
 $email = strtolower(trim((string) ($_POST['email'] ?? '')));
 $consent = (string) ($_POST['consent'] ?? '');
 $version = (string) ($_POST['consent_text_version'] ?? '');
+$locale = (string) ($_POST['locale'] ?? 'tr');
 if (filter_var($email, FILTER_VALIDATE_EMAIL) === false || preg_match('/[\r\n]/', $email) === 1) {
     newsletter_respond('gecersiz_email', 422);
 }
@@ -53,14 +55,18 @@ if ($consent !== 'onaylandi' || $version !== NEWSLETTER_CONSENT_VERSION) {
 try {
     kalite_filo_store_contact([
         'email' => $email,
-        'status' => 'pending',
+        'status' => 'approved',
         'consent_source' => 'website_newsletter',
         'consent_text_version' => NEWSLETTER_CONSENT_VERSION,
         'consent_at' => gmdate('Y-m-d H:i:s'),
         'iys_status' => 'pending',
+        'recipient_type' => 'BIREYSEL',
     ]);
 } catch (Throwable $exception) {
     error_log('Kalite Filo newsletter storage failed: ' . $exception->getMessage());
     newsletter_respond('kayit_hatasi', 500);
+}
+if (!kalite_filo_send_customer_confirmation($email, '', 'newsletter', true, $locale)) {
+    error_log('Kalite Filo newsletter confirmation delivery failed.');
 }
 newsletter_respond('basarili');
