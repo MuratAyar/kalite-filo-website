@@ -8,20 +8,19 @@ the status and handoff sections before ending.
 
 ## Current Status
 
-Phase 0 repository audit and architecture definition are complete. Phase 1 is
-implemented and validated locally: the secure PHP authentication boundary,
-static admin entry shell, release packaging, and automated tests pass. Phase 1
-remains open until the private Owner configuration and PHP session/cookie/header
-behavior are verified on the real staging host. No content mutation, subscriber
-mutation, campaign delivery, or publishing action is enabled. The public site
-remains a Next.js 16.2.11 static export.
+Phase 0 is complete. Phase 1 authentication is implemented and live staging now
+logs in successfully on the first submission after fixing the asynchronous form
+reference bug. Final browser confirmation of persistent logout/cookie headers
+remains an operational check. Phase 2 is in progress: an authenticated,
+read-only dashboard API and responsive operational overview are implemented and
+await staging deployment. No content mutation, subscriber mutation, campaign
+delivery, or publishing action is enabled. The public site remains a Next.js
+16.2.11 static export.
 
-Live staging session bootstrap is now verified: `/admin-api/session.php`
-returns an unauthenticated session, CSRF token and `staging` environment. Login
-still returns a generic service failure after credential submission, so Phase 1
-remains open. A safe staging-only diagnostic classification and correlation
-reference were added to the login response for the next deployment; secrets and
-filesystem paths remain server-log only.
+The Phase 2 release assembler creates a secrets-free immutable snapshot from
+the validated vehicle/article sources. PHP combines it with bounded, locked,
+read-only aggregates from the environment-specific newsletter CSV and audit
+JSONL stores. Staging never reads production admin data by design.
 
 The `/admin/` unauthenticated state now uses the approved Kalite Filo logo,
 existing `fleet-campus.jpg` asset and production design tokens in a dedicated
@@ -106,6 +105,7 @@ Proposed private layout (account paths are illustrative, never hard-coded):
 <account-home>/private/kalite-filo-admin/
   staging/config.php
   staging/data/{drafts,revisions,audit,rate-limits,queues,publish,media}/
+  staging/data/newsletter-contacts.csv  # synthetic/allowlisted staging records only
   production/config.php
   production/data/{drafts,revisions,audit,rate-limits,queues,publish,media}/
 <account-home>/private/kalite-filo-data/newsletter-contacts.csv
@@ -388,9 +388,17 @@ must be approved before personal-data operations launch.
 - [ ] Verify private Owner config and auth behavior on HTTPS staging
   - [x] Verify session bootstrap and CSRF issuance on HTTPS staging
   - [x] Add safe staging-only diagnostic classification and correlation reference
-  - [ ] Use the diagnostic response to resolve the live credential submission failure
-  - [ ] Verify successful login, rotation, authenticated session and logout
+  - [x] Resolve the live credential submission UI failure
+  - [x] Verify successful first-attempt login and authenticated session
+  - [ ] Verify persistent logout and cookie/header details in browser devtools
 - [ ] **Phase 2:** dashboard and read-only operational views
+  - [x] Add authenticated dashboard aggregate endpoint
+  - [x] Generate a release-time public content count snapshot
+  - [x] Add fail-closed newsletter/consent/IYS/unsubscribe aggregates
+  - [x] Add safe recent authentication activity view
+  - [x] Render responsive dashboard metrics and publish-status placeholders
+  - [ ] Verify dashboard data on HTTPS staging
+  - [ ] Add paginated audit log route/view
 - [ ] **Phase 3:** vehicle CRUD, price management and Featured Vehicles
 - [ ] **Phase 4:** Filo Rehberi CMS, TR/EN management and Media Library
 - [ ] **Phase 5:** Newsletter Contacts, IYS and unsubscribe infrastructure
@@ -449,26 +457,36 @@ must be approved before personal-data operations launch.
   explicit `/admin-api/` release packaging and secret/config release guards.
 - [x] Added authentication foundation and release integration tests without
   adding a database, ORM, runtime Next.js feature, or new dependency.
+- [x] Added `GET /admin-api/dashboard.php` with authentication, no-store headers,
+  bounded private-store reads and safe response fields.
+- [x] Added an immutable release-time snapshot reporting 32 active vehicles,
+  exactly four featured vehicles, 18 articles and zero explicit drafts.
+- [x] Added email-deduplicated newsletter metrics; unsubscribe suppresses
+  approved/IYS counts and approved consent requires stored evidence.
+- [x] Made the staging contact read model default to a staging-local synthetic
+  CSV; only production defaults to the existing canonical contact store.
+- [x] Replaced the Phase 1 placeholder panel with a responsive dashboard showing
+  eight metrics, recent safe audit activity, environment and publish state.
 
 ## Current Task
 
-Upload the hardened staging release, clear the existing admin session with the
-logout action (or the `__Host-kf_admin` site cookie), then verify that a fresh
-login succeeds immediately without refresh and that logout persists.
-Then verify authenticated session rotation, logout, permissions and environment
-isolation. Do not begin dashboard data work, CRUD, campaigns or publishing
-before this proof is recorded.
+Deploy the Phase 2 read-only dashboard release to staging and verify that the
+authenticated dashboard loads the expected public counts and staging-only
+private contact/audit aggregates. Confirm logout persistence and inspect cookie
+and response headers in browser devtools.
 
 ## Next Tasks
 
 - [x] Provision the staging private Owner config and verify the session endpoint.
-- [ ] Replace the staging document root with the refreshed `release/staging/`
-  artifact and capture the login diagnostic/reference.
+- [x] Verify first-attempt Owner login on HTTPS staging.
+- [ ] Replace the staging document root with the Phase 2 `release/staging/`
+  artifact and verify `/admin-api/dashboard.php` while authenticated.
 - [ ] Verify cPanel session persistence, cookie flags, origin/host behavior,
   response headers, rate-limit file permissions and logout in browser/devtools.
 - [ ] Verify whether Apache can apply no-store headers to static `/admin/` and
   disable directory listing without interfering with cPanel HTTPS rules.
-- [ ] Begin Phase 2 dashboard/read-only adapters only after staging auth proof.
+- [ ] Implement paginated `GET /admin-api/audit.php` and its read-only UI after
+  the dashboard endpoint is staging-verified.
 
 ## Known Issues
 
@@ -536,44 +554,45 @@ src/app/robots.ts                          (update)
 - `server/admin-api/README.md`
 - `server/admin-api/bootstrap.php`
 - `server/admin-api/auth.php`
+- `server/admin-api/read-model.php`
 - `server/admin-api/session.php`
 - `server/admin-api/login.php`
 - `server/admin-api/logout.php`
+- `server/admin-api/dashboard.php`
 - `server/admin-api/kalite-filo-admin.example.php`
 - `server/admin-api/tests/auth.test.php`
+- `server/admin-api/tests/dashboard.test.php`
 
 ## Validation Results
 
 - [x] `npm run lint`
 - [x] `npm run typecheck`
 - [x] `npm test` — 56 Node tests plus quote config, subscriber, IYS,
-  customer-mailer and admin authentication PHP suites passed
+  customer-mailer, admin authentication and dashboard read-model PHP suites passed
 - [x] Admin test syntax-checked every top-level admin PHP runtime/example file
 - [x] `npm run build:staging` — 140 static pages generated, including `/admin/`
 - [x] `npm run verify:output` — admin noindex/language and existing public
   artifact contracts passed
-- [x] `node scripts/assemble-cpanel-release.mjs staging` — release contains only
-  the five approved admin runtime PHP files; config example/tests are excluded
+- [x] `node scripts/assemble-cpanel-release.mjs staging` — release contains the
+  seven reviewed admin runtime files plus generated content snapshot; private
+  config, examples and tests are excluded
 - [x] `git diff --check`
 
 The authentication regression test now loads a private config containing a
 UTF-8 BOM and verifies that it does not leak response bytes/headers. Login now
 checks successful session-ID rotation before setting authenticated state.
 
-The 2026-08-29 follow-up release regenerated all 140 static pages and the cPanel
-staging artifact after adding safe login diagnostics. The live session endpoint
-was reported by the owner as healthy (`authenticated: false`, CSRF token and
-`environment: staging`); the refreshed artifact has not yet been uploaded. No
-secret, temporary plaintext credential or password hash was added to the
-repository.
+The 2026-08-29 Phase 2 release regenerated all 140 static pages. Snapshot
+inspection returned 32 active vehicles, four featured vehicles, 18 articles and
+zero explicit drafts. The cPanel artifact includes authenticated dashboard and
+read-model PHP files. No secret, plaintext credential or private contact data
+was added to the repository or release.
 
 ## Session Handoff
 
-Phase 0 and the local Phase 1 implementation are complete. The staging private
-config and PHP session bootstrap are verified. The live symptom confirmed that
-the first request authenticated server-side; the client then threw while
-resetting the form after `await`, retained its old CSRF token and did not render
-the returned authenticated session. Refresh found the valid server session.
-Upload the corrected `release/staging/`, clear the prior admin cookie/session,
-and verify fresh login plus logout. Only then
-mark Phase 1 `[x]` and begin Phase 2 dashboard/read-only adapters.
+Live staging first-attempt login is verified. Phase 2 read-only dashboard is
+implemented locally and packaged but not yet deployed. Next session must begin
+by reading this file, upload the refreshed staging artifact, then verify eight
+metrics, recent login activity, staging isolation and persistent logout. If the
+dashboard endpoint passes, add the paginated audit endpoint/view; do not begin
+vehicle mutations until Phase 2 read-only behavior is recorded as complete.

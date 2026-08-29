@@ -41,9 +41,12 @@ Git, in an environment checked into cPanel, or in browser code.
 - generic login errors, private audit records and no-store/noindex headers.
 
 `GET session.php` bootstraps the CSRF token. `POST login.php` and
-`POST logout.php` accept same-origin requests only. The release assembler copies
-only `bootstrap.php`, `auth.php`, and these three endpoints; examples and tests
-are excluded.
+`POST logout.php` accept same-origin requests only. Authenticated
+`GET dashboard.php` combines a release-generated, secrets-free public content
+snapshot with bounded read-only aggregates from the target's private contact
+and audit stores. The snapshot PHP file returns data when required and emits no
+direct HTTP content. Examples, tests and private configuration are excluded
+from releases.
 
 Before production use, deploy to staging and verify cookie/session persistence,
 cPanel environment/default path behavior, permissions, headers, throttling and

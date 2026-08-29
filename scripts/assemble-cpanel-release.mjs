@@ -3,8 +3,10 @@ import {
   cpSync,
   existsSync,
   mkdirSync,
+  readFileSync,
   readdirSync,
   rmSync,
+  writeFileSync,
 } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -39,6 +41,35 @@ export function assertNoReleaseSecrets(directory) {
     }
     if (entry.isDirectory()) assertNoReleaseSecrets(resolved);
   }
+}
+
+export function createAdminContentSnapshot(repositoryRoot, target) {
+  const vehicles = JSON.parse(readFileSync(
+    path.join(repositoryRoot, "src", "data", "vehicle-portfolio.json"),
+    "utf8",
+  ));
+  const articles = JSON.parse(readFileSync(
+    path.join(repositoryRoot, "src", "data", "article-records.json"),
+    "utf8",
+  ));
+  if (!Array.isArray(vehicles) || !Array.isArray(articles)) {
+    throw new Error("Admin content snapshot sources must be JSON arrays.");
+  }
+  return {
+    schemaVersion: 1,
+    environment: target,
+    generatedAt: new Date().toISOString(),
+    vehicles: {
+      active: vehicles.filter((vehicle) => vehicle?.sourceStatus === "active").length,
+      featured: vehicles.filter(
+        (vehicle) => vehicle?.sourceStatus === "active" && vehicle?.featured === true,
+      ).length,
+    },
+    articles: {
+      total: articles.length,
+      draft: articles.filter((article) => article?.publicationStatus === "draft").length,
+    },
+  };
 }
 
 export function assembleCpanelRelease(target, repositoryRoot = defaultRepositoryRoot) {
@@ -80,9 +111,11 @@ export function assembleCpanelRelease(target, repositoryRoot = defaultRepository
   const adminRuntimeFiles = [
     "bootstrap.php",
     "auth.php",
+    "read-model.php",
     "session.php",
     "login.php",
     "logout.php",
+    "dashboard.php",
   ];
   for (const requiredFile of adminRuntimeFiles) {
     if (!existsSync(path.join(adminApiSource, requiredFile))) {
@@ -124,6 +157,13 @@ export function assembleCpanelRelease(target, repositoryRoot = defaultRepository
       path.join(adminApiDirectory, runtimeFile),
     );
   }
+  const snapshot = createAdminContentSnapshot(repositoryRoot, target);
+  const encodedSnapshot = Buffer.from(JSON.stringify(snapshot), "utf8").toString("base64");
+  writeFileSync(
+    path.join(adminApiDirectory, "_content-snapshot.php"),
+    `<?php\ndeclare(strict_types=1);\nif (realpath((string) ($_SERVER['SCRIPT_FILENAME'] ?? '')) === __FILE__) { http_response_code(404); exit; }\nreturn json_decode(base64_decode('${encodedSnapshot}', true), true, 8, JSON_THROW_ON_ERROR);\n`,
+    { encoding: "utf8", mode: 0o644 },
+  );
 
   assertNoReleaseSecrets(releaseRoot);
   return releaseRoot;

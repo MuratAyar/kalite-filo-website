@@ -45,12 +45,17 @@ $_SERVER['REMOTE_ADDR'] = '192.0.2.10';
 
 try {
     require_once dirname(__DIR__) . '/auth.php';
+    require_once dirname(__DIR__) . '/read-model.php';
 
     $config = kalite_filo_admin_config();
     admin_test_assert(!headers_sent(), 'A UTF-8 BOM in private config must not leak into the response.');
     admin_test_assert($config['environment'] === 'staging', 'Admin environment must be isolated to staging.');
     admin_test_assert($config['data_root'] === $dataRoot, 'Private data root must come from private config.');
     admin_test_assert(password_verify('correct horse battery staple', $config['users'][0]['password_hash']), 'Configured password hash must verify.');
+    admin_test_assert(
+        kalite_filo_admin_contact_store_path() === $dataRoot . DIRECTORY_SEPARATOR . 'newsletter-contacts.csv',
+        'Staging dashboard contacts must default to the isolated staging data root.',
+    );
     admin_test_assert(kalite_filo_admin_find_user('owner.test') !== null, 'Configured owner must be found.');
     admin_test_assert(kalite_filo_admin_find_user('missing') === null, 'Unknown users must not resolve.');
 

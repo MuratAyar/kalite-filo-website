@@ -15,6 +15,16 @@ function createFixture(name) {
   writeFileSync(path.join(root, "out", "index.html"), "<!doctype html>");
   mkdirSync(path.join(root, "server", "forms"), { recursive: true });
   mkdirSync(path.join(root, "server", "admin-api"), { recursive: true });
+  mkdirSync(path.join(root, "src", "data"), { recursive: true });
+  writeFileSync(path.join(root, "src", "data", "vehicle-portfolio.json"), JSON.stringify([
+    { sourceStatus: "active", featured: true },
+    { sourceStatus: "active", featured: false },
+    { sourceStatus: "archived", featured: false },
+  ]));
+  writeFileSync(path.join(root, "src", "data", "article-records.json"), JSON.stringify([
+    { publicationStatus: "published" },
+    { publicationStatus: "draft" },
+  ]));
   for (const file of [
     "teklif.php",
     "iletisim.php",
@@ -31,9 +41,11 @@ function createFixture(name) {
   for (const file of [
     "bootstrap.php",
     "auth.php",
+    "read-model.php",
     "session.php",
     "login.php",
     "logout.php",
+    "dashboard.php",
   ]) {
     writeFileSync(path.join(root, "server", "admin-api", file), "fixture");
   }
@@ -86,9 +98,12 @@ test("release assembly includes the complete Composer mail runtime and no privat
     "forms/vendor/autoload.php",
     "admin-api/bootstrap.php",
     "admin-api/auth.php",
+    "admin-api/read-model.php",
     "admin-api/session.php",
     "admin-api/login.php",
     "admin-api/logout.php",
+    "admin-api/dashboard.php",
+    "admin-api/_content-snapshot.php",
   ]) {
     assert.equal(existsSync(path.join(releaseRoot, relativePath)), true, relativePath);
   }
@@ -96,4 +111,10 @@ test("release assembly includes the complete Composer mail runtime and no privat
   assert.equal(existsSync(path.join(releaseRoot, "admin-api", "kalite-filo-admin.example.php")), false);
   assert.equal(existsSync(path.join(releaseRoot, "admin-api", "tests")), false);
   assert.equal(readFileSync(path.join(releaseRoot, "index.html"), "utf8"), "<!doctype html>");
+  const snapshotSource = readFileSync(
+    path.join(releaseRoot, "admin-api", "_content-snapshot.php"),
+    "utf8",
+  );
+  assert.match(snapshotSource, /^<\?php/);
+  assert.equal(snapshotSource.includes("password"), false);
 });

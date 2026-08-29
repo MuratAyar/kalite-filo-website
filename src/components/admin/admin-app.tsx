@@ -16,10 +16,38 @@ type SessionState = {
   user?: AdminIdentity;
 };
 
+type DashboardActivity = {
+  id: string;
+  timestamp: string;
+  adminId: string | null;
+  action: string;
+  entityType: string;
+  entityId: string | null;
+  result: string;
+};
+
+type DashboardData = {
+  metrics: {
+    activeVehicles: number;
+    featuredVehicles: number;
+    articles: number;
+    draftArticles: number;
+    newsletterContacts: number;
+    approvedMarketingConsents: number;
+    iysPending: number;
+    unsubscribed: number;
+  };
+  recentActivity: DashboardActivity[];
+  publishing: { staging: null; production: null };
+  failures: unknown[];
+  snapshotGeneratedAt: string;
+};
+
 const endpoints = {
   session: "/admin-api/session.php",
   login: "/admin-api/login.php",
   logout: "/admin-api/logout.php",
+  dashboard: "/admin-api/dashboard.php",
 } as const;
 
 async function readResponse(response: Response): Promise<Record<string, unknown>> {
@@ -54,6 +82,52 @@ function parseSession(payload: Record<string, unknown>): SessionState | null {
     environment: payload.environment,
     user,
   };
+}
+
+function parseDashboard(payload: Record<string, unknown>): DashboardData | null {
+  const metrics = payload.metrics;
+  const activity = payload.recentActivity;
+  const publishing = payload.publishing;
+  const metricKeys = [
+    "activeVehicles", "featuredVehicles", "articles", "draftArticles",
+    "newsletterContacts", "approvedMarketingConsents", "iysPending", "unsubscribed",
+  ] as const;
+  if (
+    typeof metrics !== "object" || metrics === null ||
+    !metricKeys.every((key) => Number.isSafeInteger((metrics as Record<string, unknown>)[key])) ||
+    !Array.isArray(activity) || !Array.isArray(payload.failures) ||
+    typeof publishing !== "object" || publishing === null ||
+    typeof payload.snapshotGeneratedAt !== "string"
+  ) return null;
+  const parsedActivity = activity.filter((item): item is DashboardActivity => {
+    if (typeof item !== "object" || item === null) return false;
+    const record = item as Record<string, unknown>;
+    return typeof record.id === "string" && typeof record.timestamp === "string"
+      && (typeof record.adminId === "string" || record.adminId === null)
+      && typeof record.action === "string" && typeof record.entityType === "string"
+      && (typeof record.entityId === "string" || record.entityId === null)
+      && typeof record.result === "string";
+  });
+  return {
+    metrics: metrics as DashboardData["metrics"],
+    recentActivity: parsedActivity,
+    publishing: { staging: null, production: null },
+    failures: payload.failures,
+    snapshotGeneratedAt: payload.snapshotGeneratedAt,
+  };
+}
+
+const activityLabels: Record<string, string> = {
+  login: "Oturum açıldı",
+  logout: "Oturum kapatıldı",
+  failed_login: "Başarısız giriş denemesi",
+};
+
+function formatActivityDate(value: string): string {
+  const date = new Date(value);
+  return Number.isNaN(date.getTime())
+    ? "Tarih bilinmiyor"
+    : new Intl.DateTimeFormat("tr-TR", { dateStyle: "medium", timeStyle: "short" }).format(date);
 }
 
 function messageForError(error: unknown, diagnostic?: unknown, reference?: unknown): string {
@@ -97,6 +171,9 @@ export function AdminApp() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
   const [passwordVisible, setPasswordVisible] = useState(false);
+  const [dashboard, setDashboard] = useState<DashboardData | null>(null);
+  const [dashboardLoading, setDashboardLoading] = useState(true);
+  const [dashboardError, setDashboardError] = useState("");
 
   useEffect(() => {
     let active = true;
@@ -120,6 +197,28 @@ export function AdminApp() {
       active = false;
     };
   }, []);
+
+  useEffect(() => {
+    if (!session?.authenticated) return;
+    let active = true;
+    void fetch(endpoints.dashboard, {
+      cache: "no-store",
+      credentials: "same-origin",
+      headers: { Accept: "application/json" },
+    }).then(async (response) => {
+      const parsed = parseDashboard(await readResponse(response));
+      if (!response.ok || !parsed) throw new Error("dashboard_unavailable");
+      if (active) {
+        setDashboardError("");
+        setDashboard(parsed);
+      }
+    }).catch(() => {
+      if (active) setDashboardError("Dashboard verileri şu anda yüklenemiyor.");
+    }).finally(() => {
+      if (active) setDashboardLoading(false);
+    });
+    return () => { active = false; };
+  }, [session?.authenticated]);
 
   async function handleLogin(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -155,6 +254,7 @@ export function AdminApp() {
         return;
       }
       formElement.reset();
+      setDashboardLoading(true);
       setSession(parsed);
     } catch {
       setError("Yönetim servisine şu anda ulaşılamıyor.");
@@ -192,6 +292,7 @@ export function AdminApp() {
       const parsed = parseSession(await readResponse(bootstrapResponse));
       if (!bootstrapResponse.ok || !parsed) throw new Error("session_unavailable");
       setSession(parsed);
+      setDashboard(null);
     } catch {
       setError("Oturum kapatılamadı. Lütfen sayfayı yenileyin.");
     } finally {
@@ -279,8 +380,11 @@ export function AdminApp() {
             {session.environment === "staging" ? "Staging" : "Production"}
           </span>
         </div>
-        <nav aria-label="Yönetim" className="mt-8">
+        <nav aria-label="Yönetim" className="mt-8 space-y-1">
           <a aria-current="page" className="flex min-h-11 items-center rounded-control bg-white/10 px-4 text-label font-semibold text-text-inverse" href="/admin/">Dashboard</a>
+          {['Araçlar', 'Filo Rehberi', 'Bülten Kişileri', 'Yayınlama'].map((label) => (
+            <span className="flex min-h-10 items-center px-4 text-sm text-text-inverse-muted/65" key={label}>{label}<span className="ml-auto text-[0.65rem] uppercase tracking-wider">Yakında</span></span>
+          ))}
         </nav>
       </aside>
       <main className="px-gutter py-8 lg:py-10">
@@ -292,16 +396,57 @@ export function AdminApp() {
           <button className="min-h-11 rounded-control border border-border-control bg-surface-card px-5 text-label font-semibold hover:border-corporate-blue hover:text-corporate-blue disabled:opacity-60" disabled={submitting} onClick={handleLogout} type="button">Oturumu Kapat</button>
         </header>
         {error ? <p aria-live="polite" className="mt-6 rounded-control bg-error-surface px-4 py-3 text-body text-error" role="alert">{error}</p> : null}
-        <section className="mt-8 rounded-card border border-border-subtle bg-surface-card p-6 sm:p-8">
-          <p className="text-label font-semibold text-corporate-blue">Phase 1 Foundation</p>
-          <h2 className="mt-2 text-heading-md">Yönetim sınırı hazır</h2>
-          <p className="mt-3 max-w-3xl text-body text-text-secondary">
-            Kimlik doğrulama ve statik admin kabuğu etkin. Operasyonel dashboard metrikleri ve salt okunur veri görünümleri Phase 2’de doğrulanmış kaynaklara bağlanacak.
-          </p>
-          <dl className="mt-6 grid gap-4 sm:grid-cols-2">
-            <div className="rounded-control bg-surface-muted p-4"><dt className="text-label text-text-secondary">Rol</dt><dd className="mt-1 font-semibold">{session.user.role}</dd></div>
-            <div className="rounded-control bg-surface-muted p-4"><dt className="text-label text-text-secondary">Kullanıcı</dt><dd className="mt-1 font-semibold">{session.user.username}</dd></div>
-          </dl>
+        <section className="mt-8">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+            <div><p className="text-label font-semibold text-corporate-blue">Operasyon özeti</p><h2 className="mt-1 text-heading-md">Dashboard</h2></div>
+            <p className="text-sm text-text-secondary">Salt okunur · {session.environment === "staging" ? "Staging verisi" : "Production verisi"}</p>
+          </div>
+          {dashboardError ? <p className="mt-5 rounded-control bg-error-surface px-4 py-3 text-body text-error" role="alert">{dashboardError}</p> : null}
+          {dashboardLoading && !dashboard ? <p className="mt-6 text-body text-text-secondary">Metrikler yükleniyor…</p> : null}
+          {dashboard ? (
+            <>
+              <dl className="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+                {[
+                  ["Aktif araç", dashboard.metrics.activeVehicles],
+                  ["Öne çıkan araç", dashboard.metrics.featuredVehicles],
+                  ["Filo Rehberi içeriği", dashboard.metrics.articles],
+                  ["Draft içerik", dashboard.metrics.draftArticles],
+                  ["Newsletter kişisi", dashboard.metrics.newsletterContacts],
+                  ["Onaylı pazarlama izni", dashboard.metrics.approvedMarketingConsents],
+                  ["İYS bekleyen", dashboard.metrics.iysPending],
+                  ["Abonelikten çıkan", dashboard.metrics.unsubscribed],
+                ].map(([label, value]) => (
+                  <div className="rounded-card border border-border-subtle bg-surface-card p-5 shadow-sm" key={label}>
+                    <dt className="text-sm font-medium text-text-secondary">{label}</dt>
+                    <dd className="mt-3 text-3xl font-bold tracking-tight text-brand-navy">{value}</dd>
+                  </div>
+                ))}
+              </dl>
+              <div className="mt-6 grid gap-6 xl:grid-cols-[minmax(0,1.5fr)_minmax(18rem,0.7fr)]">
+                <section className="rounded-card border border-border-subtle bg-surface-card p-6">
+                  <h3 className="text-lg font-bold text-brand-navy">Son admin aktiviteleri</h3>
+                  {dashboard.recentActivity.length ? (
+                    <ul className="mt-4 divide-y divide-border-subtle">
+                      {dashboard.recentActivity.map((activity) => (
+                        <li className="flex gap-4 py-4 first:pt-1" key={activity.id}>
+                          <span aria-hidden="true" className={`mt-1.5 size-2 shrink-0 rounded-full ${activity.result === "success" ? "bg-success" : "bg-error"}`} />
+                          <div className="min-w-0"><p className="font-semibold text-brand-navy">{activityLabels[activity.action] ?? activity.action}</p><p className="mt-1 text-sm text-text-secondary">{activity.adminId ?? "Anonim"} · {formatActivityDate(activity.timestamp)}</p></div>
+                        </li>
+                      ))}
+                    </ul>
+                  ) : <p className="mt-4 text-body text-text-secondary">Henüz gösterilecek aktivite yok.</p>}
+                </section>
+                <section className="rounded-card border border-border-subtle bg-surface-card p-6">
+                  <h3 className="text-lg font-bold text-brand-navy">Yayın durumu</h3>
+                  <dl className="mt-5 space-y-5">
+                    <div><dt className="text-sm text-text-secondary">Son staging publish</dt><dd className="mt-1 font-semibold">Henüz kayıt yok</dd></div>
+                    <div><dt className="text-sm text-text-secondary">Son production publish</dt><dd className="mt-1 font-semibold">Henüz kayıt yok</dd></div>
+                    <div><dt className="text-sm text-text-secondary">Başarısız işlem</dt><dd className="mt-1 font-semibold">{dashboard.failures.length}</dd></div>
+                  </dl>
+                </section>
+              </div>
+            </>
+          ) : null}
         </section>
       </main>
     </div>
