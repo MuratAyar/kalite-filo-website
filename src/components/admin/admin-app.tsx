@@ -1,6 +1,7 @@
 "use client";
 
 import { FormEvent, useEffect, useState } from "react";
+import { VehicleManager } from "./vehicle-manager";
 
 type AdminIdentity = {
   id: string;
@@ -174,6 +175,8 @@ export function AdminApp() {
   const [dashboard, setDashboard] = useState<DashboardData | null>(null);
   const [dashboardLoading, setDashboardLoading] = useState(true);
   const [dashboardError, setDashboardError] = useState("");
+  const [view, setView] = useState<"dashboard" | "vehicles" | "publishedVehicles">("dashboard");
+  const [vehiclesOpen, setVehiclesOpen] = useState(false);
 
   useEffect(() => {
     let active = true;
@@ -381,8 +384,10 @@ export function AdminApp() {
           </span>
         </div>
         <nav aria-label="Yönetim" className="mt-8 space-y-1">
-          <a aria-current="page" className="flex min-h-11 items-center rounded-control bg-white/10 px-4 text-label font-semibold text-text-inverse" href="/admin/">Dashboard</a>
-          {['Araçlar', 'Filo Rehberi', 'Bülten Kişileri', 'Yayınlama'].map((label) => (
+          <button className={`flex min-h-11 w-full items-center rounded-control px-4 text-label font-semibold text-text-inverse ${view==='dashboard'?'bg-white/10':''}`} onClick={()=>setView('dashboard')}>Dashboard</button>
+          <button aria-expanded={vehiclesOpen} className="flex min-h-11 w-full items-center rounded-control px-4 text-left text-label font-semibold text-text-inverse hover:bg-white/10" onClick={()=>setVehiclesOpen(v=>!v)}>Araçlar <span className="ml-auto">{vehiclesOpen?'−':'+'}</span></button>
+          {vehiclesOpen?<div className="ml-3 border-l border-white/15 pl-2"><button className="flex min-h-10 w-full items-center px-3 text-sm text-text-inverse-muted hover:text-white" onClick={()=>setView('vehicles')}>Tüm Araçlar</button><button className="flex min-h-10 w-full items-center px-3 text-sm text-text-inverse-muted hover:text-white" onClick={()=>setView('publishedVehicles')}>Yayındaki Araçlar</button></div>:null}
+          {['Filo Rehberi', 'Bülten Kişileri', 'Yayınlama'].map((label) => (
             <span className="flex min-h-10 items-center px-4 text-sm text-text-inverse-muted/65" key={label}>{label}<span className="ml-auto text-[0.65rem] uppercase tracking-wider">Yakında</span></span>
           ))}
         </nav>
@@ -396,7 +401,7 @@ export function AdminApp() {
           <button className="min-h-11 rounded-control border border-border-control bg-surface-card px-5 text-label font-semibold hover:border-corporate-blue hover:text-corporate-blue disabled:opacity-60" disabled={submitting} onClick={handleLogout} type="button">Oturumu Kapat</button>
         </header>
         {error ? <p aria-live="polite" className="mt-6 rounded-control bg-error-surface px-4 py-3 text-body text-error" role="alert">{error}</p> : null}
-        <section className="mt-8">
+        {view !== 'dashboard' ? <VehicleManager csrfToken={session.csrfToken} publishedOnly={view==='publishedVehicles'} /> : <section className="mt-8">
           <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
             <div><p className="text-label font-semibold text-corporate-blue">Operasyon özeti</p><h2 className="mt-1 text-heading-md">Dashboard</h2></div>
             <p className="text-sm text-text-secondary">Salt okunur · {session.environment === "staging" ? "Staging verisi" : "Production verisi"}</p>
@@ -447,7 +452,7 @@ export function AdminApp() {
               </div>
             </>
           ) : null}
-        </section>
+        </section>}
       </main>
     </div>
   );

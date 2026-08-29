@@ -52,6 +52,26 @@ export function createAdminContentSnapshot(repositoryRoot, target) {
     path.join(repositoryRoot, "src", "data", "article-records.json"),
     "utf8",
   ));
+  const prices = JSON.parse(readFileSync(
+    path.join(repositoryRoot, "src", "data", "vehicle-list-prices.json"), "utf8",
+  ));
+  const mediaSource = readFileSync(
+    path.join(repositoryRoot, "src", "data", "vehicle-portfolio.ts"), "utf8",
+  );
+  const mediaById = {};
+  for (const match of mediaSource.matchAll(/"(kf-\d{3})": createPortfolioMedia\(\{([\s\S]*?)\n  \}\),/g)) {
+    const text = match[2];
+    const field = (name) => text.match(new RegExp(`${name}:\\s*"([^"]+)"`))?.[1];
+    const numberField = (name) => Number(text.match(new RegExp(`${name}:\\s*(\\d+)`))?.[1]);
+    const fileName = field("fileName");
+    if (fileName) mediaById[match[1]] = {
+      src: `/images/vehicles/cards/${fileName}`,
+      alt: field("alt") ?? "",
+      width: numberField("width"), height: numberField("height"),
+      creator: field("creator") ?? "", sourcePage: field("sourcePage") ?? "",
+      licenseName: field("licenseName") ?? "", licenseUrl: field("licenseUrl") ?? "",
+    };
+  }
   if (!Array.isArray(vehicles) || !Array.isArray(articles)) {
     throw new Error("Admin content snapshot sources must be JSON arrays.");
   }
@@ -64,6 +84,12 @@ export function createAdminContentSnapshot(repositoryRoot, target) {
       featured: vehicles.filter(
         (vehicle) => vehicle?.sourceStatus === "active" && vehicle?.featured === true,
       ).length,
+      records: vehicles.map((vehicle) => ({
+        ...vehicle,
+        publicationStatus: vehicle.sourceStatus === "active" ? "published" : "unpublished",
+        priceAmountMinor: prices.amountsMinor?.[vehicle.sourceId] ?? null,
+        coverImage: mediaById[vehicle.id] ?? null,
+      })),
     },
     articles: {
       total: articles.length,
@@ -116,6 +142,13 @@ export function assembleCpanelRelease(target, repositoryRoot = defaultRepository
     "login.php",
     "logout.php",
     "dashboard.php",
+    "vehicle-store.php",
+    "vehicles.php",
+    "vehicle.php",
+    "vehicle-media.php",
+    "media.php",
+    "media-file.php",
+    "media-delete.php",
   ];
   for (const requiredFile of adminRuntimeFiles) {
     if (!existsSync(path.join(adminApiSource, requiredFile))) {

@@ -26,6 +26,10 @@ mkdir($auditDirectory, 0700, true);
 try {
     require_once dirname(__DIR__) . '/bootstrap.php';
     require_once dirname(__DIR__) . '/read-model.php';
+    require_once dirname(__DIR__) . '/vehicle-media.php';
+
+    try { kalite_filo_admin_vehicle_media_path('../escape', 'php'); dashboard_test_assert(false, 'Unsafe media path must fail.'); }
+    catch (InvalidArgumentException) { /* expected */ }
 
     $handle = fopen($contactPath, 'wb');
     if ($handle === false) throw new RuntimeException('Test contact store could not be created.');

@@ -101,6 +101,7 @@ const expectedArticleArchiveHash =
   "b8100d2419c1e77f250995e19f8d3e8277ddf6f7b38ec8b9cca41a6fe7fadead";
 const approvedClientComponents = new Set([
   "src/components/admin/admin-app.tsx",
+  "src/components/admin/vehicle-manager.tsx",
   "src/components/contact/contact-form.tsx",
   "src/components/editorial/article-share-actions.tsx",
   "src/components/editorial/fleet-guide-listing.tsx",

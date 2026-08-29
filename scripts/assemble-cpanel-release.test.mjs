@@ -25,6 +25,8 @@ function createFixture(name) {
     { publicationStatus: "published" },
     { publicationStatus: "draft" },
   ]));
+  writeFileSync(path.join(root, "src", "data", "vehicle-list-prices.json"), JSON.stringify({ amountsMinor: {} }));
+  writeFileSync(path.join(root, "src", "data", "vehicle-portfolio.ts"), "const portfolioMedia = {};\n");
   for (const file of [
     "teklif.php",
     "iletisim.php",
@@ -46,6 +48,13 @@ function createFixture(name) {
     "login.php",
     "logout.php",
     "dashboard.php",
+    "vehicle-store.php",
+    "vehicles.php",
+    "vehicle.php",
+    "vehicle-media.php",
+    "media.php",
+    "media-file.php",
+    "media-delete.php",
   ]) {
     writeFileSync(path.join(root, "server", "admin-api", file), "fixture");
   }
@@ -103,6 +112,13 @@ test("release assembly includes the complete Composer mail runtime and no privat
     "admin-api/login.php",
     "admin-api/logout.php",
     "admin-api/dashboard.php",
+    "admin-api/vehicle-store.php",
+    "admin-api/vehicles.php",
+    "admin-api/vehicle.php",
+    "admin-api/vehicle-media.php",
+    "admin-api/media.php",
+    "admin-api/media-file.php",
+    "admin-api/media-delete.php",
     "admin-api/_content-snapshot.php",
   ]) {
     assert.equal(existsSync(path.join(releaseRoot, relativePath)), true, relativePath);

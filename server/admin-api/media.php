@@ -1,0 +1,14 @@
+<?php
+declare(strict_types=1);
+require_once __DIR__.'/auth.php'; require_once __DIR__.'/read-model.php'; require_once __DIR__.'/vehicle-store.php'; require_once __DIR__.'/vehicle-media.php';
+try {
+ kalite_filo_admin_require_method('POST'); kalite_filo_admin_require_same_origin(); kalite_filo_admin_start_session(); kalite_filo_admin_require_authentication(); kalite_filo_admin_require_csrf();
+ $vehicleId=(string)($_POST['vehicleId']??''); $alt=trim((string)($_POST['alt']??'')); $creator=trim((string)($_POST['creator']??'')); $licenseName=trim((string)($_POST['licenseName']??'')); $licenseUrl=trim((string)($_POST['licenseUrl']??'')); $sourcePage=trim((string)($_POST['sourcePage']??''));
+ if ($alt===''||$creator===''||$licenseName===''||filter_var($licenseUrl,FILTER_VALIDATE_URL)===false||filter_var($sourcePage,FILTER_VALIDATE_URL)===false) throw new InvalidArgumentException('metadata');
+ $upload=$_FILES['image']??null; if(!is_array($upload)||($upload['error']??UPLOAD_ERR_NO_FILE)!==UPLOAD_ERR_OK||!is_uploaded_file((string)$upload['tmp_name'])) throw new InvalidArgumentException('upload');
+ $inspection=kalite_filo_admin_inspect_vehicle_image((string)$upload['tmp_name'],(int)$upload['size']); $id=bin2hex(random_bytes(16)); $directory=kalite_filo_admin_vehicle_media_directory(); kalite_filo_admin_ensure_private_directory($directory); $path=kalite_filo_admin_vehicle_media_path($id,$inspection['extension']);
+ if(!move_uploaded_file((string)$upload['tmp_name'],$path)) throw new RuntimeException('Image could not be stored.'); @chmod($path,0600);
+ $records=kalite_filo_admin_vehicle_records(); $found=false;
+ foreach($records as &$record) if(($record['id']??'')===$vehicleId){$old=$record['draftMedia']??null;$newMedia=['id'=>$id,'originalName'=>basename((string)$upload['name']),'extension'=>$inspection['extension'],'mime'=>$inspection['mime'],'size'=>(int)$upload['size'],'width'=>$inspection['width'],'height'=>$inspection['height'],'alt'=>$alt,'creator'=>$creator,'sourcePage'=>$sourcePage,'licenseName'=>$licenseName,'licenseUrl'=>$licenseUrl,'checksum'=>hash_file('sha256',$path),'uploadedAt'=>gmdate('c'),'uploadedBy'=>$_SESSION['identity']['id']];$record['draftMedia']=$newMedia;$found=true;break;} unset($record);
+ if(!$found){@unlink($path);kalite_filo_admin_json(['error'=>'not_found'],404);} kalite_filo_admin_write_vehicle_records($records); if(is_array($old??null))@unlink(kalite_filo_admin_vehicle_media_path((string)$old['id'],(string)$old['extension'])); kalite_filo_admin_audit('vehicle_image_update','success',['id'=>$vehicleId]); kalite_filo_admin_json(['media'=>$newMedia],201);
+} catch(InvalidArgumentException $e){kalite_filo_admin_json(['error'=>$e->getMessage()],422);} catch(Throwable $e){error_log('Vehicle media failed: '.$e->getMessage());kalite_filo_admin_json(['error'=>'service_unavailable'],503);}

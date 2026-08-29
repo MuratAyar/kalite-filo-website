@@ -400,6 +400,14 @@ must be approved before personal-data operations launch.
   - [ ] Verify dashboard data on HTTPS staging
   - [ ] Add paginated audit log route/view
 - [ ] **Phase 3:** vehicle CRUD, price management and Featured Vehicles
+  - [x] Add release snapshot with joined vehicle, price and licensed media data
+  - [x] Add private file-backed vehicle draft store and authenticated create/update APIs
+  - [x] Add expandable Araçlar navigation with Tüm Araçlar/Yayındaki Araçlar views
+  - [x] Add vehicle cards, search, make/segment filters and create/edit form
+  - [x] Add explicit published/unpublished transition in draft state
+  - [x] Add hardened private image upload/download/delete endpoints and licence editor
+  - [ ] Complete numeric price/technical fields, uniqueness validation and revisions
+  - [ ] Add Featured Vehicles four-item ordered editor and publish invariant
 - [ ] **Phase 4:** Filo Rehberi CMS, TR/EN management and Media Library
 - [ ] **Phase 5:** Newsletter Contacts, IYS and unsubscribe infrastructure
 - [ ] **Phase 6:** campaign composer, queue, cron worker and history
@@ -470,10 +478,10 @@ must be approved before personal-data operations launch.
 
 ## Current Task
 
-Deploy the Phase 2 read-only dashboard release to staging and verify that the
-authenticated dashboard loads the expected public counts and staging-only
-private contact/audit aggregates. Confirm logout persistence and inspect cookie
-and response headers in browser devtools.
+Complete Phase 3 vehicle management. CRUD/list/filter/publication and private
+image upload/preview/download/delete are implemented. Next strengthen field and
+slug uniqueness validation, add immutable revisions and implement the explicit
+four-item Featured Vehicles editor before staging verification.
 
 ## Next Tasks
 
@@ -550,6 +558,7 @@ src/app/robots.ts                          (update)
 - `src/app/(admin)/admin/page.tsx`
 - `src/app/robots.ts`
 - `src/components/admin/admin-app.tsx`
+- `src/components/admin/vehicle-manager.tsx`
 - `src/components/admin/index.ts`
 - `server/admin-api/README.md`
 - `server/admin-api/bootstrap.php`
@@ -559,6 +568,13 @@ src/app/robots.ts                          (update)
 - `server/admin-api/login.php`
 - `server/admin-api/logout.php`
 - `server/admin-api/dashboard.php`
+- `server/admin-api/vehicle-store.php`
+- `server/admin-api/vehicles.php`
+- `server/admin-api/vehicle.php`
+- `server/admin-api/vehicle-media.php`
+- `server/admin-api/media.php`
+- `server/admin-api/media-file.php`
+- `server/admin-api/media-delete.php`
 - `server/admin-api/kalite-filo-admin.example.php`
 - `server/admin-api/tests/auth.test.php`
 - `server/admin-api/tests/dashboard.test.php`
