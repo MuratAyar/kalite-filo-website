@@ -100,6 +100,7 @@ const quoteComposerLockPath = path.join(
 const expectedArticleArchiveHash =
   "b8100d2419c1e77f250995e19f8d3e8277ddf6f7b38ec8b9cca41a6fe7fadead";
 const approvedClientComponents = new Set([
+  "src/components/admin/admin-app.tsx",
   "src/components/contact/contact-form.tsx",
   "src/components/editorial/article-share-actions.tsx",
   "src/components/editorial/fleet-guide-listing.tsx",
@@ -571,11 +572,9 @@ function validateSourceArchitecture() {
       /material(?:[\s_-]+)symbols/i,
       "a prohibited Material Symbols design artifact",
     ],
-    [
-      /["'`]\/(?:musteri-girisi|login|portal|auth|crm|admin|api)(?:\/|["'`])/i,
-      "a prohibited Phase 1 route",
-    ],
   ];
+  const prohibitedPublicRoutePattern =
+    /["'`]\/(?:musteri-girisi|login|portal|auth|crm|admin|api)(?:\/|["'`])/i;
 
   for (const file of sourceFiles) {
     const relativePath = path.relative(repositoryRoot, file).replaceAll("\\", "/");
@@ -598,6 +597,13 @@ function validateSourceArchitecture() {
       if (pattern.test(content)) {
         fail(`${relativePath} contains ${description}.`);
       }
+    }
+    const isAdminSource =
+      relativePath.startsWith("src/app/(admin)/")
+      || relativePath.startsWith("src/components/admin/")
+      || relativePath === "src/app/robots.ts";
+    if (!isAdminSource && prohibitedPublicRoutePattern.test(content)) {
+      fail(`${relativePath} contains a prohibited Phase 1 route.`);
     }
   }
 
@@ -2359,6 +2365,27 @@ function validateOutput(routes) {
   const deployTarget = getOutputTarget(robotsText);
   const environment = siteEnvironments[deployTarget];
   const homeRoute = routes.find((route) => route.id === "home");
+  const adminHtmlPath = path.join(outputRoot, "admin", "index.html");
+
+  if (!existsSync(adminHtmlPath)) {
+    fail("The static export is missing the Phase 2 admin entry route.");
+  }
+  const adminHtml = readFileSync(adminHtmlPath, "utf8");
+  const adminRobots = getMetaContent(adminHtml, "robots") ?? "";
+  if (
+    !/<html[^>]+lang=["']tr["']/i.test(adminHtml)
+    || !adminRobots.includes("noindex")
+    || !adminRobots.includes("nofollow")
+    || !adminRobots.includes("nocache")
+  ) {
+    fail("The admin export is missing its language or noindex contract.");
+  }
+  if (
+    deployTarget === "production"
+    && (!robotsText.includes("Disallow: /admin/") || !robotsText.includes("Disallow: /admin-api/"))
+  ) {
+    fail("Production robots.txt must disallow admin UI and API routes.");
+  }
 
   if (!homeRoute) {
     fail("The approved route registry must contain Home.");

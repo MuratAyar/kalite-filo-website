@@ -758,7 +758,10 @@ Tasarım sistemi, project architecture'dan ayrı değildir:
 - Client JavaScript yalnız küçük, gerekçeli island'dır.
 - Form UI, Server Action veya runtime Next API gerektirecek şekilde tasarlanmaz.
 - Production runtime external font/image/icon dependency'si oluşturulmaz.
-- Customer login, portal, auth, CRM ve admin UI bu tasarım sisteminin parçası değildir.
+- Customer login, portal ve CRM bu tasarım sisteminin parçası değildir. Phase 2
+  admin UI mevcut renk, typography, radius, focus ve spacing tokenlarını yeniden
+  kullanır; ancak public marketing shell/component kompozisyonundan ayrı,
+  `/admin/` ile sınırlı bir uygulama yüzeyidir ve public bundle'lara taşınmaz.
 
 ## 34. Implementation references
 

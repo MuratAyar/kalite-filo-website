@@ -14,6 +14,7 @@ function createFixture(name) {
   mkdirSync(path.join(root, "out"), { recursive: true });
   writeFileSync(path.join(root, "out", "index.html"), "<!doctype html>");
   mkdirSync(path.join(root, "server", "forms"), { recursive: true });
+  mkdirSync(path.join(root, "server", "admin-api"), { recursive: true });
   for (const file of [
     "teklif.php",
     "iletisim.php",
@@ -26,6 +27,15 @@ function createFixture(name) {
     "composer.lock",
   ]) {
     writeFileSync(path.join(root, "server", "forms", file), "fixture");
+  }
+  for (const file of [
+    "bootstrap.php",
+    "auth.php",
+    "session.php",
+    "login.php",
+    "logout.php",
+  ]) {
+    writeFileSync(path.join(root, "server", "admin-api", file), "fixture");
   }
   return root;
 }
@@ -44,6 +54,13 @@ test("release secret scan rejects private mail configuration", () => {
   writeFileSync(path.join(root, "server", "forms", "vendor", "autoload.php"), "fixture");
   writeFileSync(path.join(root, "out", "kalite-filo-mail.php"), "secret");
   assert.throws(() => assembleCpanelRelease("staging", root), /runtime configuration/);
+  assert.throws(() => assertNoReleaseSecrets(path.join(root, "out")), /runtime configuration/);
+});
+
+test("release secret scan rejects an admin config inside a web root", () => {
+  const root = createFixture("private-admin-config");
+  mkdirSync(path.join(root, "out", "admin-api"), { recursive: true });
+  writeFileSync(path.join(root, "out", "admin-api", "config.php"), "secret");
   assert.throws(() => assertNoReleaseSecrets(path.join(root, "out")), /runtime configuration/);
 });
 
@@ -67,9 +84,16 @@ test("release assembly includes the complete Composer mail runtime and no privat
     "forms/composer.json",
     "forms/composer.lock",
     "forms/vendor/autoload.php",
+    "admin-api/bootstrap.php",
+    "admin-api/auth.php",
+    "admin-api/session.php",
+    "admin-api/login.php",
+    "admin-api/logout.php",
   ]) {
     assert.equal(existsSync(path.join(releaseRoot, relativePath)), true, relativePath);
   }
   assert.equal(existsSync(path.join(releaseRoot, "forms", "kalite-filo-mail.php")), false);
+  assert.equal(existsSync(path.join(releaseRoot, "admin-api", "kalite-filo-admin.example.php")), false);
+  assert.equal(existsSync(path.join(releaseRoot, "admin-api", "tests")), false);
   assert.equal(readFileSync(path.join(releaseRoot, "index.html"), "utf8"), "<!doctype html>");
 });

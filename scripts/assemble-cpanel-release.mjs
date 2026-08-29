@@ -32,6 +32,8 @@ export function assertNoReleaseSecrets(directory) {
       lowerName === ".env"
       || lowerName.startsWith(".env.")
       || lowerName === "kalite-filo-mail.php"
+      || lowerName === "kalite-filo-admin.php"
+      || (lowerName === "config.php" && path.basename(path.dirname(resolved)) === "admin-api")
     ) {
       throw new Error(`Secret-bearing runtime configuration found in release: ${resolved}`);
     }
@@ -50,6 +52,7 @@ export function assembleCpanelRelease(target, repositoryRoot = defaultRepository
   const releaseBase = path.resolve(repositoryRoot, "release");
   const releaseRoot = path.resolve(releaseBase, target);
   const formsSource = path.resolve(repositoryRoot, "server", "forms");
+  const adminApiSource = path.resolve(repositoryRoot, "server", "admin-api");
 
   if (!releaseRoot.startsWith(`${releaseBase}${path.sep}`)) {
     throw new Error("Resolved release path escaped the project release directory.");
@@ -72,6 +75,18 @@ export function assembleCpanelRelease(target, repositoryRoot = defaultRepository
   ]) {
     if (!existsSync(path.join(formsSource, requiredFile))) {
       throw new Error(`Required quote-form release source is missing: server/forms/${requiredFile}`);
+    }
+  }
+  const adminRuntimeFiles = [
+    "bootstrap.php",
+    "auth.php",
+    "session.php",
+    "login.php",
+    "logout.php",
+  ];
+  for (const requiredFile of adminRuntimeFiles) {
+    if (!existsSync(path.join(adminApiSource, requiredFile))) {
+      throw new Error(`Required admin API release source is missing: server/admin-api/${requiredFile}`);
     }
   }
   assertComposerRuntimeExists(formsSource);
@@ -100,6 +115,15 @@ export function assembleCpanelRelease(target, repositoryRoot = defaultRepository
   cpSync(path.join(formsSource, "vendor"), path.join(formsDirectory, "vendor"), {
     recursive: true,
   });
+
+  const adminApiDirectory = path.join(releaseRoot, "admin-api");
+  mkdirSync(adminApiDirectory, { recursive: true });
+  for (const runtimeFile of adminRuntimeFiles) {
+    copyFileSync(
+      path.join(adminApiSource, runtimeFile),
+      path.join(adminApiDirectory, runtimeFile),
+    );
+  }
 
   assertNoReleaseSecrets(releaseRoot);
   return releaseRoot;

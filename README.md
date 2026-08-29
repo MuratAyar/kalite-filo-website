@@ -1,6 +1,9 @@
-# Kalite Filo public website
+# Kalite Filo public website and Phase 2 admin system
 
-This repository contains the Phase 1 public corporate website foundation for Kalite Filo. The application uses Next.js 16.2.11, the App Router, strict TypeScript, Tailwind CSS v4, and a static export. Website page implementation and unverified business content are intentionally deferred.
+This repository contains the Phase 1 public corporate website and the bounded
+Phase 2 admin system. The application uses Next.js 16.2.11, the App Router,
+strict TypeScript, Tailwind CSS v4, and a static export. Read
+`docs/ADMIN_DASHBOARD_IMPLEMENTATION.md` before Phase 2 work.
 
 Read [AGENTS.md](AGENTS.md) and the audit documents in `docs/` before changing the project. Material in `references/stitch/` is design evidence only; it is not deployable source or approved content.
 
@@ -8,7 +11,7 @@ Read [AGENTS.md](AGENTS.md) and the audit documents in `docs/` before changing t
 
 Production is `https://kalitefilo.com.tr` at the domain root. Staging is `https://staging.kalitefilo.com.tr` with a separate document root. Both force HTTPS.
 
-The production host is TURKTICARET Web Eko Linux shared hosting with cPanel. It has no Node.js, npm, or npx runtime, so it consumes only a prebuilt release artifact. PHP 8.5.8 (`cgi-fcgi`) serves the separately approved quote endpoint; it does not render the Next.js site.
+The production host is TURKTICARET Web Eko Linux shared hosting with cPanel. It has no Node.js, npm, or npx runtime, so it consumes only a prebuilt release artifact. PHP 8.5.8 (`cgi-fcgi`) serves the separately approved form endpoints and Phase 2 admin API; it does not render the Next.js site. The `/admin/` UI itself is a secrets-free static export route.
 
 ## Local requirements
 
@@ -58,11 +61,15 @@ is never part of this package. `next start` is deliberately not part of this pro
 - `src/content/`: guidance for repository-owned editorial content
 - `public/`: approved static assets only
 - `server/forms/`: PHP quote endpoint, authenticated SMTP boundary, and Composer manifest
+- `server/admin-api/`: authenticated PHP admin runtime; config and data remain outside web roots
 - `server/php/`: boundary notes for separately approved future PHP endpoints
 - `deploy/apache/`: deferred, staging-tested Apache deployment material
 - `references/`: approved-content inputs and non-production design evidence
 
-Do not add SSR, ISR, Server Actions, Middleware/Proxy, runtime Next.js API routes, databases, ORMs, authentication, a customer portal, CRM, or an admin panel. Customer login is outside Phase 1.
+Do not add SSR, ISR, Server Actions, Middleware/Proxy, or runtime Next.js API
+routes. Public pages remain static. Phase 2 authentication/admin operations are
+permitted only through the bounded `/admin/` + `/admin-api/` architecture in
+`AGENTS.md`. Customer login, a customer portal and CRM remain excluded.
 
 ## Content and assets
 
