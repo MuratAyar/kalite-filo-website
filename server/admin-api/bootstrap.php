@@ -92,21 +92,6 @@ function kalite_filo_admin_config(): array
     if (!is_array($users) || count($users) < 1 || count($users) > 20) {
         throw new RuntimeException('Private admin user configuration is invalid.');
     }
-    $allowedIpAddresses = $raw['allowed_ip_addresses'] ?? null;
-    if (!is_array($allowedIpAddresses) || $allowedIpAddresses === []) {
-        throw new RuntimeException('Private admin IP allowlist is invalid.');
-    }
-    $validatedIpAddresses = [];
-    foreach ($allowedIpAddresses as $ipAddress) {
-        if (
-            !is_string($ipAddress)
-            || filter_var($ipAddress, FILTER_VALIDATE_IP) === false
-            || in_array($ipAddress, $validatedIpAddresses, true)
-        ) {
-            throw new RuntimeException('Private admin IP allowlist is invalid.');
-        }
-        $validatedIpAddresses[] = $ipAddress;
-    }
 
     $validatedUsers = [];
     $usernames = [];
@@ -148,28 +133,9 @@ function kalite_filo_admin_config(): array
         'origin' => $environment['origin'],
         'config_path' => $configPath,
         'data_root' => rtrim($dataRoot, DIRECTORY_SEPARATOR),
-        'allowed_ip_addresses' => $validatedIpAddresses,
         'users' => $validatedUsers,
     ];
     return $config;
-}
-
-function kalite_filo_admin_client_ip_is_allowed(string $remoteAddress): bool
-{
-    $config = kalite_filo_admin_config();
-    return filter_var($remoteAddress, FILTER_VALIDATE_IP) !== false
-        && in_array($remoteAddress, $config['allowed_ip_addresses'], true);
-}
-
-function kalite_filo_admin_require_allowed_client_ip(): void
-{
-    $remoteAddress = $_SERVER['REMOTE_ADDR'] ?? '';
-    if (!is_string($remoteAddress) || !kalite_filo_admin_client_ip_is_allowed($remoteAddress)) {
-        kalite_filo_admin_audit('ip_access_denied', 'rejected', [
-            'addressHash' => hash('sha256', is_string($remoteAddress) ? $remoteAddress : ''),
-        ]);
-        kalite_filo_admin_json(['error' => 'forbidden'], 403);
-    }
 }
 
 function kalite_filo_admin_ensure_private_directory(string $path): void

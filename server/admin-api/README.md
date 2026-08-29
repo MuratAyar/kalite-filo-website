@@ -21,12 +21,10 @@ closed. Use `kalite-filo-admin.example.php` only as a shape reference and create
 the real file outside every document root with mode `0600`. The configured
 `data_root` must be absolute and target-specific.
 
-`allowed_ip_addresses` is mandatory and enforced from the connection's
-`REMOTE_ADDR`; forwarded-IP headers are deliberately not trusted. Configure the
-public egress IP actually observed by cPanel. The `allowedDevOrigins` list in
-`next.config.ts` only controls development-origin access to Next.js assets; it
-is not authentication or a server-side IP firewall. Private `192.168.x.x` and
-`10.x.x.x` addresses normally are not visible to the remote staging server.
+Admin access is not restricted by source IP. `allowedDevOrigins` in
+`next.config.ts` remains a Next.js development setting and is not an admin
+security control. Authentication, CSRF, secure sessions, rate limiting and audit
+logging remain mandatory for requests from every address.
 
 Generate the Owner password hash in a trusted interactive environment using
 PHP's `password_hash()` and transfer only the resulting hash into the private

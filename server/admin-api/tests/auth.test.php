@@ -26,7 +26,6 @@ $passwordHash = password_hash('correct horse battery staple', PASSWORD_DEFAULT);
 $configSource = "<?php\nreturn " . var_export([
     'environment' => 'staging',
     'data_root' => $dataRoot,
-    'allowed_ip_addresses' => ['192.0.2.10'],
     'users' => [[
         'id' => 'owner',
         'username' => 'owner.test',
@@ -51,8 +50,6 @@ try {
     admin_test_assert($config['environment'] === 'staging', 'Admin environment must be isolated to staging.');
     admin_test_assert($config['data_root'] === $dataRoot, 'Private data root must come from private config.');
     admin_test_assert(password_verify('correct horse battery staple', $config['users'][0]['password_hash']), 'Configured password hash must verify.');
-    admin_test_assert(kalite_filo_admin_client_ip_is_allowed('192.0.2.10'), 'Configured client IP must be allowed.');
-    admin_test_assert(!kalite_filo_admin_client_ip_is_allowed('192.0.2.11'), 'Unlisted client IP must fail closed.');
     admin_test_assert(kalite_filo_admin_find_user('owner.test') !== null, 'Configured owner must be found.');
     admin_test_assert(kalite_filo_admin_find_user('missing') === null, 'Unknown users must not resolve.');
 

@@ -116,9 +116,8 @@ Proposed private layout (account paths are illustrative, never hard-coded):
   requires the token and an exact allowed `Origin`; login is CSRF-protected too.
 - Login throttling uses private, locked rate-limit records keyed by hashed IP and
   normalized username. Responses do not reveal whether the username exists.
-- Every admin API endpoint additionally requires an exact client IP match from
-  private config `allowed_ip_addresses`. The backend uses `REMOTE_ADDR` and does
-  not trust caller-controlled forwarding headers.
+- Admin API access is not restricted by client IP. Authentication, CSRF, secure
+  sessions, login throttling and audit logging apply to every source address.
 - Passwords are verified with `password_verify`; only a strong hash exists in
   private environment config. No credential or hash belongs in Git.
 - JSON bodies have explicit size/type limits. Inputs are schema validated.
@@ -141,7 +140,6 @@ config. The schema is role-ready without implementing multi-user management:
 ```php
 return [
   'environment' => 'staging',
-  'allowed_ip_addresses' => ['PUBLIC_EGRESS_IP_OBSERVED_BY_CPANEL'],
   'users' => [[
     'id' => 'owner',
     'username' => '...',
@@ -421,8 +419,9 @@ must be approved before personal-data operations launch.
   deliberately excluded.
 - [x] Kept the login form visible when PHP is absent in `next dev`, with a
   non-blocking explanation that real authentication runs in the PHP release.
-- [x] Added mandatory private-config client IP allowlisting to every admin API
-  endpoint and tests for allow/deny behavior.
+- [x] Removed the temporary client-IP allowlist requirement by explicit owner
+  decision; admin endpoints accept all source IPs while retaining authentication,
+  CSRF, secure sessions, login throttling and audit logging.
 - [x] Simplified the admin login card by removing decorative and redundant UI
   details while preserving its accessible section label.
 - [x] Added noindex metadata, production robots exclusions, export validation,
@@ -433,8 +432,8 @@ must be approved before personal-data operations launch.
 ## Current Task
 
 Deploy the bounded Phase 1 foundation to the HTTPS staging host with a real
-private Owner config (including the requested temporary account and the public
-egress IP observed by cPanel), then verify session persistence, cookie/header flags,
+private Owner config including the requested temporary account, then verify
+session persistence, cookie/header flags,
 CSRF, rate limiting, expiry, logout, permissions and environment isolation.
 Do not begin CRUD, campaigns or publishing before this proof is recorded.
 
@@ -452,9 +451,6 @@ Do not begin CRUD, campaigns or publishing before this proof is recorded.
 - Production PHP extension list is not available; SQLite and `finfo` cannot be
   assumed. Local PHP has PDO but reports no PDO drivers.
 - Apache rules/security headers for static admin HTML are not yet staging-tested.
-- `allowedDevOrigins` is not an access-control list. Its private LAN addresses
-  normally cannot be used as the cPanel `REMOTE_ADDR` allowlist; the staging
-  server's observed public egress IP must be verified before provisioning.
 - The public route registry currently describes Phase 1 routes only; admin stays
   deliberately outside sitemap/navigation contracts.
 - Current article generation is Turkish-centric and English metadata is TS code;
@@ -544,7 +540,7 @@ temporary plaintext credential or password hash was added to the repository.
 
 Phase 0 and the local Phase 1 implementation are complete. Next session must
 start by reading this file, then provision a real config outside the staging
-document root with the temporary Owner account and the correct public client IP,
+document root with the temporary Owner account,
 deploy `release/staging/`, and verify the full authentication
 boundary at `https://staging.kalitefilo.com.tr/admin/`. Record actual PHP/cPanel
 behavior and any Apache header decisions here. Only after staging auth passes

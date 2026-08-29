@@ -5,7 +5,6 @@ require_once __DIR__ . '/auth.php';
 
 try {
     kalite_filo_admin_require_method('POST');
-    kalite_filo_admin_require_allowed_client_ip();
     kalite_filo_admin_require_same_origin();
     kalite_filo_admin_start_session();
     kalite_filo_admin_require_csrf();

@@ -6,9 +6,6 @@ declare(strict_types=1);
 return [
     'environment' => 'staging',
     'data_root' => '/absolute/private/path/kalite-filo-admin/staging/data',
-    // Use the public egress IP observed by the hosting server. Private LAN
-    // addresses from next.config.ts allowedDevOrigins usually do not reach cPanel.
-    'allowed_ip_addresses' => ['203.0.113.10'],
     'users' => [[
         'id' => 'owner',
         'username' => 'replace-with-private-username',
