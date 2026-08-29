@@ -38,7 +38,9 @@ try {
     }
     kalite_filo_admin_write_login_failures($rateLimit['handle'], $rateLimit['path'], []);
 
-    session_regenerate_id(true);
+    if (!session_regenerate_id(true)) {
+        throw new RuntimeException('Admin session ID could not be rotated.');
+    }
     $now = time();
     $_SESSION['authenticated'] = true;
     $_SESSION['identity'] = [

@@ -435,6 +435,9 @@ must be approved before personal-data operations launch.
   CSRF, secure sessions, login throttling and audit logging.
 - [x] Verified the live staging session bootstrap and added non-sensitive
   staging login diagnostics plus correlation references for the remaining 503.
+- [x] Diagnosed the first-login/refresh behavior as response output occurring
+  around successful server-side authentication; hardened private config loading
+  against UTF-8 BOM/whitespace output and made session rotation fail atomically.
 - [x] Simplified the admin login card by removing decorative and redundant UI
   details while preserving its accessible section label.
 - [x] Added noindex metadata, production robots exclusions, export validation,
@@ -444,9 +447,9 @@ must be approved before personal-data operations launch.
 
 ## Current Task
 
-Upload the newly generated diagnostic-enabled staging release, submit the
-temporary Owner login once, and use the returned diagnostic/reference to resolve
-the remaining 503.
+Upload the hardened staging release, clear the existing admin session with the
+logout action (or the `__Host-kf_admin` site cookie), then verify that a fresh
+login succeeds immediately without refresh and that logout persists.
 Then verify authenticated session rotation, logout, permissions and environment
 isolation. Do not begin dashboard data work, CRUD, campaigns or publishing
 before this proof is recorded.
@@ -548,6 +551,10 @@ src/app/robots.ts                          (update)
   the five approved admin runtime PHP files; config example/tests are excluded
 - [x] `git diff --check`
 
+The authentication regression test now loads a private config containing a
+UTF-8 BOM and verifies that it does not leak response bytes/headers. Login now
+checks successful session-ID rotation before setting authenticated state.
+
 The 2026-08-29 follow-up release regenerated all 140 static pages and the cPanel
 staging artifact after adding safe login diagnostics. The live session endpoint
 was reported by the owner as healthy (`authenticated: false`, CSRF token and
@@ -558,8 +565,9 @@ repository.
 ## Session Handoff
 
 Phase 0 and the local Phase 1 implementation are complete. The staging private
-config and PHP session bootstrap are verified. Next, upload the newly generated
-diagnostic-enabled `release/staging/` artifact and retry the Owner login once.
-Record the UI diagnostic/reference and matching cPanel error-log line here. Only
-after successful authenticated session and logout should Phase 1 be marked `[x]`
-and Phase 2 dashboard/read-only adapters begin.
+config and PHP session bootstrap are verified. The live symptom showed that the
+first request authenticated server-side while its response could not be parsed;
+the following request therefore used a rotated/stale CSRF token, and refresh
+found the authenticated session. Upload the hardened `release/staging/`, clear
+the prior admin cookie/session, and verify fresh login plus logout. Only then
+mark Phase 1 `[x]` and begin Phase 2 dashboard/read-only adapters.

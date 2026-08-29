@@ -23,7 +23,7 @@ $dataRoot = $temporaryRoot . DIRECTORY_SEPARATOR . 'data';
 $configPath = $temporaryRoot . DIRECTORY_SEPARATOR . 'config.php';
 mkdir($temporaryRoot, 0700, true);
 $passwordHash = password_hash('correct horse battery staple', PASSWORD_DEFAULT);
-$configSource = "<?php\nreturn " . var_export([
+$configSource = "\xEF\xBB\xBF<?php\nreturn " . var_export([
     'environment' => 'staging',
     'data_root' => $dataRoot,
     'users' => [[
@@ -47,6 +47,7 @@ try {
     require_once dirname(__DIR__) . '/auth.php';
 
     $config = kalite_filo_admin_config();
+    admin_test_assert(!headers_sent(), 'A UTF-8 BOM in private config must not leak into the response.');
     admin_test_assert($config['environment'] === 'staging', 'Admin environment must be isolated to staging.');
     admin_test_assert($config['data_root'] === $dataRoot, 'Private data root must come from private config.');
     admin_test_assert(password_verify('correct horse battery staple', $config['users'][0]['password_hash']), 'Configured password hash must verify.');

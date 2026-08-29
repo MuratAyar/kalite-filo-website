@@ -53,6 +53,28 @@ function kalite_filo_admin_assert_outside_document_root(string $path): void
     }
 }
 
+/** @return mixed */
+function kalite_filo_admin_load_private_config(string $configPath)
+{
+    ob_start();
+    try {
+        $raw = require $configPath;
+        $output = (string) ob_get_clean();
+    } catch (Throwable $exception) {
+        ob_end_clean();
+        throw $exception;
+    }
+
+    // Editors on shared hosting can save PHP files with a UTF-8 BOM or trailing
+    // whitespace. Neither is configuration data and neither may reach HTTP
+    // output, because doing so breaks JSON and secure session cookie rotation.
+    $ignorableOutput = preg_replace('/^\xEF\xBB\xBF/', '', $output) ?? $output;
+    if (trim($ignorableOutput) !== '') {
+        throw new RuntimeException('Private admin configuration produced unexpected output.');
+    }
+    return $raw;
+}
+
 /** @return array<string, mixed> */
 function kalite_filo_admin_config(): array
 {
@@ -78,7 +100,7 @@ function kalite_filo_admin_config(): array
         throw new RuntimeException('Private admin configuration is unavailable.');
     }
     kalite_filo_admin_assert_outside_document_root($configPath);
-    $raw = require $configPath;
+    $raw = kalite_filo_admin_load_private_config($configPath);
     if (!is_array($raw) || ($raw['environment'] ?? null) !== $environment['target']) {
         throw new RuntimeException('Private admin configuration is invalid.');
     }
