@@ -103,6 +103,10 @@ site üzerindeki uzak görselleri indirebilmesine bağlı değildir. Kartların 
 ilgili detay sayfasına bağlantıdır. Bağlantı kökü yalnızca doğrulanmış istek
 origin'inden seçilir: staging formu staging sayfalarına, production formu
 production sayfalarına yönlendirir; tanınmayan origin production'a düşer.
+Lacivert logonun kontrastı, lacivert başlık içinde beyaz ve turuncu vurgulu bir
+marka plakasıyla korunur. Ticari ileti onaylı mesajlarda sitenin footer'ında
+onaylanmış altı sosyal medya hesabı da e-posta istemcilerine dayanıklı, tablo ve
+inline stil tabanlı bağlantılar olarak gösterilir; görünürlük hover'a bağlı değildir.
 
 Özel `kalite-filo-mail.php` yapılandırmasındaki `from_address` üretimde
 `noreply@kalitefilo.com.tr`, `from_name` ise `Kalite Filo` olmalıdır. SMTP

@@ -47,6 +47,11 @@ $card = kalite_filo_welcome_card($vehicles[0], 'Aracı İncele');
 assert_customer_mail(substr_count($card, '<a href=') === 1, 'The whole card must use one valid link.');
 assert_customer_mail(str_contains($card, '<span style='), 'The visual CTA must not create a nested link.');
 
+$socialSection = kalite_filo_customer_mail_social_section(false);
+assert_customer_mail(substr_count($socialSection, '<a href=') === 6, 'Every verified social account must be linked.');
+assert_customer_mail(str_contains($socialSection, 'Kalite Filo’yu Takip Edin'), 'The Turkish social heading is missing.');
+assert_customer_mail(!str_contains($socialSection, ':hover'), 'The social section must not depend on hover support.');
+
 foreach ([
     'images/brand/kalite-filo-logo.png',
     'images/vehicles/cards/renault-clio.jpg',
