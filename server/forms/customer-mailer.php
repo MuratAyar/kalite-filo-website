@@ -37,16 +37,16 @@ function kalite_filo_customer_mail_asset(string $relativePath): string
     return dirname(__DIR__, 2) . '/public/' . $relativePath;
 }
 
-/** @return list<array{label: string, mark: string, href: string}> */
+/** @return list<array{label: string, icon: string, href: string}> */
 function kalite_filo_customer_mail_social_links(): array
 {
     return [
-        ['label' => 'Facebook', 'mark' => 'f', 'href' => 'https://www.facebook.com/share/1GXNob81Eb/?mibextid=wwXIfr'],
-        ['label' => 'Instagram', 'mark' => '◎', 'href' => 'https://www.instagram.com/kalitefilo?igsi=MTI4MWRpaXJ0ZXUxNg%3D%3D&utm_source=qr'],
-        ['label' => 'Threads', 'mark' => '@', 'href' => 'https://www.threads.com/@kalitefilo?igshid=NTc4MTIwNjQ2YQ=='],
-        ['label' => 'TikTok', 'mark' => '♪', 'href' => 'https://www.tiktok.com/@kalitefilo?_r=1&_t=ZS-99DAihq1RaO'],
-        ['label' => 'X', 'mark' => 'X', 'href' => 'https://x.com/kalitefilo?s=11'],
-        ['label' => 'Pinterest', 'mark' => 'P', 'href' => 'https://pin.it/7v4phb43o'],
+        ['label' => 'Facebook', 'icon' => 'cid:kf-social-facebook', 'href' => 'https://www.facebook.com/share/1GXNob81Eb/?mibextid=wwXIfr'],
+        ['label' => 'Instagram', 'icon' => 'cid:kf-social-instagram', 'href' => 'https://www.instagram.com/kalitefilo?igsi=MTI4MWRpaXJ0ZXUxNg%3D%3D&utm_source=qr'],
+        ['label' => 'Threads', 'icon' => 'cid:kf-social-threads', 'href' => 'https://www.threads.com/@kalitefilo?igshid=NTc4MTIwNjQ2YQ=='],
+        ['label' => 'TikTok', 'icon' => 'cid:kf-social-tiktok', 'href' => 'https://www.tiktok.com/@kalitefilo?_r=1&_t=ZS-99DAihq1RaO'],
+        ['label' => 'X', 'icon' => 'cid:kf-social-x', 'href' => 'https://x.com/kalitefilo?s=11'],
+        ['label' => 'Pinterest', 'icon' => 'cid:kf-social-pinterest', 'href' => 'https://pin.it/7v4phb43o'],
     ];
 }
 
@@ -56,7 +56,7 @@ function kalite_filo_customer_mail_social_section(bool $english): string
     foreach (kalite_filo_customer_mail_social_links() as $social) {
         $cells[] = '<td width="33.33%" style="padding:5px;vertical-align:top">'
             . '<a href="' . kalite_filo_customer_mail_escape($social['href']) . '" target="_blank" style="display:block;padding:10px 6px;border:1px solid #34415c;border-radius:8px;color:#ffffff;text-align:center;text-decoration:none">'
-            . '<span style="display:inline-block;width:24px;height:24px;border-radius:12px;background:#ffb343;color:#182136;font-size:14px;font-weight:700;line-height:24px;text-align:center;vertical-align:middle">' . kalite_filo_customer_mail_escape($social['mark']) . '</span>'
+            . '<span style="display:inline-block;width:24px;height:24px;border-radius:12px;background:#ffb343;line-height:24px;text-align:center;vertical-align:middle"><img alt="" src="' . kalite_filo_customer_mail_escape($social['icon']) . '" width="14" height="14" style="display:inline-block;width:14px;height:14px;margin:5px;border:0;vertical-align:top"></span>'
             . '<span style="display:inline-block;padding-left:6px;color:#ffffff;font-size:12px;font-weight:700;line-height:24px;vertical-align:middle">' . kalite_filo_customer_mail_escape($social['label']) . '</span>'
             . '</a></td>';
     }
@@ -240,6 +240,12 @@ function kalite_filo_send_customer_confirmation(
             ['path' => kalite_filo_customer_mail_asset('images/vehicles/cards/hyundai-i20.jpg'), 'cid' => 'kf-vehicle-i20', 'name' => 'hyundai-i20.jpg'],
             ['path' => kalite_filo_customer_mail_asset('images/filo-rehberi/01-operasyonel-arac-kiralama.webp'), 'cid' => 'kf-article-operational-leasing', 'name' => 'operasyonel-arac-kiralama.webp'],
             ['path' => kalite_filo_customer_mail_asset('images/filo-rehberi/02-filo-tco-maliyet.webp'), 'cid' => 'kf-article-tco', 'name' => 'filo-tco-maliyet.webp'],
+            ['path' => kalite_filo_customer_mail_asset('images/email/social/facebook.png'), 'cid' => 'kf-social-facebook', 'name' => 'facebook.png'],
+            ['path' => kalite_filo_customer_mail_asset('images/email/social/instagram.png'), 'cid' => 'kf-social-instagram', 'name' => 'instagram.png'],
+            ['path' => kalite_filo_customer_mail_asset('images/email/social/threads.png'), 'cid' => 'kf-social-threads', 'name' => 'threads.png'],
+            ['path' => kalite_filo_customer_mail_asset('images/email/social/tiktok.png'), 'cid' => 'kf-social-tiktok', 'name' => 'tiktok.png'],
+            ['path' => kalite_filo_customer_mail_asset('images/email/social/x.png'), 'cid' => 'kf-social-x', 'name' => 'x.png'],
+            ['path' => kalite_filo_customer_mail_asset('images/email/social/pinterest.png'), 'cid' => 'kf-social-pinterest', 'name' => 'pinterest.png'],
         ],
     ], $email, $safeName);
 }

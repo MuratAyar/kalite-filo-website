@@ -51,6 +51,12 @@ $socialSection = kalite_filo_customer_mail_social_section(false);
 assert_customer_mail(substr_count($socialSection, '<a href=') === 6, 'Every verified social account must be linked.');
 assert_customer_mail(str_contains($socialSection, 'Kalite Filo’yu Takip Edin'), 'The Turkish social heading is missing.');
 assert_customer_mail(!str_contains($socialSection, ':hover'), 'The social section must not depend on hover support.');
+foreach (['facebook', 'instagram', 'threads', 'tiktok', 'x', 'pinterest'] as $platform) {
+    assert_customer_mail(
+        str_contains($socialSection, "cid:kf-social-{$platform}"),
+        "The {$platform} CID icon is missing from the social section.",
+    );
+}
 
 foreach ([
     'images/brand/kalite-filo-logo.png',
@@ -58,6 +64,12 @@ foreach ([
     'images/vehicles/cards/hyundai-i20.jpg',
     'images/filo-rehberi/01-operasyonel-arac-kiralama.webp',
     'images/filo-rehberi/02-filo-tco-maliyet.webp',
+    'images/email/social/facebook.png',
+    'images/email/social/instagram.png',
+    'images/email/social/threads.png',
+    'images/email/social/tiktok.png',
+    'images/email/social/x.png',
+    'images/email/social/pinterest.png',
 ] as $asset) {
     assert_customer_mail(is_file(kalite_filo_customer_mail_asset($asset)), "Missing embedded image asset: {$asset}");
 }
