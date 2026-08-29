@@ -195,7 +195,7 @@ function kalite_filo_send_quote_email(array $message): bool
 /**
  * Sends a transactional or consent-backed welcome message to a validated form user.
  *
- * @param array{subject: string, html_body: string, text_body: string} $message
+ * @param array{subject: string, html_body: string, text_body: string, embedded_images?: list<array{path: string, cid: string, name: string}>} $message
  */
 function kalite_filo_send_customer_email(array $message, string $recipientAddress, string $recipientName): bool
 {
@@ -227,6 +227,21 @@ function kalite_filo_send_customer_email(array $message, string $recipientAddres
 
         $mail->setFrom((string) $config['from_address'], (string) $config['from_name']);
         $mail->addAddress(trim($recipientAddress), trim($recipientName));
+        foreach (($message['embedded_images'] ?? []) as $image) {
+            if (
+                !is_array($image)
+                || !isset($image['path'], $image['cid'], $image['name'])
+                || !is_string($image['path'])
+                || !is_file($image['path'])
+                || !is_readable($image['path'])
+                || !is_string($image['cid'])
+                || preg_match('/^[a-z0-9-]+$/', $image['cid']) !== 1
+                || !is_string($image['name'])
+            ) {
+                throw new RuntimeException('Customer mail embedded image is unavailable.');
+            }
+            $mail->addEmbeddedImage($image['path'], $image['cid'], $image['name']);
+        }
         $mail->isHTML(true);
         $mail->Subject = $message['subject'];
         $mail->Body = $message['html_body'];

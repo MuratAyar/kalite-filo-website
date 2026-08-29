@@ -98,6 +98,12 @@ bir alındı e-postası gönderilir. E-bülten kaydı veya ticari ileti checkbox
 varsa ileti, öne çıkan araç ve Filo Rehberi kartlarını da içerir. Onaysız
 iletişim/teklif taleplerinde yalnızca işlemsel alındı mesajı gönderilir.
 
+Logo ile kart görselleri e-postaya CID eki olarak gömülür; e-posta istemcisinin
+site üzerindeki uzak görselleri indirebilmesine bağlı değildir. Kartların tamamı
+ilgili detay sayfasına bağlantıdır. Bağlantı kökü yalnızca doğrulanmış istek
+origin'inden seçilir: staging formu staging sayfalarına, production formu
+production sayfalarına yönlendirir; tanınmayan origin production'a düşer.
+
 Özel `kalite-filo-mail.php` yapılandırmasındaki `from_address` üretimde
 `noreply@kalitefilo.com.tr`, `from_name` ise `Kalite Filo` olmalıdır. SMTP
 sunucusunda bu adresten göndermeye izin veren kimlik kullanılmalıdır. Kullanıcı
