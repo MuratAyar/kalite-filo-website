@@ -55,6 +55,8 @@ function createFixture(name) {
     "media.php",
     "media-file.php",
     "media-delete.php",
+    "taxonomy-store.php",
+    "tags.php",
   ]) {
     writeFileSync(path.join(root, "server", "admin-api", file), "fixture");
   }
@@ -119,6 +121,8 @@ test("release assembly includes the complete Composer mail runtime and no privat
     "admin-api/media.php",
     "admin-api/media-file.php",
     "admin-api/media-delete.php",
+    "admin-api/taxonomy-store.php",
+    "admin-api/tags.php",
     "admin-api/_content-snapshot.php",
   ]) {
     assert.equal(existsSync(path.join(releaseRoot, relativePath)), true, relativePath);

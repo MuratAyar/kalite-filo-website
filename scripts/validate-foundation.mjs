@@ -102,6 +102,7 @@ const expectedArticleArchiveHash =
 const approvedClientComponents = new Set([
   "src/components/admin/admin-app.tsx",
   "src/components/admin/vehicle-manager.tsx",
+  "src/components/admin/tag-manager.tsx",
   "src/components/contact/contact-form.tsx",
   "src/components/editorial/article-share-actions.tsx",
   "src/components/editorial/fleet-guide-listing.tsx",

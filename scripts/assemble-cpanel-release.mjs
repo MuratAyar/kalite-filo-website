@@ -149,6 +149,8 @@ export function assembleCpanelRelease(target, repositoryRoot = defaultRepository
     "media.php",
     "media-file.php",
     "media-delete.php",
+    "taxonomy-store.php",
+    "tags.php",
   ];
   for (const requiredFile of adminRuntimeFiles) {
     if (!existsSync(path.join(adminApiSource, requiredFile))) {
