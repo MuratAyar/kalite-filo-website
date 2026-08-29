@@ -59,6 +59,24 @@ try {
         'user' => kalite_filo_admin_safe_identity(),
     ]);
 } catch (Throwable $exception) {
-    error_log('Kalite Filo admin login failed: ' . $exception->getMessage());
-    kalite_filo_admin_json(['error' => 'service_unavailable'], 503);
+    $reference = bin2hex(random_bytes(6));
+    $message = $exception->getMessage();
+    $diagnostic = match (true) {
+        str_contains($message, 'Login protection store') => 'login_protection_storage',
+        str_contains($message, 'Admin session') => 'session_storage',
+        str_contains($message, 'Private admin configuration') => 'private_configuration',
+        str_contains($message, 'Private admin data root'),
+        str_contains($message, 'Private admin storage') => 'private_storage',
+        default => 'unexpected_login_failure',
+    };
+    error_log("Kalite Filo admin login failed [{$reference}] [{$diagnostic}]: {$message}");
+    $payload = ['error' => 'service_unavailable', 'reference' => $reference];
+    try {
+        if (kalite_filo_admin_environment()['target'] === 'staging') {
+            $payload['diagnostic'] = $diagnostic;
+        }
+    } catch (Throwable) {
+        // Keep the public response generic when even environment resolution fails.
+    }
+    kalite_filo_admin_json($payload, 503);
 }

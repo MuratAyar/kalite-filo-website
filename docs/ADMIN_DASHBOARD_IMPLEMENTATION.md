@@ -16,6 +16,13 @@ behavior are verified on the real staging host. No content mutation, subscriber
 mutation, campaign delivery, or publishing action is enabled. The public site
 remains a Next.js 16.2.11 static export.
 
+Live staging session bootstrap is now verified: `/admin-api/session.php`
+returns an unauthenticated session, CSRF token and `staging` environment. Login
+still returns a generic service failure after credential submission, so Phase 1
+remains open. A safe staging-only diagnostic classification and correlation
+reference were added to the login response for the next deployment; secrets and
+filesystem paths remain server-log only.
+
 The `/admin/` unauthenticated state now uses the approved Kalite Filo logo,
 existing `fleet-campus.jpg` asset and production design tokens in a dedicated
 full-screen admin login composition. If PHP is unavailable under `next dev`, the
@@ -378,7 +385,11 @@ must be approved before personal-data operations launch.
   - [x] Add static `/admin/` login gate and authenticated shell
   - [x] Package `/admin-api/` in target releases without secrets/tests
   - [x] Add PHP auth and release integration tests
-  - [ ] Verify private Owner config and auth behavior on HTTPS staging
+- [ ] Verify private Owner config and auth behavior on HTTPS staging
+  - [x] Verify session bootstrap and CSRF issuance on HTTPS staging
+  - [x] Add safe staging-only diagnostic classification and correlation reference
+  - [ ] Use the diagnostic response to resolve the live credential submission failure
+  - [ ] Verify successful login, rotation, authenticated session and logout
 - [ ] **Phase 2:** dashboard and read-only operational views
 - [ ] **Phase 3:** vehicle CRUD, price management and Featured Vehicles
 - [ ] **Phase 4:** Filo Rehberi CMS, TR/EN management and Media Library
@@ -422,6 +433,8 @@ must be approved before personal-data operations launch.
 - [x] Removed the temporary client-IP allowlist requirement by explicit owner
   decision; admin endpoints accept all source IPs while retaining authentication,
   CSRF, secure sessions, login throttling and audit logging.
+- [x] Verified the live staging session bootstrap and added non-sensitive
+  staging login diagnostics plus correlation references for the remaining 503.
 - [x] Simplified the admin login card by removing decorative and redundant UI
   details while preserving its accessible section label.
 - [x] Added noindex metadata, production robots exclusions, export validation,
@@ -431,15 +444,18 @@ must be approved before personal-data operations launch.
 
 ## Current Task
 
-Deploy the bounded Phase 1 foundation to the HTTPS staging host with a real
-private Owner config including the requested temporary account, then verify
-session persistence, cookie/header flags,
-CSRF, rate limiting, expiry, logout, permissions and environment isolation.
-Do not begin CRUD, campaigns or publishing before this proof is recorded.
+Upload the newly generated diagnostic-enabled staging release, submit the
+temporary Owner login once, and use the returned diagnostic/reference to resolve
+the remaining 503.
+Then verify authenticated session rotation, logout, permissions and environment
+isolation. Do not begin dashboard data work, CRUD, campaigns or publishing
+before this proof is recorded.
 
 ## Next Tasks
 
-- [ ] Deploy Phase 1 to staging with a real private Owner password hash/config.
+- [x] Provision the staging private Owner config and verify the session endpoint.
+- [ ] Replace the staging document root with the refreshed `release/staging/`
+  artifact and capture the login diagnostic/reference.
 - [ ] Verify cPanel session persistence, cookie flags, origin/host behavior,
   response headers, rate-limit file permissions and logout in browser/devtools.
 - [ ] Verify whether Apache can apply no-store headers to static `/admin/` and
@@ -532,16 +548,18 @@ src/app/robots.ts                          (update)
   the five approved admin runtime PHP files; config example/tests are excluded
 - [x] `git diff --check`
 
-No staging deployment or real credential/config test was performed in this
-session. The refreshed login UI and IP allowlist tests passed locally. No secret,
-temporary plaintext credential or password hash was added to the repository.
+The 2026-08-29 follow-up release regenerated all 140 static pages and the cPanel
+staging artifact after adding safe login diagnostics. The live session endpoint
+was reported by the owner as healthy (`authenticated: false`, CSRF token and
+`environment: staging`); the refreshed artifact has not yet been uploaded. No
+secret, temporary plaintext credential or password hash was added to the
+repository.
 
 ## Session Handoff
 
-Phase 0 and the local Phase 1 implementation are complete. Next session must
-start by reading this file, then provision a real config outside the staging
-document root with the temporary Owner account,
-deploy `release/staging/`, and verify the full authentication
-boundary at `https://staging.kalitefilo.com.tr/admin/`. Record actual PHP/cPanel
-behavior and any Apache header decisions here. Only after staging auth passes
-should Phase 1 be marked `[x]` and Phase 2 dashboard/read-only adapters begin.
+Phase 0 and the local Phase 1 implementation are complete. The staging private
+config and PHP session bootstrap are verified. Next, upload the newly generated
+diagnostic-enabled `release/staging/` artifact and retry the Owner login once.
+Record the UI diagnostic/reference and matching cPanel error-log line here. Only
+after successful authenticated session and logout should Phase 1 be marked `[x]`
+and Phase 2 dashboard/read-only adapters begin.

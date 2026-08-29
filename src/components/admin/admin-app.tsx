@@ -56,7 +56,7 @@ function parseSession(payload: Record<string, unknown>): SessionState | null {
   };
 }
 
-function messageForError(error: unknown): string {
+function messageForError(error: unknown, diagnostic?: unknown, reference?: unknown): string {
   if (error === "invalid_credentials") {
     return "Kullanıcı adı veya parola doğrulanamadı.";
   }
@@ -65,6 +65,28 @@ function messageForError(error: unknown): string {
   }
   if (error === "csrf_failed") {
     return "Güvenlik oturumu yenilenemedi. Sayfayı yeniden yükleyin.";
+  }
+  if (error === "forbidden") {
+    return "Giriş isteğinin kaynağı doğrulanamadı. Staging adresini yeniden açıp tekrar deneyin.";
+  }
+  if (error === "invalid_request" || error === "unsupported_media_type") {
+    return "Giriş isteği sunucu tarafından geçerli formatta alınamadı. Sayfayı yenileyip tekrar deneyin.";
+  }
+  const referenceSuffix = typeof reference === "string" ? ` Hata referansı: ${reference}.` : "";
+  if (diagnostic === "login_protection_storage") {
+    return `Giriş koruma dizinine yazılamıyor. Private data/rate-limits izinlerini kontrol edin.${referenceSuffix}`;
+  }
+  if (diagnostic === "session_storage") {
+    return `Admin session dizinine yazılamıyor. Private data/sessions izinlerini kontrol edin.${referenceSuffix}`;
+  }
+  if (diagnostic === "private_configuration") {
+    return `Private admin config okunamadı veya geçersiz. config.php içeriğini kontrol edin.${referenceSuffix}`;
+  }
+  if (diagnostic === "private_storage") {
+    return `Private admin data dizini oluşturulamıyor veya yazılamıyor.${referenceSuffix}`;
+  }
+  if (error === "service_unavailable") {
+    return `Yönetim servisi giriş işlemini tamamlayamadı.${referenceSuffix}`;
   }
   return "Yönetim servisine şu anda ulaşılamıyor.";
 }
@@ -128,7 +150,7 @@ export function AdminApp() {
       const payload = await readResponse(response);
       const parsed = parseSession(payload);
       if (!response.ok || !parsed) {
-        setError(messageForError(payload.error));
+        setError(messageForError(payload.error, payload.diagnostic, payload.reference));
         return;
       }
       event.currentTarget.reset();
@@ -158,7 +180,7 @@ export function AdminApp() {
       });
       if (!response.ok) {
         const payload = await readResponse(response);
-        setError(messageForError(payload.error));
+        setError(messageForError(payload.error, payload.diagnostic, payload.reference));
         return;
       }
       const bootstrapResponse = await fetch(endpoints.session, {
