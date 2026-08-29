@@ -123,6 +123,7 @@ export function AdminApp() {
 
   async function handleLogin(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    const formElement = event.currentTarget;
     if (!session) {
       setError(
         "Giriş servisi bu yerel Next.js önizlemesinde çalışmıyor. Kimlik doğrulamak için PHP içeren staging release’i kullanın.",
@@ -131,7 +132,7 @@ export function AdminApp() {
     }
     setSubmitting(true);
     setError("");
-    const form = new FormData(event.currentTarget);
+    const form = new FormData(formElement);
     try {
       const response = await fetch(endpoints.login, {
         method: "POST",
@@ -153,7 +154,7 @@ export function AdminApp() {
         setError(messageForError(payload.error, payload.diagnostic, payload.reference));
         return;
       }
-      event.currentTarget.reset();
+      formElement.reset();
       setSession(parsed);
     } catch {
       setError("Yönetim servisine şu anda ulaşılamıyor.");

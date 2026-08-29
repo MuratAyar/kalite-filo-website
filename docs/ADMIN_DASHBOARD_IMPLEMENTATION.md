@@ -438,6 +438,11 @@ must be approved before personal-data operations launch.
 - [x] Diagnosed the first-login/refresh behavior as response output occurring
   around successful server-side authentication; hardened private config loading
   against UTF-8 BOM/whitespace output and made session rotation fail atomically.
+- [x] Identified the remaining first-login UI failure: React form
+  `event.currentTarget` was accessed after an asynchronous request. The PHP login
+  succeeded, but the subsequent form reset threw before client session state was
+  stored. Capturing the form element before `await` now preserves the successful
+  response and eliminates the misleading service error.
 - [x] Simplified the admin login card by removing decorative and redundant UI
   details while preserving its accessible section label.
 - [x] Added noindex metadata, production robots exclusions, export validation,
@@ -565,9 +570,10 @@ repository.
 ## Session Handoff
 
 Phase 0 and the local Phase 1 implementation are complete. The staging private
-config and PHP session bootstrap are verified. The live symptom showed that the
-first request authenticated server-side while its response could not be parsed;
-the following request therefore used a rotated/stale CSRF token, and refresh
-found the authenticated session. Upload the hardened `release/staging/`, clear
-the prior admin cookie/session, and verify fresh login plus logout. Only then
+config and PHP session bootstrap are verified. The live symptom confirmed that
+the first request authenticated server-side; the client then threw while
+resetting the form after `await`, retained its old CSRF token and did not render
+the returned authenticated session. Refresh found the valid server session.
+Upload the corrected `release/staging/`, clear the prior admin cookie/session,
+and verify fresh login plus logout. Only then
 mark Phase 1 `[x]` and begin Phase 2 dashboard/read-only adapters.
