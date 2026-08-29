@@ -53,6 +53,7 @@ if ($consent !== 'onaylandi' || $version !== NEWSLETTER_CONSENT_VERSION) {
 }
 
 try {
+    $isNewEmail = false;
     kalite_filo_store_contact([
         'email' => $email,
         'status' => 'approved',
@@ -61,12 +62,12 @@ try {
         'consent_at' => gmdate('Y-m-d H:i:s'),
         'iys_status' => 'pending',
         'recipient_type' => 'BIREYSEL',
-    ]);
+    ], $isNewEmail);
 } catch (Throwable $exception) {
     error_log('Kalite Filo newsletter storage failed: ' . $exception->getMessage());
     newsletter_respond('kayit_hatasi', 500);
 }
-if (!kalite_filo_send_customer_confirmation($email, '', 'newsletter', true, $locale)) {
+if ($isNewEmail && !kalite_filo_send_customer_confirmation($email, '', 'newsletter', true, $locale)) {
     error_log('Kalite Filo newsletter confirmation delivery failed.');
 }
 newsletter_respond('basarili');

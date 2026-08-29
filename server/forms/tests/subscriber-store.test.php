@@ -32,6 +32,7 @@ function subscriber_test_rows(string $path): array
 }
 
 try {
+    $isNewEmail = false;
     $newsletter = kalite_filo_store_contact([
         'email' => ' Test@Example.com ',
         'status' => 'approved',
@@ -39,11 +40,13 @@ try {
         'consent_text_version' => '2026-08-27-v1',
         'consent_at' => '2026-08-27 20:42:15',
         'iys_status' => 'pending',
-    ]);
+    ], $isNewEmail);
     subscriber_test_assert($newsletter['id'] === '1', 'The first contact must receive ID 1.');
+    subscriber_test_assert($isNewEmail, 'The first occurrence of an email must be reported as new.');
     subscriber_test_assert($newsletter['email'] === 'test@example.com', 'Email addresses must be normalized.');
     subscriber_test_assert($newsletter['status'] === 'approved', 'Explicit newsletter consent must be stored as approved locally.');
 
+    $isNewEmail = true;
     $updated = kalite_filo_store_contact([
         'email' => 'test@example.com',
         'status' => 'active',
@@ -52,10 +55,18 @@ try {
         'consent_at' => '2026-08-27 20:42:15',
         'confirmed_at' => '2026-08-27 20:43:02',
         'iys_status' => 'approved',
-    ]);
+    ], $isNewEmail);
     subscriber_test_assert($updated['id'] === '1', 'A repeated email/source pair must update its existing row.');
+    subscriber_test_assert(!$isNewEmail, 'A repeated email/source pair must not be reported as new.');
 
-    kalite_filo_store_form_contact('test@example.com', 'website_quote_form');
+    $differentSourceIsNew = true;
+    kalite_filo_store_contact([
+        'email' => 'TEST@example.com',
+        'status' => 'lead_only',
+        'consent_source' => 'website_quote_form',
+        'iys_status' => 'not_requested',
+    ], $differentSourceIsNew);
+    subscriber_test_assert(!$differentSourceIsNew, 'An email already stored under another source must not be reported as new.');
     $rows = subscriber_test_rows($storePath);
     subscriber_test_assert(count($rows) === 2, 'The same email from a different source must retain a separate audit row.');
     subscriber_test_assert($rows[0]['confirmed_at'] === '2026-08-27 20:43:02', 'Confirmation metadata must persist.');

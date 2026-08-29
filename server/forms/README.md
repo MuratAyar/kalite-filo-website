@@ -114,6 +114,13 @@ sunucusunda bu adresten göndermeye izin veren kimlik kullanılmalıdır. Kullan
 e-postasının gönderilememesi, daha önce başarıyla teslim alınmış formu geri
 almaz; olay PHP hata günlüğüne yazılır.
 
+E-bülten hoş geldiniz e-postası, normalize edilmiş adres
+`newsletter-contacts.csv` dosyasına ilk kez eklendiğinde gönderilir. Adres daha
+önce e-bülten, iletişim veya teklif kaynağıyla dosyada bulunuyorsa yeni onay
+bilgisi kaydedilebilir ancak ikinci bir hoş geldiniz e-postası gönderilmez. Bu
+karar CSV dosyası kilitliyken verildiğinden eş zamanlı istekler de iki ayrı ilk
+kayıt olarak değerlendirilemez.
+
 ## Her akşam İYS CSV çıktısı
 
 `export-iys-daily.php` yalnızca PHP CLI altında çalışır. Son başarılı çalışmadan

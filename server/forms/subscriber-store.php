@@ -29,7 +29,7 @@ function kalite_filo_contact_store_path(): string
         . DIRECTORY_SEPARATOR . KALITE_FILO_CONTACT_STORE_FILENAME;
 }
 
-function kalite_filo_store_contact(array $record): array
+function kalite_filo_store_contact(array $record, ?bool &$isNewEmail = null): array
 {
     $email = strtolower(trim((string) ($record['email'] ?? '')));
     $source = trim((string) ($record['consent_source'] ?? ''));
@@ -79,6 +79,13 @@ function kalite_filo_store_contact(array $record): array
         }
 
         $now = gmdate('Y-m-d H:i:s');
+        $emailAlreadyStored = false;
+        foreach ($rows as $existingRow) {
+            if (strtolower(trim((string) $existingRow['email'])) === $email) {
+                $emailAlreadyStored = true;
+                break;
+            }
+        }
         $incoming = [
             'email' => $email,
             'status' => (string) ($record['status'] ?? 'lead_only'),
@@ -129,6 +136,7 @@ function kalite_filo_store_contact(array $record): array
             throw new RuntimeException('Contact store could not be replaced atomically.');
         }
         @chmod($path, 0600);
+        $isNewEmail = !$emailAlreadyStored;
         return $stored;
     } finally {
         flock($lock, LOCK_UN);
