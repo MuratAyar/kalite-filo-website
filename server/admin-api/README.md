@@ -21,6 +21,29 @@ closed. Use `kalite-filo-admin.example.php` only as a shape reference and create
 the real file outside every document root with mode `0600`. The configured
 `data_root` must be absolute and target-specific.
 
+Campaign test mail recipients are optional and must be declared separately in
+each target's private config as `campaign_test_recipients` entries containing a
+stable `id`, validated `email` and display `name`. The browser submits only the
+configured ID; arbitrary recipient addresses are rejected. Keep staging test
+addresses separate from production contacts. Test delivery reuses the existing
+private SMTP configuration and PHPMailer runtime, is limited to five attempts
+per admin per ten minutes, and never enables the campaign queue.
+
+Campaign delivery defaults to `campaign_delivery_mode => 'disabled'`. Staging
+accepts only `disabled` or `dry_run`; `live` is rejected there. Production must
+still opt into `live` explicitly. `campaign_batch_size` is bounded to 1–50.
+Owner/Admin queue creation requires typing the exact saved campaign name and
+freezes the revision, eligible audience evidence and idempotency key privately.
+The CLI-only worker rechecks suppression before each attempt and stops retrying
+after three failures. A staging Cron smoke test may use:
+
+```text
+KALITE_FILO_ADMIN_TARGET=staging KALITE_FILO_ADMIN_CONFIG=/absolute/private/path/config.php php /absolute/document-root/admin-api/campaign-worker.php
+```
+
+Keep delivery disabled until the dry-run ledger has been inspected. Never run
+the worker through HTTP; it returns 404 outside PHP CLI.
+
 Admin access is not restricted by source IP. `allowedDevOrigins` in
 `next.config.ts` remains a Next.js development setting and is not an admin
 security control. Authentication, CSRF, secure sessions, rate limiting and audit

@@ -1,0 +1,4 @@
+<?php
+declare(strict_types=1);
+require_once __DIR__.'/auth.php';require_once __DIR__.'/read-model.php';
+try{kalite_filo_admin_require_method('POST');kalite_filo_admin_require_same_origin();kalite_filo_admin_start_session();kalite_filo_admin_require_authentication();kalite_filo_admin_require_csrf();kalite_filo_admin_require_roles(['owner','admin','marketing']);$path=kalite_filo_admin_contact_store_path();putenv('KALITE_FILO_CONTACT_STORE_PATH='.$path);require_once dirname(__DIR__).'/forms/export-iys-daily.php';$output=kalite_filo_export_iys_daily();kalite_filo_admin_audit('iys_export','success',['id'=>is_string($output)?basename($output):null]);kalite_filo_admin_json(['created'=>is_string($output),'exportId'=>is_string($output)?basename($output):null]);}catch(Throwable $e){error_log('Admin IYS export failed: '.$e->getMessage());kalite_filo_admin_json(['error'=>'service_unavailable'],503);}

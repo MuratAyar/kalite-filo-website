@@ -87,6 +87,27 @@ function kalite_filo_admin_contact_metrics(string $path): array
     return $metrics;
 }
 
+/** @return array{records:list<array<string,string>>,page:int,limit:int,total:int,hasNext:bool} */
+function kalite_filo_admin_contact_page(string $path,int $page,int $limit,string $query='',string $status='',string $iysStatus='',string $source=''):array
+{
+    if($page<1||$page>1000||$limit<1||$limit>100)throw new InvalidArgumentException('Invalid contact pagination.');
+    $allowedStatuses=['','approved','active','lead_only','unsubscribed'];$allowedIys=['','not_requested','pending','approved','failed','synced'];$allowedSources=['','website_newsletter','website_quote_form','website_contact_form'];
+    if(!in_array($status,$allowedStatuses,true)||!in_array($iysStatus,$allowedIys,true)||!in_array($source,$allowedSources,true)||mb_strlen($query)>160)throw new InvalidArgumentException('Invalid contact filter.');
+    if(!is_file($path))return ['records'=>[],'page'=>$page,'limit'=>$limit,'total'=>0,'hasNext'=>false];$size=filesize($path);if(!is_int($size)||$size>KALITE_FILO_ADMIN_MAX_CONTACT_STORE_BYTES)throw new RuntimeException('Contact store exceeds the read limit.');$handle=fopen($path,'rb');if($handle===false||!flock($handle,LOCK_SH)){if(is_resource($handle))fclose($handle);throw new RuntimeException('Contact store could not be read.');}
+    try{$header=fgetcsv($handle);$legacy=array_slice(KALITE_FILO_ADMIN_CONTACT_COLUMNS,0,-1);if($header!==KALITE_FILO_ADMIN_CONTACT_COLUMNS&&$header!==$legacy)throw new RuntimeException('Contact store schema is not recognized.');$matched=[];$needle=mb_strtolower(trim($query));while(($values=fgetcsv($handle))!==false){if($header===$legacy&&count($values)===count($legacy))$values[]='BIREYSEL';if(count($values)!==count(KALITE_FILO_ADMIN_CONTACT_COLUMNS))continue;$row=array_combine(KALITE_FILO_ADMIN_CONTACT_COLUMNS,$values);if(!is_array($row)||filter_var($row['email'],FILTER_VALIDATE_EMAIL)===false)continue;if($needle!==''&&!str_contains(mb_strtolower($row['email']),$needle))continue;if($status!==''&&$row['status']!==$status)continue;if($iysStatus!==''&&$row['iys_status']!==$iysStatus)continue;if($source!==''&&$row['consent_source']!==$source)continue;$matched[]=$row;}}
+    finally{flock($handle,LOCK_UN);fclose($handle);}usort($matched,static fn(array $a,array $b):int=>strcmp((string)$b['updated_at'],(string)$a['updated_at']));$total=count($matched);$offset=($page-1)*$limit;return ['records'=>array_values(array_slice($matched,$offset,$limit)),'page'=>$page,'limit'=>$limit,'total'=>$total,'hasNext'=>$offset+$limit<$total];
+}
+
+/** @return array{counts:array{pending:int,failed:int,synced:int,approved:int,notRequested:int},records:list<array<string,string>>,exports:list<array<string,mixed>>,lastExportedAt:?string} */
+function kalite_filo_admin_iys_overview(string $path):array
+{
+    $counts=['pending'=>0,'failed'=>0,'synced'=>0,'approved'=>0,'notRequested'=>0];$records=[];
+    for($pageNumber=1;$pageNumber<=1000;$pageNumber++){$page=kalite_filo_admin_contact_page($path,$pageNumber,100);foreach($page['records'] as $row){$state=(string)$row['iys_status'];if($state==='pending')$counts['pending']++;elseif($state==='failed')$counts['failed']++;elseif($state==='synced')$counts['synced']++;elseif($state==='approved')$counts['approved']++;elseif($state==='not_requested')$counts['notRequested']++;if(in_array($state,['pending','failed','synced','approved'],true)&&count($records)<200)$records[]=$row;}if(!$page['hasNext'])break;}
+    $directory=dirname($path);$exports=[];foreach(array_slice(array_reverse(glob($directory.DIRECTORY_SEPARATOR.'iys-email-permissions-????-??-??.csv')?:[]),0,50) as $file){$name=basename($file);if(preg_match('/^iys-email-permissions-\d{4}-\d{2}-\d{2}\.csv$/',$name)!==1)continue;$size=filesize($file);$modified=filemtime($file);if(!is_int($size)||!is_int($modified))continue;$exports[]=['id'=>$name,'fileName'=>$name,'size'=>$size,'createdAt'=>gmdate('c',$modified)];}
+    $last=null;$statePath=$directory.DIRECTORY_SEPARATOR.'iys-export-state.json';if(is_file($statePath)){$decoded=json_decode((string)file_get_contents($statePath),true);if(is_array($decoded)&&is_string($decoded['last_exported_at_utc']??null))$last=$decoded['last_exported_at_utc'];}
+    return ['counts'=>$counts,'records'=>$records,'exports'=>$exports,'lastExportedAt'=>$last];
+}
+
 /** @return list<array<string, mixed>> */
 function kalite_filo_admin_recent_audit(string $dataRoot, int $limit = 8): array
 {

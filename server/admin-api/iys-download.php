@@ -1,0 +1,4 @@
+<?php
+declare(strict_types=1);
+require_once __DIR__.'/auth.php';require_once __DIR__.'/read-model.php';
+try{kalite_filo_admin_require_method('GET');kalite_filo_admin_start_session();kalite_filo_admin_require_authentication();$id=(string)($_GET['id']??'');if(preg_match('/^iys-email-permissions-\d{4}-\d{2}-\d{2}\.csv$/',$id)!==1)kalite_filo_admin_json(['error'=>'not_found'],404);$path=dirname(kalite_filo_admin_contact_store_path()).DIRECTORY_SEPARATOR.$id;if(!is_file($path)||filesize($path)>10485760)kalite_filo_admin_json(['error'=>'not_found'],404);header('Content-Type: text/csv; charset=UTF-8');header('Content-Length: '.filesize($path));header('Content-Disposition: attachment; filename="'.$id.'"');header('X-Content-Type-Options: nosniff');readfile($path);exit;}catch(Throwable $e){error_log('Admin IYS download failed: '.$e->getMessage());kalite_filo_admin_json(['error'=>'service_unavailable'],503);}

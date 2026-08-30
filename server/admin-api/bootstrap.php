@@ -156,8 +156,68 @@ function kalite_filo_admin_config(): array
         'config_path' => $configPath,
         'data_root' => rtrim($dataRoot, DIRECTORY_SEPARATOR),
         'users' => $validatedUsers,
+        'campaign_test_recipients' => kalite_filo_admin_validate_test_recipients(
+            $raw['campaign_test_recipients'] ?? [],
+        ),
+        'campaign_delivery_mode' => kalite_filo_admin_validate_campaign_delivery_mode(
+            $raw['campaign_delivery_mode'] ?? 'disabled',
+            $environment['target'],
+        ),
+        'campaign_batch_size' => kalite_filo_admin_validate_campaign_batch_size(
+            $raw['campaign_batch_size'] ?? 20,
+        ),
     ];
     return $config;
+}
+
+function kalite_filo_admin_validate_campaign_delivery_mode(mixed $mode, string $environment): string
+{
+    if (!is_string($mode) || !in_array($mode, ['disabled', 'dry_run', 'live'], true)) {
+        throw new RuntimeException('Campaign delivery mode is invalid.');
+    }
+    if ($environment === 'staging' && $mode === 'live') {
+        throw new RuntimeException('Live campaign delivery is forbidden in staging.');
+    }
+    return $mode;
+}
+
+function kalite_filo_admin_validate_campaign_batch_size(mixed $size): int
+{
+    if (!is_int($size) || $size < 1 || $size > 50) {
+        throw new RuntimeException('Campaign batch size is invalid.');
+    }
+    return $size;
+}
+
+/** @return list<array{id: string, email: string, name: string}> */
+function kalite_filo_admin_validate_test_recipients(mixed $input): array
+{
+    if (!is_array($input) || count($input) > 10) {
+        throw new RuntimeException('Campaign test recipient configuration is invalid.');
+    }
+    $result = [];
+    $ids = [];
+    $emails = [];
+    foreach ($input as $recipient) {
+        if (!is_array($recipient)) throw new RuntimeException('Campaign test recipient configuration is invalid.');
+        $id = $recipient['id'] ?? null;
+        $email = $recipient['email'] ?? null;
+        $name = $recipient['name'] ?? null;
+        if (
+            !is_string($id) || preg_match('/^[a-z0-9][a-z0-9_-]{1,63}$/', $id) !== 1
+            || !is_string($email) || filter_var($email, FILTER_VALIDATE_EMAIL) === false
+            || preg_match('/[\r\n]/', $email) === 1
+            || !is_string($name) || trim($name) === '' || mb_strlen($name) > 120
+            || preg_match('/[\r\n]/', $name) === 1
+            || isset($ids[$id]) || isset($emails[strtolower($email)])
+        ) {
+            throw new RuntimeException('Campaign test recipient configuration is invalid.');
+        }
+        $ids[$id] = true;
+        $emails[strtolower($email)] = true;
+        $result[] = ['id' => $id, 'email' => strtolower(trim($email)), 'name' => trim($name)];
+    }
+    return $result;
 }
 
 function kalite_filo_admin_ensure_private_directory(string $path): void
@@ -246,7 +306,7 @@ function kalite_filo_admin_audit(string $action, string $result, array $summary 
             throw new RuntimeException('Audit log could not be locked.');
         }
         $entityType = str_starts_with($action, 'vehicle_tag_') ? 'vehicle_taxonomy'
-            : ((str_starts_with($action, 'vehicle_') || $action === 'featured_vehicle_change') ? 'vehicle' : (str_starts_with($action,'article_')?'article':'authentication'));
+            : ((str_starts_with($action, 'vehicle_') || $action === 'featured_vehicle_change') ? 'vehicle' : (str_starts_with($action,'article_')?'article':(str_starts_with($action,'campaign_')?'campaign':'authentication')));
         $entityId = in_array($entityType,['vehicle','article'],true) && is_string($summary['id'] ?? null) ? $summary['id'] : null;
         $record = [
             'id' => bin2hex(random_bytes(16)),

@@ -63,6 +63,35 @@ select an Article/General asset by opaque ID; referenced assets cannot be
 deleted. This remains a draft relationship until the Phase 7 publishing runner
 materializes an immutable public path.
 
+Phase 5 has started with a consent-safe, authenticated read-only Newsletter
+Contacts view. It reads the environment-specific CSV under a shared lock and
+supports bounded pagination plus exact status, source and IYS filters. Every
+stored source row remains visible independently; the UI does not reinterpret a
+quote/contact `lead_only` row as newsletter consent and exposes no mutation.
+
+The IYS admin view now reports exact pending, failed, synced, approved and
+not-requested row counts, displays eligible operational rows and lists private
+manual CSV export history. Owner/Admin/Marketing may explicitly generate a CSV
+through the existing exporter and download it through an authenticated endpoint.
+No portal API or successful synchronization is inferred from export creation.
+
+Unsubscribe and suppression foundations are now implemented. Campaign code can
+issue a 256-bit opaque token whose SHA-256 hash, not the raw token, is stored
+privately. The public PHP route uses GET only for confirmation and POST for the
+idempotent state change. Admin Owner/Admin/Marketing may also perform an explicit
+confirmed unsubscribe operation; all rows for the email are suppressed while
+original consent evidence remains intact and the action is audited.
+
+Phase 6 has started with a private campaign draft store and operational admin
+composer. Owner/Admin/Marketing can create and revise draft-only campaigns with
+name, subject, preheader and structured Hero/Text/CTA/Divider blocks. The API
+returns only aggregate audience eligibility reasons, never recipient addresses.
+Staging reports legally eligible contacts as environment-blocked and bulk
+live delivery remains disabled by default. A saved draft may be sent only to a recipient
+declared in that environment's private test allowlist, with per-admin throttling
+and audit. An opt-in dry-run queue/ledger foundation exists; production live
+delivery has not been enabled or operationally verified.
+
 The Phase 2 release assembler creates a secrets-free immutable snapshot from
 the validated vehicle/article sources. PHP combines it with bounded, locked,
 read-only aggregates from the environment-specific newsletter CSV and audit
@@ -278,7 +307,7 @@ only after staging proof.
 | `GET,POST /admin-api/campaigns.php` | Campaign list/create | 6 |
 | `GET,PATCH /admin-api/campaign.php?id=` | Campaign edit/read | 6 |
 | `POST /admin-api/campaign-test.php` | Allowlisted test mail | 6 |
-| `POST /admin-api/campaign-queue.php` | Freeze audience and queue send | 6 |
+| `GET,POST,PATCH /admin-api/campaign-queue.php` | Queue history, audience freeze and queued cancellation | 6 |
 | `GET /admin-api/publishing.php` | Change set and publish history | 7 |
 | `POST /admin-api/publish-staging.php` | Validate/freeze staging request | 7 |
 | `POST /admin-api/publish-production.php` | Explicit approved production request | 8 |
@@ -496,13 +525,40 @@ leave private storage. Stored change summaries are deliberately excluded.
   - [x] Add explicit localized published-source to private-draft import adapter
   - [x] Add article cover workflow and central Media Library
 - [ ] **Phase 5:** Newsletter Contacts, IYS and unsubscribe infrastructure
+  - [x] Add authenticated paginated read-only contact API
+  - [x] Add searchable status/source/IYS-aware Newsletter Contacts UI
+  - [x] Add IYS pending/failed/synced view and export history UI
+  - [x] Reuse existing manual CSV exporter with authenticated generation/download
+  - [x] Add tokenized unsubscribe and suppression foundation
+  - [x] Add explicit audited administrative unsubscribe operation and UI
+  - [ ] Add other narrowly scoped IYS result/correction operations only after workflow verification
 - [ ] **Phase 6:** campaign composer, queue, cron worker and history
+  - [x] Add locked/atomic campaign draft schema and CRUD endpoints
+  - [x] Add fail-closed deduplicated audience eligibility summary
+  - [x] Add admin campaign list/composer and structured preview
+  - [x] Add published vehicle/article card selection and frozen references
+  - [x] Add allowlisted test-mail flow and final server-rendered preview
+  - [x] Add idempotent queue, recipient ledger and cPanel Cron worker foundation
+  - [x] Add recipient-safe queue history UI, queued cancellation and CLI dry-run integration coverage
 - [ ] **Phase 7:** content/Git bridge, staging publish and deployment status
 - [ ] **Phase 8:** production publish, rollback and version history
 - [ ] **Phase 9:** request inbox, Site Settings and remaining operations
 - [ ] **Phase 10:** security/accessibility/responsive audit and full regression
 
 ## Completed Tasks
+
+- [x] Added a private immutable audience freeze whose deduplication is
+  fail-closed: missing consent/IYS is excluded and any unsubscribe row overrides
+  otherwise eligible evidence for the same email.
+- [x] Added queue idempotency by campaign ID, revision and audience fingerprint,
+  plus an atomic per-recipient ledger with pending/sent/failed/skipped states,
+  bounded retries and safe aggregate API responses.
+- [x] Added Owner/Admin exact-name confirmation UI and a PHP CLI-only worker.
+  Staging forbids live delivery and supports dry-run ledger validation; live
+  production remains an explicit private-config choice.
+- [x] Added a latest-100 queue history table without recipient addresses,
+  explicit cancellation while still queued, and an integration test that runs
+  the real CLI worker against a synthetic staging CSV in dry-run mode.
 
 - [x] Audited project guardrails, design contract, README, package/config,
   App Router structure, content types/data/loaders/validators, PHP form and SMTP
@@ -610,14 +666,42 @@ leave private storage. Stored change summaries are deliberately excluded.
   localized alt text, usage and licence/source provenance fields.
 - [x] Added article `coverMediaId`, server-side usage/existence validation and
   deletion protection for media referenced by a private article draft.
+- [x] Started Phase 5 with authenticated `subscribers.php` and an operational
+  Bülten Kişileri table using pagination and consent-safe exact filters.
+- [x] Added operational İYS navigation, exact-state overview, authenticated
+  manual CSV generation/download and bounded private export history.
+- [x] Added hashed opaque unsubscribe-token storage, confirmation-before-POST
+  public endpoint and idempotent suppression across every source row.
+- [x] Added an Owner/Admin/Marketing-only “Abonelikten Çıkar” action to the
+  contact table with explicit confirmation, CSRF, role enforcement and audit.
+- [x] Started Phase 6 with versioned private campaign drafts, draft-only edits,
+  header-injection validation and create/update audit events.
+- [x] Added a Mail Kampanyaları interface with content blocks, live structural
+  preview and aggregate fail-closed audience exclusion metrics.
+
+- [x] Added published vehicle/Filo Rehberi card selectors, validated their IDs
+  against the immutable release snapshot and froze safe public fields into each
+  campaign revision.
+- [x] Added a CSRF-protected PHP email renderer and sandboxed branded preview;
+  authored text is escaped and campaign delivery remains disabled.
+- [x] Added environment-specific private test-recipient allowlists, a
+  CSRF/role-protected test endpoint, per-admin throttling, audit results and an
+  admin selector that cannot submit an arbitrary recipient address.
+- [x] Reused the existing PHPMailer/private SMTP boundary for test delivery;
+  test subjects carry the target environment and bulk SMTP remains disabled by default.
 
 ## Current Task
 
 Phase 4 is implemented locally through inventory, localized schema, secure
 preview, persistence, editor, revisions, published-source import and central
 Media Library/article cover selection. Next deploy and smoke-test these Phase 4
-operations on HTTPS staging, then begin Phase 5 with a read-only consent-safe
-Newsletter Contacts view. In parallel, run
+operations on HTTPS staging. Phase 5 now has consent-safe Newsletter Contacts,
+manual IYS management/export and opaque-token/admin suppression interfaces.
+Phase 6 campaign drafts/composer, eligibility summaries, frozen published
+vehicle/article selections, server-rendered branded preview and allowlisted
+test mail are implemented. Bulk delivery defaults to disabled. The idempotent
+queue, private recipient ledger and bounded CLI worker foundation are now
+implemented; next smoke-test staging dry-run before any live delivery. In parallel, run
 the still-required Phase 2/3 staging smoke tests before closing those phases.
 
 ## Next Tasks
@@ -651,7 +735,23 @@ the still-required Phase 2/3 staging smoke tests before closing those phases.
 - [x] Implement article cover selection and the central Media Library contract.
 - [ ] Deploy and smoke-test article import/edit/preview, media upload/edit/
   download/delete and referenced-media deletion protection on HTTPS staging.
-- [ ] Start Phase 5 with authenticated read-only Newsletter Contacts filters.
+- [x] Start Phase 5 with authenticated read-only Newsletter Contacts filters.
+- [x] Add read-only IYS pending/failed/synced summary and existing manual CSV
+  workflow visibility before enabling any state-changing IYS operation.
+- [x] Implement cryptographically opaque unsubscribe tokens and suppression.
+- [x] Implement the narrowly scoped audited administrative unsubscribe operation;
+  consent evidence remains immutable through normal editing.
+- [ ] Verify token confirmation, repeated-token idempotence and admin suppression
+  against synthetic staging contacts before campaign work begins.
+- [x] Define campaign draft schema and fail-closed aggregate audience eligibility.
+- [x] Add published vehicle/Filo Rehberi selection to campaign blocks and freeze
+  the referenced snapshot before any queue operation.
+- [x] Define an environment-specific allowlist and implement test mail without
+  enabling queue or arbitrary-recipient SMTP delivery.
+- [x] Define the immutable audience freeze, idempotency keys, recipient ledger
+  and bounded cPanel CLI worker before exposing a queue action.
+- [ ] Configure staging `dry_run`, queue only synthetic contacts, execute the
+  CLI worker through cPanel Cron and inspect the private terminal ledger.
 
 ## Known Issues
 
@@ -704,6 +804,38 @@ src/app/robots.ts                          (update)
 
 ## Files Changed
 
+Current Phase 6 queue/worker continuation:
+
+- `server/admin-api/bootstrap.php`
+- `server/admin-api/kalite-filo-admin.example.php`
+- `server/admin-api/campaign-queue-store.php`
+- `server/admin-api/campaign-queue.php`
+- `server/admin-api/campaign-worker.php`
+- `server/admin-api/tests/campaign-queue.test.php`
+- `server/admin-api/tests/campaign-worker.test.php`
+- `server/admin-api/README.md`
+- `src/components/admin/admin-app.tsx`
+- `src/components/admin/campaign-manager.tsx`
+- `scripts/assemble-cpanel-release.mjs`
+- `scripts/assemble-cpanel-release.test.mjs`
+- `package.json`
+- `docs/ADMIN_DASHBOARD_IMPLEMENTATION.md`
+- `kalite-filo-staging.zip`
+
+Current Phase 6 test-mail continuation:
+
+- `server/admin-api/bootstrap.php`
+- `server/admin-api/kalite-filo-admin.example.php`
+- `server/admin-api/campaign-test-mailer.php`
+- `server/admin-api/campaign-test.php`
+- `server/admin-api/README.md`
+- `server/admin-api/tests/auth.test.php`
+- `src/components/admin/campaign-manager.tsx`
+- `scripts/assemble-cpanel-release.mjs`
+- `scripts/assemble-cpanel-release.test.mjs`
+- `docs/ADMIN_DASHBOARD_IMPLEMENTATION.md`
+- `kalite-filo-staging.zip`
+
 - `AGENTS.md`
 - `DESIGN.md`
 - `README.md`
@@ -719,6 +851,9 @@ src/app/robots.ts                          (update)
 - `src/components/admin/audit-log-view.tsx`
 - `src/components/admin/article-list-view.tsx`
 - `src/components/admin/media-library-view.tsx`
+- `src/components/admin/subscriber-list-view.tsx`
+- `src/components/admin/iys-management-view.tsx`
+- `src/components/admin/campaign-manager.tsx`
 - `src/components/admin/vehicle-manager.tsx`
 - `src/components/admin/tag-manager.tsx`
 - `src/components/admin/featured-vehicles-manager.tsx`
@@ -746,6 +881,21 @@ src/app/robots.ts                          (update)
 - `server/admin-api/media.php`
 - `server/admin-api/media-store.php`
 - `server/admin-api/media-update.php`
+- `server/admin-api/subscribers.php`
+- `server/admin-api/subscriber-operation.php`
+- `server/admin-api/iys.php`
+- `server/admin-api/iys-export.php`
+- `server/admin-api/iys-download.php`
+- `server/admin-api/campaign-store.php`
+- `server/admin-api/campaigns.php`
+- `server/admin-api/campaign.php`
+- `server/admin-api/campaign-preview.php`
+- `server/admin-api/campaign-test-mailer.php`
+- `server/admin-api/campaign-test.php`
+- `server/forms/unsubscribe-store.php`
+- `server/forms/unsubscribe.php`
+- `server/forms/tests/unsubscribe-store.test.php`
+- `server/admin-api/tests/campaign-store.test.php`
 - `server/admin-api/media-file.php`
 - `server/admin-api/media-delete.php`
 - `server/admin-api/taxonomy-store.php`
@@ -759,6 +909,60 @@ src/app/robots.ts                          (update)
 - `server/admin-api/tests/media-store.test.php`
 
 ## Validation Results
+
+2026-08-30 Phase 6 history/dry-run continuation:
+
+- `npm run lint`: passed without warnings.
+- `npm run typecheck`: passed.
+- `npm test`: passed, including a subprocess execution of the real CLI worker
+  against a synthetic staging contact store; the recipient reached terminal
+  `skipped/dry_run` state without loading SMTP delivery.
+- PHP syntax checks for queue API and worker integration test: passed.
+- `npm run release:staging`: passed; 140 static pages generated.
+- `npm run verify:output`: passed.
+- `git diff --check`: passed (line-ending notices only).
+- Refreshed `kalite-filo-staging.zip` (18,937,244 bytes).
+
+2026-08-30 Phase 6 queue/worker continuation:
+
+- `npm run lint`: passed without warnings.
+- `npm run typecheck`: passed.
+- `npm test`: passed, including queue eligibility, unsubscribe precedence,
+  idempotency and terminal retry behavior.
+- PHP syntax checks for bootstrap, queue store/API and CLI worker: passed.
+- `npm run release:staging`: passed; 140 static pages generated.
+- `npm run verify:output`: passed.
+- `git diff --check`: passed (line-ending notices only).
+- Confirmed queue store/API/worker files are present in the staging release.
+- Refreshed `kalite-filo-staging.zip` (18,937,113 bytes).
+
+2026-08-30 Phase 6 allowlisted test-mail continuation:
+
+- `npm run lint`: passed without warnings.
+- `npm run typecheck`: passed.
+- `npm test`: passed; private allowlist validation, arbitrary-recipient
+  rejection, environment subject prefix, authored-markup escaping and rate
+  limiter persistence are covered without sending SMTP in tests.
+- PHP syntax checks for bootstrap and campaign test endpoints: passed.
+- `npm run release:staging`: passed; 140 static pages generated.
+- `npm run verify:output`: passed.
+- `git diff --check`: passed (line-ending notices only).
+- Confirmed the release contains the test endpoint/helper plus the existing
+  PHPMailer loader and Composer runtime.
+- Refreshed `kalite-filo-staging.zip` (18,930,843 bytes).
+
+2026-08-30 Phase 6 card/preview continuation:
+
+- `npm run lint`: passed.
+- `npm run typecheck`: passed.
+- `npm test`: passed, including admin campaign store and release assembly tests.
+- PHP syntax checks for campaign store/list/detail/preview endpoints: passed.
+- `npm run release:staging`: passed; 140 static pages generated and the PHP
+  runtime assembled without introducing a Next.js runtime route.
+- `npm run verify:output`: passed.
+- `git diff --check`: passed (line-ending notices only).
+- Confirmed `release/staging/admin-api/campaign-preview.php` is packaged.
+- Refreshed `kalite-filo-staging.zip` (18,926,388 bytes).
 
 - [x] `npm run lint`
 - [x] `npm run typecheck`
@@ -820,7 +1024,73 @@ unsafe source-URL rejection. Article tests verify that vehicle-only assets
 cannot be selected as article covers. Release assembly includes the catalog and
 metadata endpoints but excludes all private catalog records and uploaded files.
 
+Newsletter read-model tests verify exact status/source/IYS filtering, bounded
+pagination and preservation of a quote-form `lead_only`/`not_requested` row.
+The API is GET-only and release packaging contains no contact CSV data.
+
+IYS read-model tests verify exact per-row state counts and bounded discovery of
+private export files/state. The original exporter tests still verify same-email
+deduplication, latest consent recipient type, consent time windows and exclusion
+of `lead_only`. Admin export creation records an audit event but does not modify
+contact or IYS status.
+
+Unsubscribe tests verify 256-bit token shape, absence of raw tokens at rest,
+hash lookup, suppression timestamps, preservation of CSV rows, repeat-use
+idempotence and fail-closed unknown tokens. Release tests include the public
+confirmation endpoint and private helper without including token/contact data.
+
+Campaign tests verify draft normalization, immutable identity/revision behavior,
+atomic private persistence, header-injection rejection and audience exclusions.
+An otherwise eligible staging address remains `sendable: 0`; production summary
+still excludes missing consent and unsubscribed rows. No recipient list is sent
+to the browser and no delivery endpoint is packaged.
+
 ## Session Handoff
+
+2026-08-30 Phase 6 operational-visibility handoff: Owner/Admin now sees the
+latest 100 queue summaries and statistics in Mail Kampanyaları without any
+recipient address. A queue can be cancelled only while its persisted status is
+`queued`; once the CLI worker has changed it to `sending`, cancellation fails
+closed. Cancellation marks remaining retryable recipients skipped/cancelled and
+updates the campaign plus audit log. Automated tests now execute the actual CLI
+worker with a synthetic staging CSV and prove dry-run completes without SMTP.
+The remaining evidence is hosting-specific: deploy the refreshed artifact, set
+staging `campaign_delivery_mode` to `dry_run`, create a synthetic queue, invoke
+the documented cPanel CLI command and confirm the same terminal history in the
+browser. Do not switch production to `live` from this handoff.
+
+2026-08-30 Phase 6 queue/worker handoff: queue creation is now available only
+to Owner/Admin and requires typing the exact saved campaign name. It freezes the
+saved revision and the environment-local eligible audience, returns no recipient
+addresses, and reuses an existing queue for the same revision/fingerprint.
+Private ledgers retain the email because SMTP and suppression rechecks require
+it; files remain outside the document root with `0600` writes. The CLI worker
+uses a non-overlapping process lock, rechecks current eligibility immediately
+before each attempt, limits retries to three and batches 1–50 recipients.
+Staging rejects `live`; first configure `campaign_delivery_mode => 'dry_run'`
+with synthetic contacts, upload the release and run the documented cPanel Cron
+command. Inspect the private queue JSON before considering any production live
+mode. No production delivery has been enabled or operationally verified.
+
+2026-08-30 Phase 6 test-mail handoff: a saved draft can now be sent only to a
+recipient declared in the target's private `campaign_test_recipients` config.
+The browser sends a stable recipient ID, PHP resolves it against the allowlist,
+limits each admin to five attempts per ten minutes, adds `[TEST][STAGING]` or
+`[TEST][PRODUCTION]` to the subject, reuses the existing PHPMailer/private SMTP
+configuration and audits delivery outcome without storing the email address.
+Add the desired staging recipient entry to the already-private staging
+`config.php` before browser smoke testing. Bulk delivery and queue actions are
+still disabled. Next define/test the immutable audience snapshot, idempotency
+contract, recipient ledger and bounded PHP CLI worker before adding a Send UI.
+
+2026-08-30 Phase 6 card/preview handoff: campaign blocks now select only
+published vehicle and Filo Rehberi IDs returned by the release snapshot.
+Create/update and preview revalidate those IDs and freeze safe title, summary,
+URL and image metadata. The branded HTML preview is rendered by PHP, escapes
+authored fields and is displayed in a sandboxed iframe. `campaign-preview.php`
+is included in the cPanel release. Delivery remains disabled. Next implement
+environment-configured, allowlisted test mail with PHPMailer reuse; do not
+accept arbitrary recipient addresses and do not create the production queue.
 
 Live staging first-attempt login is verified. Phase 2 read-only dashboard is
 implemented locally and packaged but not yet deployed. Upload the refreshed
@@ -902,3 +1172,33 @@ staging artifact and smoke-test these multipart/image operations on PHP 8.5.
 The next coding task after that operational proof is Phase 5’s authenticated,
 read-only Newsletter Contacts view; preserve `lead_only` and fail-closed IYS
 semantics when exposing filters.
+
+Phase 5 contacts handoff: Bülten Kişileri is now an active admin view backed by
+authenticated `GET subscribers.php`. It lists each evidence row with consent,
+IYS, recipient, created/updated and unsubscribe dates and offers bounded exact
+filters. It is intentionally read-only. Next build the IYS management summary
+and manual CSV export history UI by reusing the existing exporter; do not infer
+an IYS API integration or make `not_requested`/unknown states send-eligible.
+
+Phase 5 IYS handoff: İYS is now an active admin view with exact status metrics,
+operational records, manual CSV generation, authenticated downloads and export
+history. It reuses `export-iys-daily.php`; generation advances that exporter’s
+existing time-window state but never marks a contact synced. Next implement the
+unsubscribe/suppression foundation with opaque tokens, then only narrowly scoped
+audited administrative operations. Keep staging contacts isolated and synthetic.
+
+Phase 5 unsubscribe handoff: `unsubscribe-store.php` issues opaque tokens for
+future campaign links and stores only hashes; `/forms/unsubscribe.php?token=`
+renders a noindex/no-store confirmation and mutates only on POST. Bülten Kişileri
+offers a role/CSRF/audit-protected explicit suppression action. Deploy and test
+using synthetic staging contacts. The next decision-dependent task is IYS portal
+result import; do not invent its schema. If that remains unverified, proceed to
+Phase 6 campaign draft schema and eligibility without enabling delivery.
+
+Phase 6 draft handoff: Mail Kampanyaları is active with campaign list, draft
+create/edit, Hero/Text/CTA/Divider blocks and structural preview. Private
+campaign persistence and eligibility aggregation pass tests; staging delivery
+is explicitly blocked and the UI states that queue/test/send are unavailable.
+Next add selectors for published vehicle and article cards, validate those IDs
+against the release snapshot and freeze their public fields into preview-ready
+blocks. Do not begin SMTP delivery before allowlisted test-mail design.

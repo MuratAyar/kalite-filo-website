@@ -144,12 +144,8 @@ function kalite_filo_export_iys_daily(?DateTimeImmutable $now = null): ?string
     }
 }
 
-if (PHP_SAPI !== 'cli') {
-    http_response_code(404);
-    exit;
-}
-
 if (realpath((string) ($_SERVER['SCRIPT_FILENAME'] ?? '')) === __FILE__) {
+    if (PHP_SAPI !== 'cli') { http_response_code(404); exit; }
     try {
         $output = kalite_filo_export_iys_daily();
         fwrite(STDOUT, $output === null ? "No new IYS permissions.\n" : "Created {$output}\n");
