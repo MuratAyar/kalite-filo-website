@@ -208,18 +208,19 @@ function kalite_filo_admin_require_same_origin(): void
 }
 
 /** @return array<string, mixed> */
-function kalite_filo_admin_read_json(): array
+function kalite_filo_admin_read_json(int $maximumBytes = KALITE_FILO_ADMIN_MAX_JSON_BYTES): array
 {
+    if ($maximumBytes < 1 || $maximumBytes > 524288) throw new InvalidArgumentException('Invalid JSON size limit.');
     $contentLength = (int) ($_SERVER['CONTENT_LENGTH'] ?? 0);
-    if ($contentLength <= 0 || $contentLength > KALITE_FILO_ADMIN_MAX_JSON_BYTES) {
+    if ($contentLength <= 0 || $contentLength > $maximumBytes) {
         kalite_filo_admin_json(['error' => 'invalid_request'], 413);
     }
     $contentType = strtolower(trim(explode(';', (string) ($_SERVER['CONTENT_TYPE'] ?? ''))[0]));
     if ($contentType !== 'application/json') {
         kalite_filo_admin_json(['error' => 'unsupported_media_type'], 415);
     }
-    $body = file_get_contents('php://input', false, null, 0, KALITE_FILO_ADMIN_MAX_JSON_BYTES + 1);
-    if (!is_string($body) || strlen($body) > KALITE_FILO_ADMIN_MAX_JSON_BYTES) {
+    $body = file_get_contents('php://input', false, null, 0, $maximumBytes + 1);
+    if (!is_string($body) || strlen($body) > $maximumBytes) {
         kalite_filo_admin_json(['error' => 'invalid_request'], 400);
     }
     try {
@@ -244,14 +245,17 @@ function kalite_filo_admin_audit(string $action, string $result, array $summary 
             if (is_resource($handle)) fclose($handle);
             throw new RuntimeException('Audit log could not be locked.');
         }
+        $entityType = str_starts_with($action, 'vehicle_tag_') ? 'vehicle_taxonomy'
+            : ((str_starts_with($action, 'vehicle_') || $action === 'featured_vehicle_change') ? 'vehicle' : (str_starts_with($action,'article_')?'article':'authentication'));
+        $entityId = in_array($entityType,['vehicle','article'],true) && is_string($summary['id'] ?? null) ? $summary['id'] : null;
         $record = [
             'id' => bin2hex(random_bytes(16)),
             'timestamp' => gmdate('c'),
             'adminId' => $_SESSION['identity']['id'] ?? null,
             'role' => $_SESSION['identity']['role'] ?? null,
             'action' => $action,
-            'entityType' => 'authentication',
-            'entityId' => null,
+            'entityType' => $entityType,
+            'entityId' => $entityId,
             'summary' => $summary,
             'result' => $result,
         ];

@@ -3,6 +3,10 @@
 import { FormEvent, useEffect, useState } from "react";
 import { VehicleManager } from "./vehicle-manager";
 import { TagManager } from "./tag-manager";
+import { FeaturedVehiclesManager } from "./featured-vehicles-manager";
+import { AuditLogView } from "./audit-log-view";
+import { ArticleListView } from "./article-list-view";
+import { MediaLibraryView } from "./media-library-view";
 
 type AdminIdentity = {
   id: string;
@@ -176,7 +180,7 @@ export function AdminApp() {
   const [dashboard, setDashboard] = useState<DashboardData | null>(null);
   const [dashboardLoading, setDashboardLoading] = useState(true);
   const [dashboardError, setDashboardError] = useState("");
-  const [view, setView] = useState<"dashboard" | "vehicles" | "publishedVehicles" | "tags">("dashboard");
+  const [view, setView] = useState<"dashboard" | "vehicles" | "publishedVehicles" | "featuredVehicles" | "tags" | "audit" | "articles" | "media">("dashboard");
   const [vehiclesOpen, setVehiclesOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
 
@@ -388,12 +392,15 @@ export function AdminApp() {
         <nav aria-label="Yönetim" className="mt-8 space-y-1">
           <button className={`flex min-h-11 w-full items-center rounded-control px-4 text-label font-semibold text-text-inverse ${view==='dashboard'?'bg-white/10':''}`} onClick={()=>setView('dashboard')}>Dashboard</button>
           <button aria-expanded={vehiclesOpen} className="flex min-h-11 w-full items-center rounded-control px-4 text-left text-label font-semibold text-text-inverse hover:bg-white/10" onClick={()=>setVehiclesOpen(v=>!v)}>Araçlar <span className="ml-auto">{vehiclesOpen?'−':'+'}</span></button>
-          {vehiclesOpen?<div className="ml-3 border-l border-white/15 pl-2"><button className="flex min-h-10 w-full items-center px-3 text-sm text-text-inverse-muted hover:text-white" onClick={()=>setView('vehicles')}>Tüm Araçlar</button><button className="flex min-h-10 w-full items-center px-3 text-sm text-text-inverse-muted hover:text-white" onClick={()=>setView('publishedVehicles')}>Yayındaki Araçlar</button></div>:null}
-          {['Filo Rehberi', 'Bülten Kişileri', 'Yayınlama'].map((label) => (
+          {vehiclesOpen?<div className="ml-3 border-l border-white/15 pl-2"><button className="flex min-h-10 w-full items-center px-3 text-sm text-text-inverse-muted hover:text-white" onClick={()=>setView('vehicles')}>Tüm Araçlar</button><button className="flex min-h-10 w-full items-center px-3 text-sm text-text-inverse-muted hover:text-white" onClick={()=>setView('publishedVehicles')}>Yayındaki Araçlar</button><button className="flex min-h-10 w-full items-center px-3 text-sm text-text-inverse-muted hover:text-white" onClick={()=>setView('featuredVehicles')}>Öne Çıkan Araçlar</button></div>:null}
+          <button className={`flex min-h-11 w-full items-center rounded-control px-4 text-left text-label font-semibold text-text-inverse hover:bg-white/10 ${view==='articles'?'bg-white/10':''}`} onClick={()=>setView('articles')}>Filo Rehberi</button>
+          <button className={`flex min-h-11 w-full items-center rounded-control px-4 text-left text-label font-semibold text-text-inverse hover:bg-white/10 ${view==='media'?'bg-white/10':''}`} onClick={()=>setView('media')}>Medya</button>
+          {['Bülten Kişileri', 'Yayınlama'].map((label) => (
             <span className="flex min-h-10 items-center px-4 text-sm text-text-inverse-muted/65" key={label}>{label}<span className="ml-auto text-[0.65rem] uppercase tracking-wider">Yakında</span></span>
           ))}
           <button aria-expanded={settingsOpen} className="flex min-h-11 w-full items-center rounded-control px-4 text-left text-label font-semibold text-text-inverse hover:bg-white/10" onClick={()=>setSettingsOpen(v=>!v)}>Ayarlar <span className="ml-auto">{settingsOpen?'−':'+'}</span></button>
           {settingsOpen?<div className="ml-3 border-l border-white/15 pl-2"><button className="flex min-h-10 w-full items-center px-3 text-sm text-text-inverse-muted hover:text-white" onClick={()=>setView('tags')}>Etiketler</button></div>:null}
+          <button className={`flex min-h-11 w-full items-center rounded-control px-4 text-left text-label font-semibold text-text-inverse hover:bg-white/10 ${view==='audit'?'bg-white/10':''}`} onClick={()=>setView('audit')}>Denetim Kaydı</button>
         </nav>
       </aside>
       <main className="px-gutter py-8 lg:py-10">
@@ -405,7 +412,7 @@ export function AdminApp() {
           <button className="min-h-11 rounded-control border border-border-control bg-surface-card px-5 text-label font-semibold hover:border-corporate-blue hover:text-corporate-blue disabled:opacity-60" disabled={submitting} onClick={handleLogout} type="button">Oturumu Kapat</button>
         </header>
         {error ? <p aria-live="polite" className="mt-6 rounded-control bg-error-surface px-4 py-3 text-body text-error" role="alert">{error}</p> : null}
-        {view === 'tags' ? <TagManager csrfToken={session.csrfToken}/> : view !== 'dashboard' ? <VehicleManager csrfToken={session.csrfToken} publishedOnly={view==='publishedVehicles'} /> : <section className="mt-8">
+        {view === 'media' ? <MediaLibraryView canEdit={['owner','admin','editor'].includes(session.user.role)} csrfToken={session.csrfToken}/> : view === 'articles' ? <ArticleListView canEdit={['owner','admin','editor'].includes(session.user.role)} csrfToken={session.csrfToken}/> : view === 'audit' ? <AuditLogView/> : view === 'tags' ? <TagManager csrfToken={session.csrfToken}/> : view === 'featuredVehicles' ? <FeaturedVehiclesManager csrfToken={session.csrfToken}/> : view !== 'dashboard' ? <VehicleManager csrfToken={session.csrfToken} publishedOnly={view==='publishedVehicles'} /> : <section className="mt-8">
           <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
             <div><p className="text-label font-semibold text-corporate-blue">Operasyon özeti</p><h2 className="mt-1 text-heading-md">Dashboard</h2></div>
             <p className="text-sm text-text-secondary">Salt okunur · {session.environment === "staging" ? "Staging verisi" : "Production verisi"}</p>

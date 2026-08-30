@@ -105,6 +105,14 @@ function kalite_filo_admin_require_authentication(): void
     }
 }
 
+/** @param list<string> $roles */
+function kalite_filo_admin_require_roles(array $roles): void
+{
+    kalite_filo_admin_require_authentication();
+    $role = $_SESSION['identity']['role'] ?? null;
+    if (!is_string($role) || !in_array($role, $roles, true)) kalite_filo_admin_json(['error'=>'authorization_required'],403);
+}
+
 function kalite_filo_admin_login_key(string $username): string
 {
     $remoteAddress = $_SERVER['REMOTE_ADDR'] ?? 'unknown';

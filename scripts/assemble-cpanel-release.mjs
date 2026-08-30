@@ -43,6 +43,27 @@ export function assertNoReleaseSecrets(directory) {
   }
 }
 
+function readArticleMarkdownBody(filePath) {
+  if (!existsSync(filePath)) return null;
+  const source = readFileSync(filePath, "utf8").replace(/^\uFEFF/, "");
+  const body = source.replace(/^---\s*\r?\n[\s\S]*?\r?\n---\s*(?:\r?\n)?/, "").trim();
+  return body !== "" && body.length <= 120000 ? body : null;
+}
+
+function parseEnglishArticleCopy(source) {
+  const records = new Map();
+  for (const match of source.matchAll(/^\s*"([a-z0-9-]+)":\s*\{([^\n]+)\},?\s*$/gm)) {
+    const field = (name) => {
+      const value = match[2].match(new RegExp(`${name}:\\s*("(?:[^"\\\\]|\\\\.)*")`))?.[1];
+      if (!value) return null;
+      try { return JSON.parse(value); } catch { return null; }
+    };
+    const slug = field("slug"); const title = field("title"); const excerpt = field("excerpt");
+    if (slug && title && excerpt) records.set(match[1], { slug, title, excerpt, alt: field("alt") });
+  }
+  return records;
+}
+
 export function createAdminContentSnapshot(repositoryRoot, target) {
   const vehicles = JSON.parse(readFileSync(
     path.join(repositoryRoot, "src", "data", "vehicle-portfolio.json"),
@@ -52,6 +73,11 @@ export function createAdminContentSnapshot(repositoryRoot, target) {
     path.join(repositoryRoot, "src", "data", "article-records.json"),
     "utf8",
   ));
+  const englishArticleSourcePath = path.join(repositoryRoot, "src", "data", "articles.en.ts");
+  const englishArticleSource = existsSync(englishArticleSourcePath)
+    ? readFileSync(englishArticleSourcePath, "utf8") : "";
+  const englishArticlesByTurkishSlug = parseEnglishArticleCopy(englishArticleSource);
+  const articleContentRoot = path.join(repositoryRoot, "src", "content", "filo-rehberi");
   const prices = JSON.parse(readFileSync(
     path.join(repositoryRoot, "src", "data", "vehicle-list-prices.json"), "utf8",
   ));
@@ -94,6 +120,50 @@ export function createAdminContentSnapshot(repositoryRoot, target) {
     articles: {
       total: articles.length,
       draft: articles.filter((article) => article?.publicationStatus === "draft").length,
+      records: articles.map((article) => {
+        const englishArticle = englishArticlesByTurkishSlug.get(article.slug) ?? null;
+        const englishSlug = englishArticle?.slug ?? null;
+        const turkishMarkdown = readArticleMarkdownBody(
+          path.join(articleContentRoot, `${article.contentKey}.md`),
+        );
+        const englishMarkdown = typeof englishSlug === "string"
+          ? readArticleMarkdownBody(path.join(articleContentRoot, `${englishSlug}-en.md`)) : null;
+        const importDraft = turkishMarkdown && article.title && article.excerpt
+          && article.categoryId && article.publishedAt && article.readingMinutes
+          && article.coverImage?.alt && article.seo?.title && article.seo?.description ? {
+            categoryId: article.categoryId,
+            featured: article.featured === true,
+            locales: {
+              tr: {
+                status: "ready", title: article.title, slug: article.slug,
+                excerpt: article.excerpt, coverAlt: article.coverImage.alt,
+                publishedAt: article.publishedAt, readingMinutes: article.readingMinutes,
+                seoTitle: article.seo.title, metaDescription: article.seo.description,
+                markdown: turkishMarkdown,
+              },
+              en: englishArticle && englishMarkdown ? {
+                status: "ready", title: englishArticle.title, slug: englishArticle.slug,
+                excerpt: englishArticle.excerpt,
+                coverAlt: englishArticle.alt ?? article.coverImage.alt,
+                publishedAt: article.publishedAt, readingMinutes: article.readingMinutes,
+                seoTitle: `${englishArticle.title} | Kalite Filo`,
+                metaDescription: englishArticle.excerpt, markdown: englishMarkdown,
+              } : null,
+            },
+          } : null;
+        return {
+          ...article,
+          publicationStatus: article.publicationStatus ?? "approved",
+          translations: {
+            tr: { complete: turkishMarkdown !== null },
+            en: {
+              complete: englishMarkdown !== null,
+              slug: englishSlug,
+            },
+          },
+          importDraft,
+        };
+      }),
     },
   };
 }
@@ -142,15 +212,26 @@ export function assembleCpanelRelease(target, repositoryRoot = defaultRepository
     "login.php",
     "logout.php",
     "dashboard.php",
+    "audit.php",
+    "articles.php",
+    "article-store.php",
+    "article-preview.php",
+    "article.php",
+    "article-revisions.php",
+    "article-import.php",
     "vehicle-store.php",
     "vehicles.php",
     "vehicle.php",
+    "vehicle-revisions.php",
     "vehicle-media.php",
     "media.php",
+    "media-store.php",
+    "media-update.php",
     "media-file.php",
     "media-delete.php",
     "taxonomy-store.php",
     "tags.php",
+    "featured-vehicles.php",
   ];
   for (const requiredFile of adminRuntimeFiles) {
     if (!existsSync(path.join(adminApiSource, requiredFile))) {

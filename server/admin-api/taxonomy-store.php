@@ -1,6 +1,6 @@
 <?php
 declare(strict_types=1);
-const KALITE_FILO_TAXONOMY_FIELDS=['make','model','modelYearLabel','categoryLabel','segmentLabel','fuelLabel','transmissionLabel','seats'];
+const KALITE_FILO_TAXONOMY_FIELDS=['make','model','categoryLabel','segmentLabel','fuelLabel'];
 function kalite_filo_admin_taxonomy_path():string{return (string)kalite_filo_admin_config()['data_root'].DIRECTORY_SEPARATOR.'drafts'.DIRECTORY_SEPARATOR.'vehicle-taxonomy.json';}
 function kalite_filo_admin_taxonomy_id(string $field,string $value):string{return substr(hash('sha256',$field."\0".$value),0,24);}
 /** @return array<string,list<array{id:string,value:string,custom:bool,usageCount:int}>> */
@@ -9,3 +9,13 @@ function kalite_filo_admin_taxonomy():array{$records=kalite_filo_admin_vehicle_r
 function kalite_filo_admin_write_taxonomy(array $values):void{$path=kalite_filo_admin_taxonomy_path();kalite_filo_admin_ensure_private_directory(dirname($path));$tmp=$path.'.tmp-'.bin2hex(random_bytes(5));file_put_contents($tmp,json_encode(['schemaVersion'=>1,'values'=>$values],JSON_THROW_ON_ERROR|JSON_PRETTY_PRINT|JSON_UNESCAPED_UNICODE),LOCK_EX);@chmod($tmp,0600);if(!rename($tmp,$path)){@unlink($tmp);throw new RuntimeException('Taxonomy store could not be replaced.');}}
 /** @return array<string,list<string>> */
 function kalite_filo_admin_custom_taxonomy():array{$path=kalite_filo_admin_taxonomy_path();if(!is_file($path))return[];$raw=json_decode((string)file_get_contents($path),true,8,JSON_THROW_ON_ERROR);return is_array($raw['values']??null)?$raw['values']:[];}
+
+function kalite_filo_admin_validate_vehicle_taxonomy(array $vehicle):void
+{
+    $groups=kalite_filo_admin_taxonomy();
+    foreach(KALITE_FILO_TAXONOMY_FIELDS as $field){
+        $value=trim((string)($vehicle[$field]??''));
+        $allowed=array_column($groups[$field]??[],'value');
+        if($value===''||!in_array($value,$allowed,true))throw new InvalidArgumentException('invalid_taxonomy');
+    }
+}

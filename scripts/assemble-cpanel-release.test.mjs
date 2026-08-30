@@ -7,6 +7,7 @@ import test from "node:test";
 import {
   assembleCpanelRelease,
   assertNoReleaseSecrets,
+  createAdminContentSnapshot,
 } from "./assemble-cpanel-release.mjs";
 
 function createFixture(name) {
@@ -22,9 +23,14 @@ function createFixture(name) {
     { sourceStatus: "archived", featured: false },
   ]));
   writeFileSync(path.join(root, "src", "data", "article-records.json"), JSON.stringify([
-    { publicationStatus: "published" },
-    { publicationStatus: "draft" },
+    { id: "one", slug: "one", contentKey: "one", title: "Bir", excerpt: "Bir özet", categoryId: "filo-yonetimi", publishedAt: "2026-08-30", readingMinutes: 4, featured: true, publicationStatus: "published", coverImage: { alt: "Türkçe alternatif metin" }, seo: { title: "Bir | Kalite Filo", description: "Bir meta açıklaması" } },
+    { id: "two", slug: "two", contentKey: "two", publicationStatus: "draft" },
   ]));
+  writeFileSync(path.join(root, "src", "data", "articles.en.ts"), '  "one": { slug: "one-english", title: "One", excerpt: "One excerpt", alt: "English alternative text" },\n');
+  mkdirSync(path.join(root, "src", "content", "filo-rehberi"), { recursive: true });
+  writeFileSync(path.join(root, "src", "content", "filo-rehberi", "one.md"), "---\ntitle: Fixture\n---\n\n## Türkçe gövde");
+  writeFileSync(path.join(root, "src", "content", "filo-rehberi", "one-english-en.md"), "## English body");
+  writeFileSync(path.join(root, "src", "content", "filo-rehberi", "two.md"), "fixture");
   writeFileSync(path.join(root, "src", "data", "vehicle-list-prices.json"), JSON.stringify({ amountsMinor: {} }));
   writeFileSync(path.join(root, "src", "data", "vehicle-portfolio.ts"), "const portfolioMedia = {};\n");
   for (const file of [
@@ -48,15 +54,26 @@ function createFixture(name) {
     "login.php",
     "logout.php",
     "dashboard.php",
+    "audit.php",
+    "articles.php",
+    "article-store.php",
+    "article-preview.php",
+    "article.php",
+    "article-revisions.php",
+    "article-import.php",
     "vehicle-store.php",
     "vehicles.php",
     "vehicle.php",
+    "vehicle-revisions.php",
     "vehicle-media.php",
     "media.php",
+    "media-store.php",
+    "media-update.php",
     "media-file.php",
     "media-delete.php",
     "taxonomy-store.php",
     "tags.php",
+    "featured-vehicles.php",
   ]) {
     writeFileSync(path.join(root, "server", "admin-api", file), "fixture");
   }
@@ -114,15 +131,26 @@ test("release assembly includes the complete Composer mail runtime and no privat
     "admin-api/login.php",
     "admin-api/logout.php",
     "admin-api/dashboard.php",
+    "admin-api/audit.php",
+    "admin-api/articles.php",
+    "admin-api/article-store.php",
+    "admin-api/article-preview.php",
+    "admin-api/article.php",
+    "admin-api/article-revisions.php",
+    "admin-api/article-import.php",
     "admin-api/vehicle-store.php",
     "admin-api/vehicles.php",
     "admin-api/vehicle.php",
+    "admin-api/vehicle-revisions.php",
     "admin-api/vehicle-media.php",
     "admin-api/media.php",
+    "admin-api/media-store.php",
+    "admin-api/media-update.php",
     "admin-api/media-file.php",
     "admin-api/media-delete.php",
     "admin-api/taxonomy-store.php",
     "admin-api/tags.php",
+    "admin-api/featured-vehicles.php",
     "admin-api/_content-snapshot.php",
   ]) {
     assert.equal(existsSync(path.join(releaseRoot, relativePath)), true, relativePath);
@@ -137,4 +165,11 @@ test("release assembly includes the complete Composer mail runtime and no privat
   );
   assert.match(snapshotSource, /^<\?php/);
   assert.equal(snapshotSource.includes("password"), false);
+  const snapshot = createAdminContentSnapshot(root, "staging");
+  assert.equal(snapshot.articles.records[0].translations.tr.complete, true);
+  assert.equal(snapshot.articles.records[0].translations.en.complete, true);
+  assert.equal(snapshot.articles.records[1].translations.en.complete, false);
+  assert.equal(snapshot.articles.records[0].importDraft.locales.tr.markdown, "## Türkçe gövde");
+  assert.equal(snapshot.articles.records[0].importDraft.locales.en.markdown, "## English body");
+  assert.equal(snapshot.articles.records[1].importDraft, null);
 });

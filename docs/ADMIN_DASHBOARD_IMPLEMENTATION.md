@@ -1,6 +1,6 @@
 # Kalite Filo Admin Dashboard Implementation
 
-Last updated: 2026-08-29
+Last updated: 2026-08-30
 
 This document is the single source of truth for Phase 2 Admin Dashboard work.
 Every admin development session must read it before making changes and update
@@ -13,9 +13,55 @@ logs in successfully on the first submission after fixing the asynchronous form
 reference bug. Final browser confirmation of persistent logout/cookie headers
 remains an operational check. Phase 2 is in progress: an authenticated,
 read-only dashboard API and responsive operational overview are implemented and
-await staging deployment. No content mutation, subscriber mutation, campaign
-delivery, or publishing action is enabled. The public site remains a Next.js
+await staging deployment. A newest-first paginated audit view with exact action
+and result filters is now implemented locally. Vehicle mutations are stored only as private drafts;
+subscriber mutation, campaign delivery and publishing actions remain disabled. The public site remains a Next.js
 16.2.11 static export.
+
+Phase 3 vehicle taxonomy now manages exactly five controlled groups: brand,
+model, category, segment and fuel. Existing vehicle records seed every group;
+custom values remain in the environment-specific private taxonomy store. The
+vehicle editor uses required dropdowns for these fields and PHP independently
+rejects values outside the same taxonomy. Transmission, seats and model year
+are deliberately ordinary vehicle fields rather than managed tags.
+
+Vehicle price editing now preserves the existing `TRY`, monthly, VAT-excluded,
+owner-approved list-net contract. Admin input is whole TL without grouping
+separators; PHP converts it to integer minor units, rejects unsafe ranges and
+prevents a price-less vehicle from entering published draft state. Every create
+or update remains an immutable private revision. Authenticated editors can view
+the latest 20 revision summaries without exposing revision files publicly.
+
+Phase 4 has started with a read-only Filo Rehberi inventory. The release snapshot
+joins the 18 generated Turkish records with verified local TR/EN Markdown file
+presence. The admin can search and filter by category and English completeness;
+no translation is inferred or generated and no Markdown source is mutated yet.
+
+The localized article draft schema and preview security boundary are now
+implemented. Turkish content is mandatory; English is either an explicit locale
+record or `null`. Each locale has independent `draft`/`ready` state, bounded
+metadata and Markdown, while entity revisions preserve stable identity. The
+preview endpoint is authenticated, same-origin and CSRF-protected; raw HTML is
+escaped and only HTTP(S) or safe root-relative links are emitted.
+
+Article draft persistence and mutation APIs are now implemented. Writes use a
+private per-environment JSON store, a dedicated exclusive transaction lock,
+atomic replacement and immutable revision files. TR/EN slugs are checked
+against both published inventory and every draft. Only Owner, Admin and Editor
+roles may create/update; Marketing and Read Only remain non-mutating.
+
+The admin Filo Rehberi view now includes a TR/EN tabbed editor for private
+drafts, explicit English opt-in, sanitized Markdown preview and safe revision
+history. Published source cards remain repository-backed and read-only. An
+explicit action can now clone their verified TR/EN metadata and Markdown into a
+same-identity private draft; it never writes the repository or public release.
+
+The central private Media Library is now implemented for JPEG, PNG and WebP
+assets. It records localized alt text, usage, dimensions, byte size, checksum,
+creator/source/licence provenance and uploader timestamps. Article drafts can
+select an Article/General asset by opaque ID; referenced assets cannot be
+deleted. This remains a draft relationship until the Phase 7 publishing runner
+materializes an immutable public path.
 
 The Phase 2 release assembler creates a secrets-free immutable snapshot from
 the validated vehicle/article sources. PHP combines it with bounded, locked,
@@ -213,12 +259,17 @@ only after staging proof.
 | `GET /admin-api/audit.php` | Paginated safe audit view | 2 |
 | `GET,POST /admin-api/vehicles.php` | Vehicle list/create | 3 |
 | `GET,PATCH /admin-api/vehicle.php?id=` | Vehicle read/update/archive | 3 |
-| `GET,PUT /admin-api/featured-vehicles.php` | Four-item ordered invariant | 3 |
+| `GET /admin-api/vehicle-revisions.php?id=` | Latest safe vehicle revision summaries | 3 |
+| `GET,POST /admin-api/featured-vehicles.php` | Four-item ordered invariant | 3 |
 | `GET,POST /admin-api/articles.php` | Article list/create | 4 |
 | `GET,PATCH /admin-api/article.php?id=` | Localized article update | 4 |
+| `GET /admin-api/article-revisions.php?id=` | Safe article revision summaries | 4 |
 | `POST /admin-api/article-preview.php` | Sanitized Markdown preview | 4 |
+| `POST /admin-api/article-import.php` | Clone verified published TR/EN source to private draft | 4 |
 | `GET,POST /admin-api/media.php` | Media list/upload metadata | 4 |
+| `PATCH /admin-api/media-update.php` | Update private media metadata | 4 |
 | `GET /admin-api/media-file.php?id=` | Authorized private preview | 4 |
+| `POST /admin-api/media-delete.php` | Delete an unreferenced private asset | 4 |
 | `GET /admin-api/subscribers.php` | Filtered contact view | 5 |
 | `POST /admin-api/subscriber-operation.php` | Explicit audited status operation | 5 |
 | `GET /admin-api/iys.php` | State and export history | 5 |
@@ -274,6 +325,19 @@ minutes, featured, SEO title/description, Markdown body, sources and locale.
 Preview is sanitized and raw HTML is disabled. Translation completeness is a
 recorded state; no fallback pretends Turkish copy is approved English copy.
 
+The first implemented adapter is intentionally read-only: release assembly
+emits safe article metadata and verified TR/EN body-presence flags into the
+admin snapshot. `GET /admin-api/articles.php` exposes that inventory and the
+separate private draft list only to an authenticated session. Published sources
+remain read-only; authenticated draft mutation uses the contracts below.
+
+The private draft contract uses `schemaVersion: 1`, a stable article ID,
+category, featured state, explicit `tr`/`en` locale slots, monotonic revision,
+created/updated timestamps and actor ID. A locale cannot become `ready` without
+excerpt, cover alt, valid publication date, reading time and SEO fields. Draft
+persistence uses a locked `drafts/articles.json` store and revisions under
+`revisions/articles/<id>/`; the public Markdown sources remain untouched.
+
 ## Media Management Model
 
 Draft uploads live in an environment-specific private media directory. Metadata:
@@ -283,10 +347,11 @@ uploader, checksum and status. Publication copies immutable/checksummed variants
 to approved `public/images/...` paths through the runner. Existing vehicle
 licence provenance is migrated, not discarded.
 
-Allowed types and limits will be explicit after current asset dimensions and
-hosting upload limits are reviewed. Validation uses `finfo`/image parsing when
-verified, never client MIME alone. Paths are generated, resolved, containment-
-checked, and never derived directly from user path fragments.
+Allowed types are JPEG, PNG and WebP, with a 5 MiB maximum, minimum 400×225 and
+maximum 4096×4096 dimensions. Validation uses PHP image parsing and its detected
+MIME rather than the client MIME; production `fileinfo` remains unverified and
+is not assumed. Paths use opaque 128-bit IDs plus allowlisted extensions and
+are never derived from user path fragments.
 
 ## Newsletter / Subscriber Model
 
@@ -362,6 +427,11 @@ publishes and rollback. Integrity hardening (hash chaining or off-host copy) is
 an open decision before production operations. Log retention and export access
 must be approved before personal-data operations launch.
 
+The initial read endpoint exposes at most 50 records per page (the UI requests
+20), scans at most 24 bounded monthly files and silently skips malformed rows.
+Only event identity, time, safe admin/role, action, entity identity and result
+leave private storage. Stored change summaries are deliberately excluded.
+
 ## Backup / Recovery Model
 
 - Published content and release history: Git commits/tags plus retained release
@@ -398,7 +468,7 @@ must be approved before personal-data operations launch.
   - [x] Add safe recent authentication activity view
   - [x] Render responsive dashboard metrics and publish-status placeholders
   - [ ] Verify dashboard data on HTTPS staging
-  - [ ] Add paginated audit log route/view
+  - [x] Add paginated audit log route/view
 - [ ] **Phase 3:** vehicle CRUD, price management and Featured Vehicles
   - [x] Add release snapshot with joined vehicle, price and licensed media data
   - [x] Add private file-backed vehicle draft store and authenticated create/update APIs
@@ -406,11 +476,25 @@ must be approved before personal-data operations launch.
   - [x] Add vehicle cards, search, make/segment filters and create/edit form
   - [x] Add explicit published/unpublished transition in draft state
   - [x] Add hardened private image upload/download/delete endpoints and licence editor
-  - [ ] Complete numeric price/technical fields, uniqueness validation and revisions
+  - [x] Complete price editing and price-specific validation/history
   - [x] Add central vehicle taxonomy store and Settings → Tags management view
-  - [ ] Replace every repeated vehicle editor text input with taxonomy dropdowns
-  - [ ] Add Featured Vehicles four-item ordered editor and publish invariant
+  - [x] Enforce taxonomy dropdowns for make, model, category, segment and fuel
+  - [x] Remove transmission, seats and model-year from managed tag groups
+  - [x] Add Featured Vehicles four-item ordered editor and draft invariant
+  - [x] Enforce unique vehicle ID/sourceId/slug and bounded power/seats/summary
+  - [x] Write immutable create/update vehicle revisions outside document root
+  - [x] Add Featured Vehicles editor with exactly four eligible ordered IDs
 - [ ] **Phase 4:** Filo Rehberi CMS, TR/EN management and Media Library
+  - [x] Add release-time article inventory with verified TR/EN completeness
+  - [x] Add authenticated read-only article list endpoint
+  - [x] Add searchable category/translation-aware Filo Rehberi admin view
+  - [x] Define and test localized private article draft/revision schema
+  - [x] Add article create/edit APIs with uniqueness and publication validation
+  - [x] Add authenticated raw-HTML-disabled Markdown preview endpoint
+  - [x] Add lightweight TR/EN Markdown editor and connect sanitized preview
+  - [x] Add safe article revision summaries and editor history
+  - [x] Add explicit localized published-source to private-draft import adapter
+  - [x] Add article cover workflow and central Media Library
 - [ ] **Phase 5:** Newsletter Contacts, IYS and unsubscribe infrastructure
 - [ ] **Phase 6:** campaign composer, queue, cron worker and history
 - [ ] **Phase 7:** content/Git bridge, staging publish and deployment status
@@ -477,26 +561,97 @@ must be approved before personal-data operations launch.
   CSV; only production defaults to the existing canonical contact store.
 - [x] Replaced the Phase 1 placeholder panel with a responsive dashboard showing
   eight metrics, recent safe audit activity, environment and publish state.
+- [x] Seeded vehicle tags from all current portfolio records and limited managed
+  groups to brand, model, category, segment and fuel.
+- [x] Replaced those five vehicle editor text inputs with required dropdowns and
+  added matching fail-closed PHP taxonomy validation.
+- [x] Added whole-TRY monthly list-net price editing, integer-minor-unit PHP
+  normalization, safe bounds and the published-vehicle price invariant.
+- [x] Added authenticated read-only vehicle revision summaries and rendered the
+  latest history inside the vehicle editor.
+- [x] Added authenticated, paginated `GET /admin-api/audit.php` with bounded
+  private reads, exact filters and a response schema that excludes summaries.
+- [x] Added the responsive Denetim Kaydı table, filters and previous/next page
+  controls to the admin navigation.
+- [x] Classified new vehicle/taxonomy audit events with safe entity types and
+  vehicle IDs while keeping authentication events separate.
+- [x] Started Phase 4 with a secrets-free 18-record article inventory and
+  verified all 18 Turkish and 18 English Markdown bodies during release assembly.
+- [x] Added authenticated `GET /admin-api/articles.php` and a responsive Filo
+  Rehberi view with search, category and translation-completeness filters.
+- [x] Added the versioned localized article normalization contract with explicit
+  missing-English state, field bounds, ready-state completeness and revisions.
+- [x] Added CSRF-protected `POST /admin-api/article-preview.php`; its allowlisted
+  renderer escapes raw HTML and drops unsafe/protocol-relative link targets.
+- [x] Added PHP coverage for schema revision, incomplete ready content, unknown
+  categories, raw HTML, JavaScript URLs and safe HTTPS preview links.
+- [x] Added locked/atomic private article storage and immutable create/update
+  revision files outside the document root.
+- [x] Added published-plus-draft TR/EN slug uniqueness validation and round-trip
+  persistence tests.
+- [x] Enabled authenticated `POST articles.php` and `PATCH article.php?id=` for
+  Owner/Admin/Editor only; public Markdown is never modified by these APIs.
+- [x] Classified article create/update records as article audit entities.
+- [x] Added a TR/EN tabbed draft editor for title, slug, category, excerpt,
+  locale status/date/reading time, cover alt, SEO metadata and Markdown.
+- [x] Connected the editor to the authenticated sanitized preview endpoint;
+  English remains an explicit opt-in and is never synthesized.
+- [x] Added `GET /admin-api/article-revisions.php?id=` and an editor history
+  view that exposes changed field names without returning Markdown bodies.
+- [x] Hid article mutation controls from Marketing/Read Only roles while the PHP
+  authorization boundary remains authoritative.
+- [x] Added a release-time article import payload from verified TR/EN metadata
+  and Markdown, plus explicit CSRF/role-protected private-draft import.
+- [x] Preserved stable published IDs, rejected duplicate imports, recorded an
+  immutable import revision/audit event and kept import bodies out of list APIs.
+- [x] Added a locked/atomic private media catalog, opaque contained file paths,
+  server-detected JPEG/PNG/WebP type/dimension limits and checksum metadata.
+- [x] Added responsive media search/filter/upload/edit/download/delete UI with
+  localized alt text, usage and licence/source provenance fields.
+- [x] Added article `coverMediaId`, server-side usage/existence validation and
+  deletion protection for media referenced by a private article draft.
 
 ## Current Task
 
-Complete Phase 3 vehicle management. CRUD/list/filter/publication, private media
-and central vehicle tag CRUD are implemented. Next finish dropdown enforcement
-inside the vehicle editor, then strengthen field/slug uniqueness validation,
-add immutable revisions and implement the four-item Featured Vehicles editor.
+Phase 4 is implemented locally through inventory, localized schema, secure
+preview, persistence, editor, revisions, published-source import and central
+Media Library/article cover selection. Next deploy and smoke-test these Phase 4
+operations on HTTPS staging, then begin Phase 5 with a read-only consent-safe
+Newsletter Contacts view. In parallel, run
+the still-required Phase 2/3 staging smoke tests before closing those phases.
 
 ## Next Tasks
 
 - [x] Provision the staging private Owner config and verify the session endpoint.
 - [x] Verify first-attempt Owner login on HTTPS staging.
+- [ ] Upload the refreshed `release/staging/` artifact and test vehicle create,
+  edit, whole-TL price validation, publish/unpublish and revision display.
+- [ ] Test draft media upload/download/delete and the four-item featured order
+  against staging-private data; confirm the public homepage is unchanged.
 - [ ] Replace the staging document root with the Phase 2 `release/staging/`
   artifact and verify `/admin-api/dashboard.php` while authenticated.
 - [ ] Verify cPanel session persistence, cookie flags, origin/host behavior,
   response headers, rate-limit file permissions and logout in browser/devtools.
 - [ ] Verify whether Apache can apply no-store headers to static `/admin/` and
   disable directory listing without interfering with cPanel HTTPS rules.
-- [ ] Implement paginated `GET /admin-api/audit.php` and its read-only UI after
-  the dashboard endpoint is staging-verified.
+- [ ] Verify audit pagination/filters and confirm API responses never contain
+  the stored `summary` field on HTTPS staging.
+- [x] Define the Phase 4 localized article draft schema, field limits and
+  explicit missing-translation semantics.
+- [x] Implement and test raw-HTML-disabled Markdown preview before enabling any
+  article mutation in the admin UI.
+- [x] Add locked/atomic article draft persistence, immutable revision files and
+  TR/EN slug uniqueness checks.
+- [x] Add authenticated create/edit APIs.
+- [x] Connect the TR/EN editor UI to draft APIs and the already-sanitized preview
+  endpoint; existing published records remain read-only until import is defined.
+- [x] Add authenticated safe article revision summaries.
+- [x] Define and implement an explicit localized import adapter before allowing
+  existing published articles to be edited as drafts.
+- [x] Implement article cover selection and the central Media Library contract.
+- [ ] Deploy and smoke-test article import/edit/preview, media upload/edit/
+  download/delete and referenced-media deletion protection on HTTPS staging.
+- [ ] Start Phase 5 with authenticated read-only Newsletter Contacts filters.
 
 ## Known Issues
 
@@ -507,7 +662,8 @@ add immutable revisions and implement the four-item Featured Vehicles editor.
   deliberately outside sitemap/navigation contracts.
 - Current article generation is Turkish-centric and English metadata is TS code;
   this needs a controlled Phase 4 migration.
-- Current featured vehicle order is implicit (`featured` plus JSON order).
+- Public homepage featured order remains implicit until the Phase 7 publishing
+  adapter materializes the explicit private four-ID contract into repository data.
 - Existing newsletter CSV permits multiple rows per email/source; audience
   eligibility needs a tested cross-row resolution policy before campaigns.
 
@@ -560,8 +716,12 @@ src/app/robots.ts                          (update)
 - `src/app/(admin)/admin/page.tsx`
 - `src/app/robots.ts`
 - `src/components/admin/admin-app.tsx`
+- `src/components/admin/audit-log-view.tsx`
+- `src/components/admin/article-list-view.tsx`
+- `src/components/admin/media-library-view.tsx`
 - `src/components/admin/vehicle-manager.tsx`
 - `src/components/admin/tag-manager.tsx`
+- `src/components/admin/featured-vehicles-manager.tsx`
 - `src/components/admin/index.ts`
 - `server/admin-api/README.md`
 - `server/admin-api/bootstrap.php`
@@ -571,33 +731,53 @@ src/app/robots.ts                          (update)
 - `server/admin-api/login.php`
 - `server/admin-api/logout.php`
 - `server/admin-api/dashboard.php`
+- `server/admin-api/audit.php`
+- `server/admin-api/articles.php`
+- `server/admin-api/article-store.php`
+- `server/admin-api/article-preview.php`
+- `server/admin-api/article.php`
+- `server/admin-api/article-revisions.php`
+- `server/admin-api/article-import.php`
 - `server/admin-api/vehicle-store.php`
 - `server/admin-api/vehicles.php`
 - `server/admin-api/vehicle.php`
+- `server/admin-api/vehicle-revisions.php`
 - `server/admin-api/vehicle-media.php`
 - `server/admin-api/media.php`
+- `server/admin-api/media-store.php`
+- `server/admin-api/media-update.php`
 - `server/admin-api/media-file.php`
 - `server/admin-api/media-delete.php`
 - `server/admin-api/taxonomy-store.php`
 - `server/admin-api/tags.php`
+- `server/admin-api/featured-vehicles.php`
 - `server/admin-api/kalite-filo-admin.example.php`
 - `server/admin-api/tests/auth.test.php`
 - `server/admin-api/tests/dashboard.test.php`
+- `server/admin-api/tests/vehicle-store.test.php`
+- `server/admin-api/tests/article-store.test.php`
+- `server/admin-api/tests/media-store.test.php`
 
 ## Validation Results
 
 - [x] `npm run lint`
 - [x] `npm run typecheck`
 - [x] `npm test` — 56 Node tests plus quote config, subscriber, IYS,
-  customer-mailer, admin authentication and dashboard read-model PHP suites passed
+  customer-mailer, admin authentication, dashboard read-model and vehicle-store
+  plus article schema/preview PHP suites passed
 - [x] Admin test syntax-checked every top-level admin PHP runtime/example file
 - [x] `npm run build:staging` — 140 static pages generated, including `/admin/`
 - [x] `npm run verify:output` — admin noindex/language and existing public
   artifact contracts passed
 - [x] `node scripts/assemble-cpanel-release.mjs staging` — release contains the
-  seven reviewed admin runtime files plus generated content snapshot; private
+  reviewed admin runtime files plus generated content snapshot; private
   config, examples and tests are excluded
 - [x] `git diff --check`
+
+The 2026-08-30 Phase 3 build generated all 140 static pages and packaged the
+featured endpoint without private draft/revision data. Vehicle-store tests cover
+numeric normalization, duplicate slug rejection, technical-field bounds,
+whole-TRY price normalization and rejection of published vehicles without a price.
 
 The authentication regression test now loads a private config containing a
 UTF-8 BOM and verifies that it does not leak response bytes/headers. Login now
@@ -609,11 +789,116 @@ zero explicit drafts. The cPanel artifact includes authenticated dashboard and
 read-model PHP files. No secret, plaintext credential or private contact data
 was added to the repository or release.
 
+The 2026-08-30 Phase 4 inventory check found 18/18 Turkish and 18/18 English
+Markdown bodies across the six existing categories. Release tests cover both a
+complete English match and an explicitly missing translation. The public
+article routes, Markdown files and generated records remain unchanged.
+
+The Phase 4 schema/preview suite confirms monotonic revisions, explicit missing
+English state, ready-content completeness and safe Markdown output. Preview
+payloads are capped at 128 KiB. Raw tags are escaped and `javascript:` plus
+protocol-relative targets are not emitted as links.
+
+Article persistence tests now cover exclusive-lock/atomic round-trip storage,
+private immutable revision creation, duplicate draft slugs and conflicts with
+published slugs. Release packaging includes both article mutation endpoints but
+no draft or revision data.
+
+The article editor build exposes only private drafts for mutation. Preview HTML
+comes exclusively from the authenticated sanitizer endpoint. Revision tests
+verify that changed-field summaries include Markdown changes but never expose
+the stored before/after Markdown bodies.
+
+The published-source import tests verify Turkish frontmatter removal, verified
+TR/EN body transfer, stable identity, fail-closed incomplete sources and release
+packaging of `article-import.php`. The ordinary article-list response strips the
+server-only import payload. All 140 static pages still build successfully.
+
+The Media Library suite verifies localized metadata normalization, atomic
+catalog round trips, opaque contained paths, required Turkish alt text and
+unsafe source-URL rejection. Article tests verify that vehicle-only assets
+cannot be selected as article covers. Release assembly includes the catalog and
+metadata endpoints but excludes all private catalog records and uploaded files.
+
 ## Session Handoff
 
 Live staging first-attempt login is verified. Phase 2 read-only dashboard is
-implemented locally and packaged but not yet deployed. Next session must begin
-by reading this file, upload the refreshed staging artifact, then verify eight
-metrics, recent login activity, staging isolation and persistent logout. If the
-dashboard endpoint passes, add the paginated audit endpoint/view; do not begin
-vehicle mutations until Phase 2 read-only behavior is recorded as complete.
+implemented locally and packaged but not yet deployed. Upload the refreshed
+staging artifact, then verify eight metrics, recent login activity, audit
+pagination, staging isolation and persistent logout. This older handoff is
+superseded by the later Phase 2/3 handoff below.
+
+2026-08-30 handoff: the vehicle taxonomy scope is now exactly `make`, `model`,
+`categoryLabel`, `segmentLabel` and `fuelLabel`. Existing vehicle snapshot
+values are always included, so Fuel contains all currently used values such as
+Benzin, Dizel and hybrid variants. Vehicle create/edit renders these five fields
+as required dropdowns; PHP rejects values outside the same taxonomy. Deploy the
+new staging artifact and smoke-test tag creation plus vehicle reassignment.
+
+Later 2026-08-30 handoff: vehicle create/update now validates unique ID,
+sourceId and slug, bounds technical fields, and writes immutable revisions.
+Araçlar → Öne Çıkan Araçlar manages exactly four distinct published vehicles
+with approved or draft media and explicit order. The public homepage is not
+mutated directly; publishing materialization remains Phase 7. Next add price
+editing/revision UI and smoke-test these Phase 3 stores on HTTPS staging.
+
+Final 2026-08-30 handoff: whole-TL monthly list-net price editing and the
+authenticated latest-20 revision view are implemented. The PHP store converts
+TL to integer minor units, rejects grouping/decimal syntax and requires a price
+for published drafts. `vehicle-revisions.php` is included in the cPanel release;
+private revision files are not. All local quality gates and the refreshed
+staging release pass. Next upload `release/staging/` and execute the Phase 3
+browser smoke test above; do not mark Phase 3 complete until that evidence is
+recorded here.
+
+Audit continuation handoff: `GET /admin-api/audit.php` and the Denetim Kaydı
+view are implemented, release-packaged and tested. Pages are newest-first,
+limited to 20 in the UI, filter exactly by action/result, and never expose the
+stored summary. Vehicle audit rows now receive safe entity classification.
+Upload the refreshed staging ZIP, verify dashboard/audit behavior and then run
+the Phase 3 vehicle/media/featured smoke checks. Phase 2 and Phase 3 remain open
+only because those HTTPS operational checks have not yet been reported.
+
+Phase 4 inventory handoff: Filo Rehberi is now an active admin navigation item
+backed by authenticated `articles.php`. It shows the real generated metadata and
+verified TR/EN completeness without exposing Markdown bodies or enabling writes.
+Next implement the private localized draft/revision schema and sanitized preview
+tests; do not add create/edit controls until those fail-closed contracts exist.
+
+Phase 4 schema/preview handoff: those fail-closed contracts now exist and pass.
+`article-store.php` normalizes versioned TR/EN entities; `article-preview.php`
+provides authenticated sanitized preview without a new dependency. Next add
+locked atomic draft storage, uniqueness, immutable revision writes and the
+create/edit endpoints. Only after those tests pass should the article editor UI
+be enabled. Public Markdown and routes are still unchanged.
+
+Phase 4 persistence handoff: atomic private storage, immutable revisions,
+published/draft TR–EN slug uniqueness and Owner/Admin/Editor create/update APIs
+now pass. `GET articles.php` returns published inventory plus a separate `drafts`
+array; POST creates a private draft and `PATCH article.php?id=` updates only an
+existing draft. Next build the TR/EN tabbed editor and connect preview. Do not
+silently convert a published source record into a draft until its full localized
+Markdown import adapter is explicitly implemented and tested.
+
+Phase 4 editor handoff: the TR/EN tabbed editor now creates and updates private
+drafts, supports explicit English opt-in, calls the sanitized preview endpoint
+and shows safe revision history. Published inventory cards remain labeled
+read-only. Next define the published-source import adapter and article cover /
+central Media Library workflow; do not bypass the private draft boundary or
+write repository Markdown directly from PHP.
+
+Phase 4 import handoff: published cards can now be explicitly cloned into an
+editable private draft with their stable ID and verified TR/EN copy. Repeating
+the import returns a conflict, and import creates both an immutable revision and
+an audit event. Public Markdown remains untouched. Next implement centralized
+private Media Library and article cover selection; do not assume unverified
+production PHP extensions while defining signature and dimension checks.
+
+Phase 4 Media Library handoff: the admin navigation now includes Medya with
+private upload, preview, search/filter, metadata editing, download and guarded
+delete. Article drafts select a private cover by opaque media ID; PHP validates
+the relationship and blocks deletion while referenced. Upload the regenerated
+staging artifact and smoke-test these multipart/image operations on PHP 8.5.
+The next coding task after that operational proof is Phase 5’s authenticated,
+read-only Newsletter Contacts view; preserve `lead_only` and fail-closed IYS
+semantics when exposing filters.

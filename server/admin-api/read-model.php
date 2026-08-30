@@ -120,6 +120,47 @@ function kalite_filo_admin_recent_audit(string $dataRoot, int $limit = 8): array
     return $records;
 }
 
+/** @return array{records:list<array<string,mixed>>,page:int,limit:int,hasNext:bool} */
+function kalite_filo_admin_audit_page(string $dataRoot, int $page, int $limit, string $action = '', string $result = ''): array
+{
+    if ($page < 1 || $page > 1000 || $limit < 1 || $limit > 50) throw new InvalidArgumentException('Invalid audit pagination.');
+    if (($action !== '' && preg_match('/^[a-z0-9_]{1,64}$/', $action) !== 1)
+        || ($result !== '' && preg_match('/^[a-z0-9_]{1,32}$/', $result) !== 1)) {
+        throw new InvalidArgumentException('Invalid audit filter.');
+    }
+    $files = glob($dataRoot . DIRECTORY_SEPARATOR . 'audit' . DIRECTORY_SEPARATOR . 'audit-*.jsonl') ?: [];
+    rsort($files, SORT_STRING);
+    $offset = ($page - 1) * $limit;
+    $matched = 0;
+    $records = [];
+    foreach (array_slice($files, 0, 24) as $file) {
+        $size = filesize($file);
+        if (!is_int($size) || $size > KALITE_FILO_ADMIN_MAX_AUDIT_FILE_BYTES) continue;
+        $lines = file($file, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+        if (!is_array($lines)) continue;
+        foreach (array_reverse($lines) as $line) {
+            try { $record = json_decode($line, true, 8, JSON_THROW_ON_ERROR); }
+            catch (JsonException) { continue; }
+            if (!is_array($record)) continue;
+            $recordAction = (string) ($record['action'] ?? '');
+            $recordResult = (string) ($record['result'] ?? '');
+            if (($action !== '' && $recordAction !== $action) || ($result !== '' && $recordResult !== $result)) continue;
+            if ($matched++ < $offset) continue;
+            $records[] = [
+                'id'=>(string)($record['id']??''),'timestamp'=>(string)($record['timestamp']??''),
+                'adminId'=>is_string($record['adminId']??null)?$record['adminId']:null,
+                'role'=>is_string($record['role']??null)?$record['role']:null,
+                'action'=>$recordAction,'entityType'=>(string)($record['entityType']??''),
+                'entityId'=>is_string($record['entityId']??null)?$record['entityId']:null,'result'=>$recordResult,
+            ];
+            if (count($records) > $limit) break 2;
+        }
+    }
+    $hasNext = count($records) > $limit;
+    if ($hasNext) array_pop($records);
+    return ['records'=>$records,'page'=>$page,'limit'=>$limit,'hasNext'=>$hasNext];
+}
+
 /** @return array<string, mixed> */
 function kalite_filo_admin_content_snapshot(): array
 {

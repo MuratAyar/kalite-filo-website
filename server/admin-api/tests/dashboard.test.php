@@ -62,6 +62,17 @@ try {
     dashboard_test_assert($activity[0]['action'] === 'logout', 'Dashboard activity must be newest first.');
     dashboard_test_assert(!array_key_exists('summary', $activity[0]), 'Dashboard activity must expose only safe fields.');
 
+    $firstPage = kalite_filo_admin_audit_page($root, 1, 1);
+    dashboard_test_assert(count($firstPage['records']) === 1 && $firstPage['hasNext'] === true, 'Audit pagination must return a bounded first page.');
+    dashboard_test_assert($firstPage['records'][0]['action'] === 'logout', 'Audit pagination must remain newest first.');
+    dashboard_test_assert(!array_key_exists('summary', $firstPage['records'][0]), 'Audit API must never expose stored summaries.');
+    $secondPage = kalite_filo_admin_audit_page($root, 2, 1);
+    dashboard_test_assert($secondPage['records'][0]['action'] === 'login' && $secondPage['hasNext'] === false, 'Audit pagination must expose the next valid row exactly once.');
+    $filtered = kalite_filo_admin_audit_page($root, 1, 20, 'login', 'success');
+    dashboard_test_assert(count($filtered['records']) === 1 && $filtered['records'][0]['id'] === 'one', 'Audit filters must be exact and fail closed.');
+    try { kalite_filo_admin_audit_page($root, 1, 20, '../unsafe'); dashboard_test_assert(false, 'Unsafe audit filters must fail.'); }
+    catch (InvalidArgumentException) { /* expected */ }
+
     fwrite(STDOUT, "Admin dashboard read-model tests passed.\n");
 } finally {
     dashboard_test_remove_tree($root);
