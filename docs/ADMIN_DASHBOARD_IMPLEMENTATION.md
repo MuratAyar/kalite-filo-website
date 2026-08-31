@@ -8,6 +8,19 @@ the status and handoff sections before ending.
 
 ## Current Status
 
+Phase 7 now has its first repository-side materialization adapter. Featured
+vehicles use an explicit four-ID ordered JSON contract in the public build, and
+the release snapshot carries that same order. A local runner utility verifies
+the frozen request hash and writes reviewed vehicle portfolio, price and
+featured-order outputs into a separate directory; it does not mutate the
+repository, commit, build or deploy automatically.
+
+The 2026-08-31 staging retest proves the private 32-record vehicle store and
+`vehicles.php` are healthy. The remaining tag failure is isolated to the custom
+taxonomy read path. Taxonomy now has dedicated validation/diagnostic codes and
+automated seeded/custom/corrupt-store coverage; refreshed staging deployment is
+required to identify or clear any malformed `vehicle-taxonomy.json`.
+
 The 2026-08-30 live staging diagnostic cycle confirmed session authentication,
 login throttling, audit access and Newsletter/IYS reads. The supplied vehicle
 draft is structurally valid, but the deployed vehicle/tag runtime returned a
@@ -344,8 +357,9 @@ features, priority, source/content/price states, monthly list-net price, media,
 licence and future SEO fields. Archive/unpublish is a status transition, not a
 destructive delete. Price and factual state changes receive revisions and audit.
 
-Featured order becomes an explicit four-ID contract (proposed
-`src/data/featured-vehicle-ids.json`). Publication fails unless it contains four
+Featured order uses the explicit four-ID contract
+`src/data/featured-vehicle-ids.json`. This contract is now implemented and
+drives `featuredOrder` in both TR/EN homepage rendering. Publication fails unless it contains four
 unique, active, publishable vehicles with rights-cleared covers. Homepage code
 will consume that order while keeping exactly four cards and current rendering.
 
@@ -556,6 +570,10 @@ leave private storage. Stored change summaries are deliberately excluded.
   - [x] Surface article/media blockers and draft warnings before request creation
   - [ ] Select and authenticate external runner transport
   - [ ] Implement tested snapshot-to-repository materialization adapters
+    - [x] Add deterministic vehicle/price/featured-order review-output adapter
+    - [ ] Add normalized vehicle media/licence materialization
+    - [ ] Add localized Filo Rehberi Markdown/metadata materialization
+    - [ ] Add central media binary materialization and checksum verification
   - [ ] Run existing staging build/release commands and report safe status
   - [ ] Deploy staging artifact and complete automated smoke verification
 - [ ] **Phase 8:** production publish, rollback and version history
@@ -563,6 +581,17 @@ leave private storage. Stored change summaries are deliberately excluded.
 - [ ] **Phase 10:** security/accessibility/responsive audit and full regression
 
 ## Completed Tasks
+
+- [x] Replaced implicit featured boolean/portfolio-order behavior with an
+  explicit, build-validated four-ID ordering source while preserving the current
+  homepage cards and order.
+- [x] Added a hash-verifying repository-side vehicle materializer that produces
+  review-only portfolio, price and featured JSON outputs and rejects tampering,
+  duplicates, invalid prices and invalid featured references.
+- [x] Isolated the live tag incident from vehicle storage and hardened taxonomy
+  reads for absent, unreadable, oversized, malformed and wrong-schema stores.
+- [x] Added taxonomy regression coverage proving vehicle-derived default values,
+  custom-value merging and safe malformed-JSON classification.
 
 - [x] Added the first Phase 7 Publishing Center foundation: content-hashed
   change discovery, fail-closed validation, immutable snapshots, locked and
@@ -713,6 +742,15 @@ leave private storage. Stored change summaries are deliberately excluded.
 
 ## Current Task
 
+Continue Phase 7 adapters with normalized media/licence materialization, then
+localized article Markdown. The current vehicle adapter output must remain a
+review directory until a runner transport, Git diff review and atomic workspace
+application step are approved.
+
+Deploy and verify the taxonomy incident fix on HTTPS staging. A missing
+`vehicle-taxonomy.json` is valid and must seed groups from vehicles; only a
+present but invalid custom store should require removal/recovery.
+
 Phase 7 publishing request foundation is now implemented locally. It deliberately
 stops at `awaiting_runner`: cPanel PHP does not run the Next.js build, and no
 transport/deployment credential has been invented. The next coding task is the
@@ -745,6 +783,10 @@ the still-required Phase 2/3 staging smoke tests before closing those phases.
   PHP-readable private permission (`600` preferred, `644` if cPanel PHP ownership
   requires it), then record the exact `/admin-api/vehicles.php` and `tags.php`
   responses. The supplied 32-record JSON is locally valid.
+- [ ] After deploying the 2026-08-31 artifact, open `tags.php`. If it reports
+  `taxonomy_store_invalid_json` or `taxonomy_store_invalid_schema`, preserve a
+  backup and remove only `data/drafts/vehicle-taxonomy.json`; reload to confirm
+  the five groups seed from the 32 vehicles before creating a custom tag.
 - [ ] Submit one new synthetic staging newsletter signup and confirm it appears
   immediately in both Bülten Kişileri and İYS without manually copying a CSV.
 - [ ] Upload the refreshed `release/staging/` artifact and test vehicle create,
@@ -796,6 +838,11 @@ the still-required Phase 2/3 staging smoke tests before closing those phases.
   permissions on HTTPS staging.
 - [ ] Decide the external runner host/transport before implementing request
   claim/result endpoints or storing any deployment secret.
+- [ ] Normalize existing vehicle media/licence metadata out of handwritten TS
+  into a generator-owned JSON contract so uploaded draft media can be safely
+  materialized without generating TypeScript source text.
+- [ ] Extend `materialize-admin-snapshot.mjs` with checksummed media and TR/EN
+  article outputs; keep direct repository application disabled until reviewed.
 
 ## Known Issues
 
@@ -814,6 +861,8 @@ the still-required Phase 2/3 staging smoke tests before closing those phases.
   or an outdated runtime artifact. The supplied JSON parses successfully as
   schema version 1 with 32 records; the unrelated LiteSpeed `__next` 404 probe
   lines do not contain the PHP exception.
+- The live vehicle endpoint now succeeds; the remaining taxonomy 503 predates
+  the dedicated taxonomy diagnostic release. Exact cause awaits one redeploy.
 
 ## Open Decisions
 
@@ -851,6 +900,31 @@ src/app/robots.ts                          (update)
 ```
 
 ## Files Changed
+
+Current 2026-08-31 taxonomy incident continuation:
+
+- `server/admin-api/taxonomy-store.php`
+- `server/admin-api/tags.php`
+- `server/admin-api/tests/taxonomy-store.test.php`
+- `src/components/admin/tag-manager.tsx`
+- `src/components/admin/vehicle-manager.tsx`
+- `package.json`
+- `docs/ADMIN_DASHBOARD_IMPLEMENTATION.md`
+- `kalite-filo-staging.zip`
+
+Current Phase 7 vehicle materialization continuation:
+
+- `src/data/featured-vehicle-ids.json`
+- `src/data/vehicle-portfolio.ts`
+- `src/types/vehicle-portfolio.ts`
+- `src/components/home/featured-vehicles.tsx`
+- `scripts/validate-foundation.mjs`
+- `scripts/assemble-cpanel-release.mjs`
+- `scripts/assemble-cpanel-release.test.mjs`
+- `scripts/materialize-admin-snapshot.mjs`
+- `scripts/materialize-admin-snapshot.test.mjs`
+- `docs/ADMIN_DASHBOARD_IMPLEMENTATION.md`
+- `kalite-filo-staging.zip`
 
 Current staging data-boundary/vehicle diagnostic continuation:
 
@@ -980,6 +1054,27 @@ Current Phase 6 test-mail continuation:
 - `server/admin-api/tests/media-store.test.php`
 
 ## Validation Results
+
+2026-08-31 Phase 7 vehicle materialization continuation:
+
+- `npm run lint`, `npm run typecheck`, `npm test`: passed; Node suite now has
+  59 passing tests including three materialization adapter cases.
+- Tests prove deterministic ordered output, unpublished exclusion, snapshot
+  tamper rejection, invalid featured rejection and review-directory writes.
+- `npm run release:staging` and `npm run verify:output`: passed; 140 pages.
+- Current homepage still renders the same four vehicles in the same order.
+- Refreshed `kalite-filo-staging.zip`: 18,944,268 bytes.
+
+2026-08-31 taxonomy incident continuation:
+
+- Local PHP 8.5 generated 14 makes, 31 models, 3 categories, 15 segments and
+  6 fuel values from the supplied 32-record vehicle draft.
+- `npm run lint`, `npm run typecheck`, `npm test`: passed.
+- New taxonomy tests cover missing-store seeding, custom merging and malformed
+  JSON diagnostic behavior.
+- PHP syntax checks for taxonomy runtime/tests: passed.
+- `npm run release:staging` and `npm run verify:output`: passed; 140 pages.
+- Refreshed `kalite-filo-staging.zip`: 18,942,310 bytes.
 
 2026-08-30 Phase 7 publish-request foundation:
 
@@ -1142,6 +1237,28 @@ still excludes missing consent and unsubscribed rows. No recipient list is sent
 to the browser and no delivery endpoint is packaged.
 
 ## Session Handoff
+
+2026-08-31 Phase 7 vehicle-adapter handoff: public featured order now lives in
+`src/data/featured-vehicle-ids.json` and is validated against the 32-record
+portfolio. Both localized homepages sort by the derived `featuredOrder`; the
+current four cards remain unchanged. `scripts/materialize-admin-snapshot.mjs`
+accepts a private publish-request JSON plus existing price-source metadata,
+verifies the SHA-256 envelope and produces only three JSON files under a
+separate output root. It intentionally does not overwrite repository files.
+Next migrate vehicle media/licence metadata from handwritten TS to normalized
+JSON and extend the adapter to copy/checksum approved media. Do not enable
+automatic Git application or deployment before runner transport is selected.
+
+2026-08-31 taxonomy incident handoff: `/admin-api/vehicles.php` succeeds with
+the live 32-record draft, so do not change `vehicles.json` or its working 644
+permission. Deploy the refreshed ZIP and reopen `/admin-api/tags.php`. Missing
+`vehicle-taxonomy.json` is supported and should immediately return seeded
+groups. A present corrupt file now returns `taxonomy_store_invalid_json` or
+`taxonomy_store_invalid_schema`; back it up, delete only that file, then reload.
+An unreadable file returns `taxonomy_store_unreadable`. After groups load, create
+one harmless custom test label, confirm the file is atomically created, and then
+delete the unused label. Report the exact JSON response before any broader
+permission or directory changes.
 
 2026-08-30 Phase 7 request-foundation handoff: Yayınlama now lists private
 change groups, performs fail-closed validation and allows Owner/Admin to type

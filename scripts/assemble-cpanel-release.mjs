@@ -69,6 +69,11 @@ export function createAdminContentSnapshot(repositoryRoot, target) {
     path.join(repositoryRoot, "src", "data", "vehicle-portfolio.json"),
     "utf8",
   ));
+  const featuredVehicleIds = JSON.parse(readFileSync(
+    path.join(repositoryRoot,"src","data","featured-vehicle-ids.json"),"utf8",
+  ));
+  if(!Array.isArray(featuredVehicleIds)||featuredVehicleIds.length!==4||new Set(featuredVehicleIds).size!==4){throw new Error("Admin content snapshot requires exactly four ordered featured vehicle ids.");}
+  const featuredOrderById=new Map(featuredVehicleIds.map((id,index)=>[id,index+1]));
   const articles = JSON.parse(readFileSync(
     path.join(repositoryRoot, "src", "data", "article-records.json"),
     "utf8",
@@ -101,21 +106,23 @@ export function createAdminContentSnapshot(repositoryRoot, target) {
   if (!Array.isArray(vehicles) || !Array.isArray(articles)) {
     throw new Error("Admin content snapshot sources must be JSON arrays.");
   }
+  if(featuredVehicleIds.some((id)=>!vehicles.some((vehicle)=>vehicle?.id===id))){throw new Error("Admin content snapshot featured order references an unknown vehicle.");}
   return {
     schemaVersion: 1,
     environment: target,
     generatedAt: new Date().toISOString(),
     vehicles: {
       active: vehicles.filter((vehicle) => vehicle?.sourceStatus === "active").length,
-      featured: vehicles.filter(
-        (vehicle) => vehicle?.sourceStatus === "active" && vehicle?.featured === true,
-      ).length,
+      featured: featuredVehicleIds.length,
       records: vehicles.map((vehicle) => ({
         ...vehicle,
+        featured: featuredOrderById.has(vehicle.id),
+        ...(featuredOrderById.has(vehicle.id)?{featuredOrder:featuredOrderById.get(vehicle.id)}:{}),
         publicationStatus: vehicle.sourceStatus === "active" ? "published" : "unpublished",
         priceAmountMinor: prices.amountsMinor?.[vehicle.sourceId] ?? null,
         coverImage: mediaById[vehicle.id] ?? null,
       })),
+      featuredIds: featuredVehicleIds,
     },
     articles: {
       total: articles.length,

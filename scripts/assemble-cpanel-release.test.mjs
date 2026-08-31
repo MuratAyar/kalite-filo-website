@@ -18,10 +18,12 @@ function createFixture(name) {
   mkdirSync(path.join(root, "server", "admin-api"), { recursive: true });
   mkdirSync(path.join(root, "src", "data"), { recursive: true });
   writeFileSync(path.join(root, "src", "data", "vehicle-portfolio.json"), JSON.stringify([
-    { sourceStatus: "active", featured: true },
-    { sourceStatus: "active", featured: false },
-    { sourceStatus: "archived", featured: false },
+    { id: "vehicle-one", sourceStatus: "active", featured: true },
+    { id: "vehicle-two", sourceStatus: "active", featured: true },
+    { id: "vehicle-three", sourceStatus: "archived", featured: true },
+    { id: "vehicle-four", sourceStatus: "active", featured: true },
   ]));
+  writeFileSync(path.join(root,"src","data","featured-vehicle-ids.json"),JSON.stringify(["vehicle-one","vehicle-two","vehicle-three","vehicle-four"]));
   writeFileSync(path.join(root, "src", "data", "article-records.json"), JSON.stringify([
     { id: "one", slug: "one", contentKey: "one", title: "Bir", excerpt: "Bir özet", categoryId: "filo-yonetimi", publishedAt: "2026-08-30", readingMinutes: 4, featured: true, publicationStatus: "published", coverImage: { alt: "Türkçe alternatif metin" }, seo: { title: "Bir | Kalite Filo", description: "Bir meta açıklaması" } },
     { id: "two", slug: "two", contentKey: "two", publicationStatus: "draft" },

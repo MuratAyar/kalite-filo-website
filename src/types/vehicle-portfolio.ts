@@ -35,6 +35,8 @@ export interface VehiclePortfolioRecord {
   readonly sourceStatus: "active";
   readonly priority: VehiclePortfolioPriority;
   readonly featured: boolean;
+  /** Explicit one-based homepage order; absent for non-featured vehicles. */
+  readonly featuredOrder?: number;
   readonly make: string;
   readonly model: string;
   readonly trim: string;

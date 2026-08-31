@@ -28,6 +28,7 @@ export function FeaturedVehicles({
 }: FeaturedVehiclesProps) {
   const featuredVehicles = vehicles
     .filter((vehicle) => vehicle.featured && vehicle.coverImage)
+    .sort((left, right) => (left.featuredOrder ?? Number.MAX_SAFE_INTEGER) - (right.featuredOrder ?? Number.MAX_SAFE_INTEGER))
     .slice(0, 4);
 
   if (featuredVehicles.length !== 4) {

@@ -1,5 +1,6 @@
 import portfolioRecords from "./vehicle-portfolio.json";
 import priceSource from "./vehicle-list-prices.json";
+import featuredVehicleIdsSource from "./featured-vehicle-ids.json";
 
 import type {
   EntityId,
@@ -21,6 +22,12 @@ type PortfolioRecordSource = Omit<
 };
 
 type PriceSourceId = keyof typeof priceSource.amountsMinor;
+
+const featuredVehicleIds = featuredVehicleIdsSource as readonly string[];
+if (featuredVehicleIds.length !== 4 || new Set(featuredVehicleIds).size !== 4) {
+  throw new Error("The featured vehicle ordering contract requires exactly four unique ids.");
+}
+const featuredOrderById = new Map(featuredVehicleIds.map((id, index) => [id, index + 1]));
 
 function createListPrice(sourceId: string): VehiclePortfolioListPrice {
   const amountMinor = priceSource.amountsMinor[sourceId as PriceSourceId];
@@ -399,12 +406,15 @@ const portfolioMedia: Readonly<Record<string, FeaturedMedia>> = Object.freeze({
 export const vehiclePortfolio: readonly VehiclePortfolioRecord[] = Object.freeze(
   (portfolioRecords as readonly PortfolioRecordSource[]).map((record) => {
     const media = portfolioMedia[record.id];
+    const featuredOrder = featuredOrderById.get(record.id);
 
     return Object.freeze({
       ...record,
       id: record.id as EntityId,
       slug: record.slug as Slug,
       priceStatus: "owner-approved-list-net",
+      featured: featuredOrder !== undefined,
+      ...(featuredOrder !== undefined ? { featuredOrder } : {}),
       listPrice: createListPrice(record.sourceId),
       featureLabels: Object.freeze([...record.featureLabels]),
       ...(media
@@ -413,3 +423,7 @@ export const vehiclePortfolio: readonly VehiclePortfolioRecord[] = Object.freeze
     });
   }),
 );
+
+if (featuredVehicleIds.some((id) => !vehiclePortfolio.some((vehicle) => vehicle.id === id))) {
+  throw new Error("The featured vehicle ordering contract references an unknown vehicle id.");
+}

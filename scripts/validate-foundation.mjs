@@ -33,6 +33,7 @@ const vehicleListPricePath = path.join(
   "data",
   "vehicle-list-prices.json",
 );
+const featuredVehicleIdsPath = path.join(repositoryRoot,"src","data","featured-vehicle-ids.json");
 const vehiclePortfolioWorkbookPath = path.join(
   repositoryRoot,
   "references",
@@ -237,18 +238,21 @@ function validateVehiclePortfolioSource() {
   if (
     !existsSync(vehiclePortfolioPath) ||
     !existsSync(vehicleListPricePath) ||
-    !existsSync(vehiclePortfolioWorkbookPath)
+    !existsSync(vehiclePortfolioWorkbookPath) ||
+    !existsSync(featuredVehicleIdsPath)
   ) {
     fail("The owner-supplied vehicle portfolio source or its local typed extract is missing.");
   }
 
   const records = JSON.parse(readFileSync(vehiclePortfolioPath, "utf8"));
+  const featuredVehicleIds = JSON.parse(readFileSync(featuredVehicleIdsPath,"utf8"));
   const listPriceSource = JSON.parse(
     readFileSync(vehicleListPricePath, "utf8"),
   );
   if (!Array.isArray(records) || records.length !== 32) {
     fail("The owner-supplied vehicle portfolio must contain exactly 32 records.");
   }
+  if(!Array.isArray(featuredVehicleIds)||featuredVehicleIds.length!==4||new Set(featuredVehicleIds).size!==4){fail("The featured vehicle ordering contract must contain exactly four unique ids.");}
 
   const ids = new Set();
   const sourceIds = new Set();
@@ -331,6 +335,7 @@ function validateVehiclePortfolioSource() {
   if (featuredCount !== 4) {
     fail("The Home vehicle portfolio must contain exactly four featured records.");
   }
+  if(featuredVehicleIds.some((id)=>!ids.has(id))||records.some((record)=>Boolean(record.featured)!==featuredVehicleIds.includes(record.id))){fail("Featured vehicle flags and the explicit ordering contract do not match.");}
 
   if (
     sourceIds.size !== listPriceEntries.length ||

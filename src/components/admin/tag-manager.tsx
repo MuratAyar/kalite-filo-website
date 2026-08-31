@@ -17,6 +17,10 @@ function tagLoadError(code: unknown) {
   if (code === "vehicle_draft_invalid_json") return "Araç taslak dosyası geçerli JSON değil. Dosyayı yeniden yükleyin.";
   if (code === "vehicle_draft_invalid_schema") return "Araç taslak dosyasının şeması geçersiz. schemaVersion ve records alanlarını kontrol edin.";
   if (code === "vehicle_draft_too_large") return "Araç taslak dosyası izin verilen boyutu aşıyor.";
+  if (code === "taxonomy_store_unreadable") return "Etiket dosyası sunucu tarafından okunamıyor. vehicle-taxonomy.json iznini kontrol edin.";
+  if (code === "taxonomy_store_invalid_json") return "Etiket dosyası geçerli JSON değil. Bozuk vehicle-taxonomy.json dosyasını kaldırıp tekrar deneyin.";
+  if (code === "taxonomy_store_invalid_schema") return "Etiket dosyasının şeması geçersiz. Bozuk vehicle-taxonomy.json dosyasını kaldırıp tekrar deneyin.";
+  if (code === "taxonomy_store_too_large") return "Etiket dosyası izin verilen boyutu aşıyor.";
   return "Etiketler yüklenemedi.";
 }
 
