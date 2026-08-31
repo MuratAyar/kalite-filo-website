@@ -248,6 +248,9 @@ export function assembleCpanelRelease(target, repositoryRoot = defaultRepository
     "taxonomy-store.php",
     "tags.php",
     "featured-vehicles.php",
+    "publishing-store.php",
+    "publishing.php",
+    "publish-staging.php",
   ];
   for (const requiredFile of adminRuntimeFiles) {
     if (!existsSync(path.join(adminApiSource, requiredFile))) {

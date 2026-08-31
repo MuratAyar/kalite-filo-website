@@ -24,6 +24,15 @@ function kalite_filo_contact_store_path(): string
     }
 
     $accountRoot = dirname(__DIR__, 2);
+    $host = strtolower((string) ($_SERVER['SERVER_NAME'] ?? $_SERVER['HTTP_HOST'] ?? ''));
+    $host = preg_replace('/:\d+$/', '', trim($host)) ?? '';
+    if ($host === 'staging.kalitefilo.com.tr') {
+        return $accountRoot . DIRECTORY_SEPARATOR . 'private'
+            . DIRECTORY_SEPARATOR . 'kalite-filo-admin'
+            . DIRECTORY_SEPARATOR . 'staging'
+            . DIRECTORY_SEPARATOR . 'data'
+            . DIRECTORY_SEPARATOR . KALITE_FILO_CONTACT_STORE_FILENAME;
+    }
     return $accountRoot . DIRECTORY_SEPARATOR . 'private'
         . DIRECTORY_SEPARATOR . 'kalite-filo-data'
         . DIRECTORY_SEPARATOR . KALITE_FILO_CONTACT_STORE_FILENAME;

@@ -32,6 +32,12 @@ function subscriber_test_rows(string $path): array
 }
 
 try {
+    putenv('KALITE_FILO_CONTACT_STORE_PATH');
+    $_SERVER['SERVER_NAME'] = 'staging.kalitefilo.com.tr';
+    $expectedStagingSuffix = implode(DIRECTORY_SEPARATOR, ['private','kalite-filo-admin','staging','data','newsletter-contacts.csv']);
+    subscriber_test_assert(str_ends_with(kalite_filo_contact_store_path(), $expectedStagingSuffix), 'Staging forms and staging admin must use one isolated contact store.');
+    putenv('KALITE_FILO_CONTACT_STORE_PATH=' . $storePath);
+
     $isNewEmail = false;
     $newsletter = kalite_filo_store_contact([
         'email' => ' Test@Example.com ',

@@ -3,6 +3,7 @@ declare(strict_types=1);
 require_once dirname(__DIR__).'/auth.php';
 require_once dirname(__DIR__).'/vehicle-store.php';
 function vehicle_test_assert(bool $condition,string $message):void{if(!$condition)throw new RuntimeException($message);}
+vehicle_test_assert(is_subclass_of(KaliteFiloAdminVehicleStoreException::class, RuntimeException::class),'Vehicle store diagnostics must remain safely typed.');
 $base=['make'=>'Renault','model'=>'Clio','trim'=>'Evolution','modelYearLabel'=>'2025/2026','categoryLabel'=>'Binek','segmentLabel'=>'B Hatchback','fuelLabel'=>'Benzin','transmissionLabel'=>'Otomatik','slug'=>'renault-clio','summary'=>'Test aracı','publicationStatus'=>'unpublished','powerHp'=>'90','seats'=>'5','priceAmountTry'=>'40200'];
 $vehicle=kalite_filo_admin_normalize_vehicle($base);
 vehicle_test_assert($vehicle['powerHp']===90&&$vehicle['seats']===5,'Numeric technical fields must normalize.');

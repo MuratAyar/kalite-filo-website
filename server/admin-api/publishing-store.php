@@ -6,6 +6,27 @@ function kalite_filo_admin_publish_root(): string
     return (string) kalite_filo_admin_config()['data_root'] . DIRECTORY_SEPARATOR . 'publish';
 }
 
+/** @return resource */
+function kalite_filo_admin_lock_publish_store()
+{
+    $root = kalite_filo_admin_publish_root();
+    kalite_filo_admin_ensure_private_directory($root);
+    $handle = fopen($root . DIRECTORY_SEPARATOR . '.lock', 'c+');
+    if ($handle === false || !flock($handle, LOCK_EX)) {
+        if (is_resource($handle)) fclose($handle);
+        throw new RuntimeException('Publish store could not be locked.');
+    }
+    @chmod($root . DIRECTORY_SEPARATOR . '.lock', 0600);
+    return $handle;
+}
+
+/** @param resource $handle */
+function kalite_filo_admin_unlock_publish_store($handle): void
+{
+    flock($handle, LOCK_UN);
+    fclose($handle);
+}
+
 /** @param list<array<string,mixed>> $vehicles @return list<string> */
 function kalite_filo_admin_publish_featured_ids(array $vehicles): array
 {
@@ -33,11 +54,14 @@ function kalite_filo_admin_unpublished_changes(): array
     foreach ($sources as $source) {
         if (!is_file($source['path'])) continue;
         $modified = filemtime($source['path']);
+        $fingerprint = hash_file('sha256', $source['path']);
+        if (!is_string($fingerprint)) throw new RuntimeException('Draft fingerprint could not be calculated.');
         $changes[] = [
-            'id' => hash('sha256', $source['type'] . '|' . (string) $modified),
+            'id' => hash('sha256', $source['type'] . '|' . $fingerprint),
             'type' => $source['type'],
             'label' => $source['label'],
             'updatedAt' => is_int($modified) ? gmdate('c', $modified) : null,
+            'fingerprint' => $fingerprint,
         ];
     }
     return $changes;
@@ -60,19 +84,40 @@ function kalite_filo_admin_publish_requests(): array
     return $records;
 }
 
+/** @return array{valid:bool,blockers:list<array{code:string,message:string}>,warnings:list<array{code:string,message:string}>} */
+function kalite_filo_admin_validate_staging_publish_payload(array $payload): array
+{
+    $blockers=[];$warnings=[];
+    $vehicles=is_array($payload['vehicles']??null)?$payload['vehicles']:[];
+    $featured=is_array($payload['featuredVehicleIds']??null)?array_values($payload['featuredVehicleIds']):[];
+    $articles=is_array($payload['articles']??null)?$payload['articles']:[];
+    $media=is_array($payload['media']??null)?$payload['media']:[];
+    try{kalite_filo_admin_assert_vehicle_uniqueness($vehicles);}catch(Throwable){$blockers[]=['code'=>'vehicle_identity','message'=>'Araç kimliği, sourceId veya slug değerleri benzersiz değil.'];}
+    if(count($featured)!==4||count(array_unique($featured))!==4){$blockers[]=['code'=>'featured_requires_four','message'=>'Tam olarak dört farklı öne çıkan araç seçilmelidir.'];}
+    else{$byId=[];foreach($vehicles as $vehicle)if(is_array($vehicle))$byId[(string)($vehicle['id']??'')]=$vehicle;foreach($featured as $id){$vehicle=$byId[(string)$id]??null;if(!is_array($vehicle)||($vehicle['publicationStatus']??'')!=='published'||!is_int($vehicle['priceAmountMinor']??null)||(!is_array($vehicle['coverImage']??null)&&!is_array($vehicle['draftMedia']??null))){$blockers[]=['code'=>'featured_vehicle_ineligible','message'=>'Öne çıkan araçların tümü yayında, fiyatlı ve görselli olmalıdır.'];break;}}}
+    $mediaIds=[];foreach($media as $asset)if(is_array($asset)&&is_string($asset['id']??null))$mediaIds[$asset['id']]=true;
+    foreach($articles as $article){if(!is_array($article))continue;$tr=$article['locales']['tr']??null;if(!is_array($tr))$blockers[]=['code'=>'article_tr_missing','message'=>'Her Filo Rehberi taslağında Türkçe içerik bulunmalıdır.'];$coverId=$article['coverMediaId']??null;if(is_string($coverId)&&!isset($mediaIds[$coverId]))$blockers[]=['code'=>'article_media_missing','message'=>'Bir Filo Rehberi taslağı bulunamayan bir medya kaydına bağlı.'];if(is_array($tr)&&($tr['status']??'')!=='ready')$warnings[]=['code'=>'article_draft','message'=>'Draft durumundaki Filo Rehberi içerikleri public çıktıya alınmayacaktır.'];}
+    return ['valid'=>$blockers===[],'blockers'=>array_values(array_unique($blockers,SORT_REGULAR)),'warnings'=>array_values(array_unique($warnings,SORT_REGULAR))];
+}
+
+/** @return array<string,mixed> */
+function kalite_filo_admin_staging_publish_payload(): array
+{
+    $vehicles=kalite_filo_admin_vehicle_records();
+    return ['formatVersion'=>1,'vehicles'=>$vehicles,'articles'=>kalite_filo_admin_article_drafts(),'media'=>kalite_filo_admin_media_records(),'featuredVehicleIds'=>kalite_filo_admin_publish_featured_ids($vehicles),'taxonomy'=>kalite_filo_admin_taxonomy()];
+}
+
 /** @return array<string,mixed> */
 function kalite_filo_admin_create_staging_publish_request(): array
 {
     $changes = kalite_filo_admin_unpublished_changes();
     if (count($changes) < 1) throw new InvalidArgumentException('There are no unpublished changes.');
-    $payload = [
-        'vehicles' => kalite_filo_admin_vehicle_records(),
-        'articles' => kalite_filo_admin_article_drafts(),
-        'media' => kalite_filo_admin_media_records(),
-        'featuredVehicleIds' => kalite_filo_admin_publish_featured_ids(kalite_filo_admin_vehicle_records()),
-        'taxonomy' => kalite_filo_admin_taxonomy(),
-    ];
+    $payload=kalite_filo_admin_staging_publish_payload();
+    $validation=kalite_filo_admin_validate_staging_publish_payload($payload);
+    if(!$validation['valid'])throw new InvalidArgumentException('Publish validation failed.');
     $encodedPayload = json_encode($payload, JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    $snapshotHash=hash('sha256',$encodedPayload);
+    foreach(kalite_filo_admin_publish_requests() as $existing)if(($existing['target']??null)==='staging'&&($existing['snapshotHash']??null)===$snapshotHash&&in_array($existing['status']??null,['awaiting_runner','running'],true))return $existing;
     $now = gmdate('c');
     $record = [
         'schemaVersion' => 1,
@@ -81,8 +126,9 @@ function kalite_filo_admin_create_staging_publish_request(): array
         'status' => 'awaiting_runner',
         'changeCount' => count($changes),
         'changes' => $changes,
-        'snapshotHash' => hash('sha256', $encodedPayload),
+        'snapshotHash' => $snapshotHash,
         'snapshot' => $payload,
+        'validation' => $validation,
         'requestedAt' => $now,
         'requestedBy' => $_SESSION['identity']['id'] ?? null,
         'startedAt' => null,
@@ -105,9 +151,11 @@ function kalite_filo_admin_create_staging_publish_request(): array
 /** @return array<string,mixed> */
 function kalite_filo_admin_safe_publish_request(array $record): array
 {
+    $safeChanges=[];
+    foreach(is_array($record['changes']??null)?$record['changes']:[] as $change)if(is_array($change))$safeChanges[]=['id'=>$change['id']??'','type'=>$change['type']??'','label'=>$change['label']??'','updatedAt'=>$change['updatedAt']??null];
     return [
         'id' => $record['id'], 'target' => $record['target'], 'status' => $record['status'],
-        'changeCount' => $record['changeCount'], 'changes' => $record['changes'],
+        'changeCount' => $record['changeCount'], 'changes' => $safeChanges,
         'snapshotHash' => $record['snapshotHash'], 'requestedAt' => $record['requestedAt'],
         'requestedBy' => $record['requestedBy'], 'startedAt' => $record['startedAt'],
         'completedAt' => $record['completedAt'], 'result' => $record['result'],

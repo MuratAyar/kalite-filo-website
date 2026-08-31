@@ -8,6 +8,14 @@ the status and handoff sections before ending.
 
 ## Current Status
 
+The 2026-08-30 live staging diagnostic cycle confirmed session authentication,
+login throttling, audit access and Newsletter/IYS reads. The supplied vehicle
+draft is structurally valid, but the deployed vehicle/tag runtime returned a
+generic 503; the refreshed runtime now exposes safe draft-store diagnostic
+codes. Staging public forms and admin also now share one staging-private contact
+CSV by default. Deployment of the refreshed artifact and HTTPS confirmation are
+the remaining incident checks.
+
 Phase 0 is complete. Phase 1 authentication is implemented and live staging now
 logs in successfully on the first submission after fixing the asynchronous form
 reference bug. Final browser confirmation of persistent logout/cookie headers
@@ -541,11 +549,24 @@ leave private storage. Stored change summaries are deliberately excluded.
   - [x] Add idempotent queue, recipient ledger and cPanel Cron worker foundation
   - [x] Add recipient-safe queue history UI, queued cancellation and CLI dry-run integration coverage
 - [ ] **Phase 7:** content/Git bridge, staging publish and deployment status
+  - [x] Add authenticated unpublished-change and request-history API/UI
+  - [x] Freeze immutable private staging snapshots with SHA-256 identity
+  - [x] Add locked/idempotent request creation for identical pending snapshots
+  - [x] Enforce publish-time vehicle identity and exactly-four featured invariant
+  - [x] Surface article/media blockers and draft warnings before request creation
+  - [ ] Select and authenticate external runner transport
+  - [ ] Implement tested snapshot-to-repository materialization adapters
+  - [ ] Run existing staging build/release commands and report safe status
+  - [ ] Deploy staging artifact and complete automated smoke verification
 - [ ] **Phase 8:** production publish, rollback and version history
 - [ ] **Phase 9:** request inbox, Site Settings and remaining operations
 - [ ] **Phase 10:** security/accessibility/responsive audit and full regression
 
 ## Completed Tasks
+
+- [x] Added the first Phase 7 Publishing Center foundation: content-hashed
+  change discovery, fail-closed validation, immutable snapshots, locked and
+  idempotent staging requests, safe history and admin-visible blockers.
 
 - [x] Added a private immutable audience freeze whose deduplication is
   fail-closed: missing consent/IYS is excluded and any unsubscribe row overrides
@@ -692,6 +713,18 @@ leave private storage. Stored change summaries are deliberately excluded.
 
 ## Current Task
 
+Phase 7 publishing request foundation is now implemented locally. It deliberately
+stops at `awaiting_runner`: cPanel PHP does not run the Next.js build, and no
+transport/deployment credential has been invented. The next coding task is the
+tested snapshot-to-repository adapter after runner transport is selected.
+
+Live staging diagnostics found that Newsletter/IYS was reading the intended
+staging-private contact store while the public staging forms still defaulted to
+the legacy account-wide store. Both boundaries now resolve to the same isolated
+staging CSV by default. Vehicle/tag APIs now return safe, actionable draft-store
+error codes for unreadable, oversized, malformed or wrong-schema JSON instead
+of collapsing every hosting problem into `service_unavailable`.
+
 Phase 4 is implemented locally through inventory, localized schema, secure
 preview, persistence, editor, revisions, published-source import and central
 Media Library/article cover selection. Next deploy and smoke-test these Phase 4
@@ -708,6 +741,12 @@ the still-required Phase 2/3 staging smoke tests before closing those phases.
 
 - [x] Provision the staging private Owner config and verify the session endpoint.
 - [x] Verify first-attempt Owner login on HTTPS staging.
+- [ ] Deploy the refreshed staging artifact, set `drafts/vehicles.json` to a
+  PHP-readable private permission (`600` preferred, `644` if cPanel PHP ownership
+  requires it), then record the exact `/admin-api/vehicles.php` and `tags.php`
+  responses. The supplied 32-record JSON is locally valid.
+- [ ] Submit one new synthetic staging newsletter signup and confirm it appears
+  immediately in both Bülten Kişileri and İYS without manually copying a CSV.
 - [ ] Upload the refreshed `release/staging/` artifact and test vehicle create,
   edit, whole-TL price validation, publish/unpublish and revision display.
 - [ ] Test draft media upload/download/delete and the four-item featured order
@@ -752,6 +791,11 @@ the still-required Phase 2/3 staging smoke tests before closing those phases.
   and bounded cPanel CLI worker before exposing a queue action.
 - [ ] Configure staging `dry_run`, queue only synthetic contacts, execute the
   CLI worker through cPanel Cron and inspect the private terminal ledger.
+- [ ] Deploy the Publishing Center foundation and verify validation blockers,
+  exact `STAGING` confirmation, idempotent repeated requests and private request
+  permissions on HTTPS staging.
+- [ ] Decide the external runner host/transport before implementing request
+  claim/result endpoints or storing any deployment secret.
 
 ## Known Issues
 
@@ -766,6 +810,10 @@ the still-required Phase 2/3 staging smoke tests before closing those phases.
   adapter materializes the explicit private four-ID contract into repository data.
 - Existing newsletter CSV permits multiple rows per email/source; audience
   eligibility needs a tested cross-row resolution policy before campaigns.
+- The live staging vehicle/tag failure is narrowed to private draft readability
+  or an outdated runtime artifact. The supplied JSON parses successfully as
+  schema version 1 with 32 records; the unrelated LiteSpeed `__next` 404 probe
+  lines do not contain the PHP exception.
 
 ## Open Decisions
 
@@ -803,6 +851,29 @@ src/app/robots.ts                          (update)
 ```
 
 ## Files Changed
+
+Current staging data-boundary/vehicle diagnostic continuation:
+
+- `server/admin-api/vehicle-store.php`
+- `server/admin-api/vehicles.php`
+- `server/admin-api/tags.php`
+- `server/forms/subscriber-store.php`
+- `server/forms/tests/subscriber-store.test.php`
+- `server/admin-api/tests/vehicle-store.test.php`
+- `src/components/admin/tag-manager.tsx`
+- `src/components/admin/vehicle-manager.tsx`
+- `src/components/admin/publishing-center.tsx`
+- `server/admin-api/publishing-store.php`
+- `server/admin-api/publishing.php`
+- `server/admin-api/publish-staging.php`
+- `server/admin-api/tests/publishing-store.test.php`
+- `server/admin-api/README.md`
+- `scripts/assemble-cpanel-release.mjs`
+- `scripts/assemble-cpanel-release.test.mjs`
+- `scripts/validate-foundation.mjs`
+- `package.json`
+- `docs/ADMIN_DASHBOARD_IMPLEMENTATION.md`
+
 
 Current Phase 6 queue/worker continuation:
 
@@ -909,6 +980,31 @@ Current Phase 6 test-mail continuation:
 - `server/admin-api/tests/media-store.test.php`
 
 ## Validation Results
+
+2026-08-30 Phase 7 publish-request foundation:
+
+- `npm run lint`: passed without warnings.
+- `npm run typecheck`: passed.
+- `npm test`: passed; publishing coverage proves content fingerprints,
+  exactly-four featured blocking, safe browser summaries, immutable snapshot
+  hash identity and idempotent reuse of an identical pending request.
+- `npm run release:staging`: passed; all 140 static pages generated.
+- `npm run verify:output`: passed.
+- Refreshed `kalite-filo-staging.zip`: 18,942,046 bytes.
+
+2026-08-30 staging data-boundary/vehicle diagnostic continuation:
+
+- The supplied `vehicles.json` parsed locally under PHP as schema version 1
+  with 32 records; no JSON corruption was reproduced.
+- `npm run lint`: passed without warnings.
+- `npm run typecheck`: passed.
+- `npm test`: passed, including subscriber-store isolation, vehicle-store and
+  publishing-store tests.
+- `npm run release:staging`: passed; all 140 static pages were generated and
+  the cPanel release includes the updated form/admin PHP runtime.
+- `npm run verify:output`: passed.
+- Project-owned PHP syntax scan: passed.
+- Refreshed `kalite-filo-staging.zip`: 18,940,563 bytes.
 
 2026-08-30 Phase 6 history/dry-run continuation:
 
@@ -1046,6 +1142,34 @@ still excludes missing consent and unsubscribed rows. No recipient list is sent
 to the browser and no delivery endpoint is packaged.
 
 ## Session Handoff
+
+2026-08-30 Phase 7 request-foundation handoff: Yayınlama now lists private
+change groups, performs fail-closed validation and allows Owner/Admin to type
+`STAGING` to freeze a content-addressed private request. Requests are serialized
+under a private lock and an identical pending snapshot returns the existing ID,
+preventing duplicate runner work. The browser receives blockers/warnings and
+safe history but never the frozen snapshot or per-source fingerprints. Deploy
+the refreshed ZIP and verify the UI plus `data/publish/requests/` permissions.
+The request intentionally remains `awaiting_runner`: do not add a PHP shell
+build, repository token, FTP credential or fake success result. Next select an
+authenticated external runner transport, then implement and test the adapters
+that materialize vehicles/prices/featured order, localized Markdown and media
+into the repository before invoking the existing release scripts.
+
+2026-08-30 staging incident handoff: the supplied vehicle draft is valid JSON
+(`schemaVersion: 1`, 32 records), so the prior generic tag/vehicle 503 is most
+consistent with file readability or an outdated extracted runtime. Deploy the
+new `kalite-filo-staging.zip`, set the private `vehicles.json` permission to 600
+(or 644 only if required by cPanel PHP ownership), log in, and open
+`/admin-api/vehicles.php` then `/admin-api/tags.php`. The APIs now return a safe
+specific code (`vehicle_draft_unreadable`, `vehicle_draft_invalid_json`,
+`vehicle_draft_invalid_schema`, or `vehicle_draft_too_large`) if they still
+fail. Do not create an empty `vehicle-taxonomy.json`; it is generated only when
+the first custom tag is saved. Staging public forms and admin now share the
+single isolated `private/kalite-filo-admin/staging/data/newsletter-contacts.csv`
+by default, so verify one new synthetic signup without copying files. Existing
+public featured/article output still needs the Phase 7 external publish runner;
+private draft persistence alone cannot mutate the static site.
 
 2026-08-30 Phase 6 operational-visibility handoff: Owner/Admin now sees the
 latest 100 queue summaries and statistics in Mail Kampanyaları without any

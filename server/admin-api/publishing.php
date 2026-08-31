@@ -13,9 +13,11 @@ try {
     kalite_filo_admin_start_session();
     kalite_filo_admin_require_authentication();
     $requests = array_map('kalite_filo_admin_safe_publish_request', kalite_filo_admin_publish_requests());
+    $payload = kalite_filo_admin_staging_publish_payload();
     kalite_filo_admin_json([
         'changes' => kalite_filo_admin_unpublished_changes(),
         'requests' => $requests,
+        'validation' => kalite_filo_admin_validate_staging_publish_payload($payload),
         'runnerConfigured' => false,
         'productionEnabled' => false,
     ]);

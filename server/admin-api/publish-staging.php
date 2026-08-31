@@ -16,11 +16,14 @@ try {
     kalite_filo_admin_require_csrf();
     $body = kalite_filo_admin_read_json();
     if (($body['confirmation'] ?? null) !== 'STAGING') throw new InvalidArgumentException('Staging confirmation is invalid.');
-    $record = kalite_filo_admin_create_staging_publish_request();
+    $lock = kalite_filo_admin_lock_publish_store();
+    try { $record = kalite_filo_admin_create_staging_publish_request(); }
+    finally { kalite_filo_admin_unlock_publish_store($lock); }
     kalite_filo_admin_audit('staging_publish_request', 'success', ['id' => $record['id'], 'changeCount' => $record['changeCount']]);
     kalite_filo_admin_json(['request' => kalite_filo_admin_safe_publish_request($record)], 202);
 } catch (InvalidArgumentException) {
-    kalite_filo_admin_json(['error' => 'validation_failed'], 422);
+    $validation = kalite_filo_admin_validate_staging_publish_payload(kalite_filo_admin_staging_publish_payload());
+    kalite_filo_admin_json(['error' => 'validation_failed', 'validation' => $validation], 422);
 } catch (Throwable $exception) {
     error_log('Staging publish request failed [' . get_class($exception) . '].');
     kalite_filo_admin_json(['error' => 'service_unavailable'], 503);

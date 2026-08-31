@@ -9,6 +9,14 @@ type Vehicle = Record<string, unknown> & { id: string; make: string; model: stri
 type VehicleRevision = { id: string; timestamp: string; action: string; actorId: string | null; changedFields: string[]; priceAmountMinor: number | null };
 const fieldClass = "mt-1 min-h-11 w-full rounded-control border border-border-control px-3";
 
+function vehicleLoadError(code: unknown) {
+  if (code === "vehicle_draft_unreadable") return "Araç taslak dosyası sunucu tarafından okunamıyor. Dosya iznini 600 veya 644 olarak kontrol edin.";
+  if (code === "vehicle_draft_invalid_json") return "Araç taslak dosyası geçerli JSON değil. Dosyayı yeniden yükleyin.";
+  if (code === "vehicle_draft_invalid_schema") return "Araç taslak dosyasının şeması geçersiz. schemaVersion ve records alanlarını kontrol edin.";
+  if (code === "vehicle_draft_too_large") return "Araç taslak dosyası izin verilen boyutu aşıyor.";
+  return "Araçlar veya etiketler yüklenemedi.";
+}
+
 export function VehicleManager({ csrfToken, publishedOnly }: { csrfToken: string; publishedOnly: boolean }) {
   const [items, setItems] = useState<Vehicle[]>([]);
   const [tags, setTags] = useState<TagGroups>({});
@@ -28,10 +36,11 @@ export function VehicleManager({ csrfToken, publishedOnly }: { csrfToken: string
         fetch("/admin-api/tags.php", { credentials: "same-origin", cache: "no-store" }),
       ]);
       const [vehiclesPayload, tagsPayload] = await Promise.all([vehiclesResponse.json(), tagsResponse.json()]);
-      if (!vehiclesResponse.ok || !tagsResponse.ok) throw new Error("unavailable");
+      if (!vehiclesResponse.ok) throw new Error(vehicleLoadError(vehiclesPayload.error));
+      if (!tagsResponse.ok) throw new Error(vehicleLoadError(tagsPayload.error));
       setItems(vehiclesPayload.vehicles ?? []);
       setTags(tagsPayload.groups ?? {});
-    } catch { setError("Araçlar veya etiketler yüklenemedi."); }
+    } catch (reason) { setError(reason instanceof Error ? reason.message : "Araçlar veya etiketler yüklenemedi."); }
   }
 
   // Initial network synchronization intentionally populates this client-only admin view.

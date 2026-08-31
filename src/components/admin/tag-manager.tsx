@@ -12,6 +12,14 @@ export const vehicleTagLabels: Record<string, string> = {
   fuelLabel: "Yakıt",
 };
 
+function tagLoadError(code: unknown) {
+  if (code === "vehicle_draft_unreadable") return "Araç taslak dosyası sunucu tarafından okunamıyor. Dosya iznini 600 veya 644 olarak kontrol edin.";
+  if (code === "vehicle_draft_invalid_json") return "Araç taslak dosyası geçerli JSON değil. Dosyayı yeniden yükleyin.";
+  if (code === "vehicle_draft_invalid_schema") return "Araç taslak dosyasının şeması geçersiz. schemaVersion ve records alanlarını kontrol edin.";
+  if (code === "vehicle_draft_too_large") return "Araç taslak dosyası izin verilen boyutu aşıyor.";
+  return "Etiketler yüklenemedi.";
+}
+
 export function TagManager({ csrfToken }: { csrfToken: string }) {
   const [groups, setGroups] = useState<TagGroups>({});
   const [active, setActive] = useState("fuelLabel");
@@ -19,9 +27,13 @@ export function TagManager({ csrfToken }: { csrfToken: string }) {
 
   useEffect(() => {
     void fetch("/admin-api/tags.php", { credentials: "same-origin", cache: "no-store" })
-      .then((response) => response.json())
+      .then(async (response) => {
+        const payload = await response.json();
+        if (!response.ok) throw new Error(tagLoadError(payload.error));
+        return payload;
+      })
       .then((payload) => setGroups(payload.groups ?? {}))
-      .catch(() => setError("Etiketler yüklenemedi."));
+      .catch((reason: unknown) => setError(reason instanceof Error ? reason.message : "Etiketler yüklenemedi."));
   }, []);
 
   async function operate(operation: string, value: string, nextValue = "") {
@@ -35,7 +47,7 @@ export function TagManager({ csrfToken }: { csrfToken: string }) {
     if (!response.ok) {
       setError(payload.error === "tag_in_use"
         ? "Kullanımdaki etiket değiştirilemez. Önce bağlı araçları başka etikete taşıyın."
-        : "Etiket işlemi tamamlanamadı.");
+        : tagLoadError(payload.error));
       return;
     }
     setError("");

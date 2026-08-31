@@ -1,6 +1,14 @@
 <?php
 declare(strict_types=1);
 
+final class KaliteFiloAdminVehicleStoreException extends RuntimeException
+{
+    public function __construct(public readonly string $publicCode, string $internalMessage)
+    {
+        parent::__construct($internalMessage);
+    }
+}
+
 function kalite_filo_admin_vehicle_store_path(): string
 {
     return (string) kalite_filo_admin_config()['data_root'] . DIRECTORY_SEPARATOR . 'drafts'
@@ -15,10 +23,39 @@ function kalite_filo_admin_vehicle_records(): array
     if (!is_array($base)) throw new RuntimeException('Vehicle snapshot is invalid.');
     $path = kalite_filo_admin_vehicle_store_path();
     if (!is_file($path)) return array_values($base);
+    if (!is_readable($path)) {
+        throw new KaliteFiloAdminVehicleStoreException(
+            'vehicle_draft_unreadable',
+            'Vehicle draft store exists but is not readable.',
+        );
+    }
     $raw = file_get_contents($path);
-    $draft = is_string($raw) ? json_decode($raw, true, 12, JSON_THROW_ON_ERROR) : null;
+    if (!is_string($raw)) {
+        throw new KaliteFiloAdminVehicleStoreException(
+            'vehicle_draft_unreadable',
+            'Vehicle draft store could not be read.',
+        );
+    }
+    if (strlen($raw) > 16777216) {
+        throw new KaliteFiloAdminVehicleStoreException(
+            'vehicle_draft_too_large',
+            'Vehicle draft store exceeds the 16 MiB read limit.',
+        );
+    }
+    $raw = preg_replace('/^\xEF\xBB\xBF/', '', $raw) ?? $raw;
+    try {
+        $draft = json_decode($raw, true, 12, JSON_THROW_ON_ERROR);
+    } catch (JsonException $exception) {
+        throw new KaliteFiloAdminVehicleStoreException(
+            'vehicle_draft_invalid_json',
+            'Vehicle draft JSON is invalid: ' . $exception->getMessage(),
+        );
+    }
     if (!is_array($draft) || ($draft['schemaVersion'] ?? null) !== 1 || !is_array($draft['records'] ?? null)) {
-        throw new RuntimeException('Vehicle draft store is invalid.');
+        throw new KaliteFiloAdminVehicleStoreException(
+            'vehicle_draft_invalid_schema',
+            'Vehicle draft store must contain schemaVersion 1 and a records array.',
+        );
     }
     return array_values($draft['records']);
 }

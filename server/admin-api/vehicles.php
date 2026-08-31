@@ -13,4 +13,5 @@ try {
     kalite_filo_admin_audit('vehicle_create', 'success', ['id' => $vehicle['id']]);
     kalite_filo_admin_json(['vehicle' => $vehicle], 201);
 } catch (InvalidArgumentException $e) { kalite_filo_admin_json(['error' => 'validation_failed'], 422); }
+catch (KaliteFiloAdminVehicleStoreException $e) { error_log('Admin vehicles failed: '.$e->getMessage()); kalite_filo_admin_json(['error'=>$e->publicCode],503); }
 catch (Throwable $e) { error_log('Admin vehicles failed: '.$e->getMessage()); kalite_filo_admin_json(['error'=>'service_unavailable'],503); }

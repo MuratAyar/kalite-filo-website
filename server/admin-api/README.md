@@ -98,3 +98,21 @@ stored before/after content or Markdown bodies.
 Before production use, deploy to staging and verify cookie/session persistence,
 cPanel environment/default path behavior, permissions, headers, throttling and
 logout in a real HTTPS browser session.
+
+## Staging publishing requests
+
+`GET publishing.php` exposes only safe unpublished-change summaries, validation
+messages and request history. `POST publish-staging.php` is Owner/Admin-only,
+same-origin and CSRF protected, and requires the exact `STAGING` confirmation.
+It freezes a private snapshot under `data/publish/requests/`; the browser never
+receives that snapshot or source fingerprints. Snapshot creation is locked and
+idempotent, so the same content hash reuses an existing `awaiting_runner` or
+`running` request.
+
+Publish validation fails closed unless vehicle identities are unique and the
+featured selection contains exactly four distinct published, priced vehicles
+with media. Missing Turkish article content or missing referenced media also
+blocks the request. Article records still marked `draft` are reported as a
+warning and are not intended for public materialization. This endpoint does not
+run Node, build, commit or deploy on cPanel; authenticated runner transport and
+result reporting remain disabled until their credentials and host are selected.

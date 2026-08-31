@@ -107,6 +107,7 @@ const approvedClientComponents = new Set([
   "src/components/admin/subscriber-list-view.tsx",
   "src/components/admin/iys-management-view.tsx",
   "src/components/admin/campaign-manager.tsx",
+  "src/components/admin/publishing-center.tsx",
   "src/components/admin/vehicle-manager.tsx",
   "src/components/admin/tag-manager.tsx",
   "src/components/admin/featured-vehicles-manager.tsx",
