@@ -1,5 +1,6 @@
 import type { Article, ArticleCategory } from "@/types";
-import { asEntityId, asSlug } from "@/lib";
+import { asEntityId, asIsoDate, asLocalAssetPath, asSlug } from "@/lib";
+import adminEnglishRecords from "./article-admin-records.en.json";
 
 import { articleCategories, articles } from "./articles";
 
@@ -14,6 +15,14 @@ const categoryCopy = {
 
 type EnglishArticleCopy = {
   slug: string; title: string; excerpt: string; alt?: string;
+};
+
+type AdminEnglishRecord = {
+  sourceArticleId: string; slug: string; title: string; excerpt: string;
+  categoryId: string; publishedAt: string; readingMinutes: number; featured: boolean;
+  coverAlt: string;
+  contentKey: string; coverImage: { src: string; alt: string; width: number; height: number } | null;
+  seo: { title: string; description: string };
 };
 
 const articleCopy: Readonly<Record<string, EnglishArticleCopy>> = Object.freeze({
@@ -43,16 +52,29 @@ export const englishArticleCategories: readonly ArticleCategory[] = Object.freez
   return Object.freeze({ ...category, id: asEntityId(copy[0]), slug: asSlug(copy[0]), label: copy[1] });
 }));
 
-export const englishArticles: readonly Article[] = Object.freeze(articles.map((article) => {
-  const copy = articleCopy[article.slug];
+const adminEnglishBySourceId = new Map<string, AdminEnglishRecord>((adminEnglishRecords as AdminEnglishRecord[]).map((record) => [record.sourceArticleId, record]));
+
+export const englishArticles: readonly Article[] = Object.freeze(articles.flatMap((article) => {
+  const admin = adminEnglishBySourceId.get(article.id);
+  if (admin) return [Object.freeze({
+    ...article,
+    id: asEntityId(admin.slug), slug: asSlug(admin.slug), categoryId: asEntityId(admin.categoryId),
+    title: admin.title, excerpt: admin.excerpt, publishedAt: asIsoDate(admin.publishedAt),
+    readingMinutes: admin.readingMinutes, featured: admin.featured,
+    contentKey: asEntityId(admin.contentKey),
+    coverImage: admin.coverImage ? Object.freeze({ src: asLocalAssetPath(admin.coverImage.src), width: admin.coverImage.width, height: admin.coverImage.height, purpose: "informative" as const, alt: admin.coverImage.alt }) : undefined,
+    seo: Object.freeze(admin.seo),
+  }) as Article];
+  const copy = articleCopy[article.id];
   const sourceCategory = articleCategories.find((category) => category.id === article.categoryId);
-  if (!copy || !sourceCategory) throw new Error(`Missing English article copy: ${article.slug}`);
+  if (!copy) return [];
+  if (!sourceCategory) throw new Error(`Missing English article category: ${article.slug}`);
   const translatedCategory = categoryCopy[sourceCategory.slug as keyof typeof categoryCopy];
-  return Object.freeze({
+  return [Object.freeze({
     ...article,
     id: asEntityId(copy.slug), slug: asSlug(copy.slug), categoryId: asEntityId(translatedCategory[0]),
     title: copy.title, excerpt: copy.excerpt, contentKey: asEntityId(`${copy.slug}-en`),
     coverImage: article.coverImage ? Object.freeze({ ...article.coverImage, purpose: "informative" as const, alt: copy.alt ?? `${copy.title} cover image` }) : undefined,
     seo: Object.freeze({ title: `${copy.title} | Kalite Filo`, description: copy.excerpt }),
-  });
+  })];
 }));

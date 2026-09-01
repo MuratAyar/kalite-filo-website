@@ -28,6 +28,7 @@ try{kalite_filo_admin_assert_article_uniqueness([$article,[...$article,'id'=>'ot
 try{kalite_filo_admin_assert_article_uniqueness([[...$article,'locales'=>['tr'=>[...$article['locales']['tr'],'slug'=>'mevcut-yazi'],'en'=>null]]],$published);article_test_assert(false,'Published slug reuse must fail.');}catch(InvalidArgumentException){/* expected */}
 $lock=kalite_filo_admin_lock_article_store();try{kalite_filo_admin_write_article_drafts([$article]);}finally{kalite_filo_admin_unlock_article_store($lock);}
 article_test_assert(kalite_filo_admin_article_drafts()[0]['id']===$article['id'],'Atomic article draft store must round-trip.');
+article_test_assert(kalite_filo_admin_article_draft_count()===1,'Dashboard draft metric must count the live private article store.');
 kalite_filo_admin_write_article_revision('create',$article);
 article_test_assert(count(glob($articleTestRoot.DIRECTORY_SEPARATOR.'revisions'.DIRECTORY_SEPARATOR.'articles'.DIRECTORY_SEPARATOR.$article['id'].DIRECTORY_SEPARATOR.'*.json')?:[])===1,'Immutable article revision must be written privately.');
 $revisionSummary=kalite_filo_admin_article_revisions($article['id']);

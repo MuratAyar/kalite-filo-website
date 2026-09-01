@@ -8,6 +8,136 @@ the status and handoff sections before ending.
 
 ## Current Status
 
+The 2026-09-01 Phase 7 canonical-article-registry pass closes the gap between
+review-only localized article output and the public static generator. The
+materializer now merges ready Turkish records by stable ID into the complete
+canonical `article-records.json`, preserving every unaffected published record
+and existing tag IDs. New records receive no invented tags. Existing covers are
+preserved unless an explicit central cover is selected.
+
+Explicit ready English content is emitted to the typed
+`article-admin-records.en.json` overlay and consumed by `articles.en.ts` and the
+release snapshot. Existing verified handwritten English copy remains as the
+legacy fallback for unaffected articles; a new Turkish article without explicit
+English is omitted from English routes rather than translated or synthesized.
+The merge rejects duplicate stable IDs or slugs in both locales.
+
+The 2026-09-01 Phase 7 repository-application pass adds a local trusted-runner
+adapter with an explicit plan/apply split. The default command only emits the
+exact manifested create/replace/unchanged file plan. `--apply` is separately
+required and re-verifies the snapshot-bound review manifest, enforces a narrow
+content/media path allowlist and rejects any overlapping tracked or untracked
+Git change before writing.
+
+Application stages every changed byte and rechecks size/SHA-256, requires a new
+or empty backup root outside the repository, preserves each replaced original
+plus a backup manifest and restores already-touched targets if a later operation
+fails. It never runs Git commit, build, release or deployment. The adapter was
+tested only against temporary repositories and was not executed on the user's
+current dirty worktree.
+
+The 2026-09-01 Phase 7 runner-result pass adds the bounded return channel for
+the manual staging runner. Owner/Admin can explicitly move a matching frozen
+request from `awaiting_runner` to `running`, then record either
+`staging_succeeded` or `failed`. Every mutation requires the canonical request
+ID, exact snapshot hash, same-origin CSRF-protected admin session and the locked
+private publish store.
+
+Terminal results contain only a review-manifest SHA-256, optional/required
+artifact SHA-256, the six allowlisted stage statuses, a 300-character safe
+summary, reporter and timestamp. Success requires materialization, validation,
+build, release, deployment and smoke stages all to pass plus an artifact hash;
+failure requires an explicit failed stage. Invalid transitions, mismatched
+snapshots and contradictory results fail closed. Start and identical terminal
+retries are idempotent. No credential or unrestricted runner log is accepted.
+
+The 2026-09-01 Phase 7 manual-runner handoff selects the initial staging
+transport without introducing a webhook secret or pretending cPanel can build
+Next.js. An Owner/Admin can download an exact frozen publish-request JSON from
+the Publishing Center. The endpoint resolves only canonical request IDs inside
+the private publish store, returns an attachment with no-store admin headers and
+audits the snapshot download. Private media remains outside HTTP transport and
+is transferred to the trusted runner workspace through the operator's existing
+cPanel SFTP/SSH access.
+
+The initial runner host is the operator-controlled workstation that already has
+the repository, Node.js and the verified release commands. Downloading a
+snapshot does not claim the request, change its `awaiting_runner` status, apply
+repository files, build or deploy. Authenticated result reporting and atomic
+repository application remain the next Phase 7 implementation boundary.
+
+The 2026-09-01 Phase 7 review-manifest pass completes the tested review-output
+adapter boundary. After JSON, localized Markdown and referenced private media
+are materialized, `review-manifest.json` records the frozen snapshot hash plus
+the exact sorted output path, byte size and SHA-256 for every generated file.
+The expected set is derived from the validated materialization models rather
+than accepting arbitrary files found in the output directory.
+
+Manifest creation and later verification fail closed on missing, extra,
+duplicate, reordered, symlinked or modified outputs. The CLI verifies its newly
+written manifest before reporting success. This still performs no repository
+application, Git operation, build or deployment; enabling those transitions
+requires a reviewed external runner/transport decision.
+
+The 2026-09-01 Phase 7 binary-media pass adds a review-only copier for private
+vehicle uploads and referenced central article covers. The runner must provide
+the environment-specific private `data_root` explicitly; the adapter resolves
+only the fixed `media/vehicles/<opaque-id>.<ext>` and
+`media/library/<opaque-id>.<ext>` stores. Real-path containment prevents a
+symlink or crafted path from escaping that private root.
+
+All referenced sources are preflighted before any output is written: opaque ID,
+extension, recorded size and frozen SHA-256 must match. Only after the complete
+set passes are vehicle binaries copied to both detail and card review paths and
+deduplicated article covers copied to a content-addressed Filo Rehberi path.
+Destinations are contained beneath the separate review root, symlink targets
+are rejected, duplicate destinations fail closed, and every copied destination
+is rehashed. Unreferenced central media is not copied. Repository application,
+Git operations and deployment remain disabled.
+
+The 2026-09-01 Phase 7 localized-article pass adds deterministic review-only
+Filo Rehberi materialization. A frozen request now produces
+`article-materialization.json` plus canonical TR/EN Markdown review files under
+the existing content path shape. Each locale records its explicit category,
+public route, metadata and content path. Turkish must be `ready` for an article
+to be emitted; English is emitted only when explicitly present and `ready`.
+Missing or draft English remains `null` and never receives synthesized copy.
+
+Article materialization validates the request hash, stable IDs, the six
+canonical category mappings, locale-specific slug uniqueness, dates, reading
+time, bounded required metadata/Markdown and referenced private cover media.
+Draft-only Turkish records are omitted from public review output. All output
+remains in a separate review directory; no repository Markdown, route, commit,
+build or deployment is mutated by the adapter.
+
+The 2026-09-01 Phase 7 media-contract pass removes the remaining handwritten
+vehicle media/licence catalogue from TypeScript. The 28 reviewed public vehicle
+assets now live in the versioned `src/data/vehicle-media.json` contract with
+dimensions, alt text, provenance, licence, derivative note and SHA-256 checksum.
+Public rendering is unchanged. Release assembly validates schema, IDs, HTTPS
+provenance, referenced files and checksums instead of parsing TypeScript text.
+
+The review-only snapshot materializer now writes a fourth normalized output,
+`vehicle-media.json`. Existing repository media is retained for published
+vehicles; an approved private `draftMedia` record becomes deterministic,
+content-addressed metadata carrying its private source media ID. The subsequent
+contained copy pass verifies and emits referenced private binaries into the
+separate review root. Featured vehicles fail closed when no media can be
+materialized. No repository file is applied by either review-only step.
+
+The 2026-09-01 subscriber reliability pass fixes correction of previously
+unsubscribed contacts: returning a contact to an active status now clears the
+obsolete `unsubscribed_at` value in both the editor state and submitted
+operation. Safe backend validation codes are rendered beside the relevant
+fields in red instead of collapsing every rejection into `Kayıt
+güncellenemedi.` Contact date columns now use server-side, full-result
+three-state sorting (newest, oldest, default) before pagination.
+
+Dashboard draft content is now counted from the environment-private live
+`drafts/articles.json` store rather than the build-time public snapshot. The
+dashboard metrics are refetched whenever the authenticated user returns to the
+Dashboard view, so newly created drafts no longer require a full browser reload.
+
 The 2026-09-01 admin navigation pass splits vehicle operations into Published
 Vehicles and Draft Vehicles, and Filo Rehberi into Published Blogs and Draft
 Blogs. Published views now filter strictly to public-status records; draft
@@ -215,6 +345,25 @@ restrictive permissions, explicit schemas, and bounded reads. Revisit SQLite
 only after production extension, backup, concurrency, and migration behavior
 are verified. No ORM is planned.
 
+### Architecture Decision AD-003: manual authenticated staging runner handoff
+
+**Decision:** the first staging runner is the operator-controlled development
+workstation. Owner/Admin downloads the frozen request through the authenticated
+admin session; referenced private media is copied separately with existing
+cPanel SFTP/SSH access into the explicit private-data input root. No deployment
+or cPanel credential is passed through the browser or committed to Git.
+
+**Why:** this is immediately compatible with the verified shared-hosting
+boundary, keeps Node/npm off cPanel and avoids inventing an unprovisioned CI
+provider, webhook secret or background service. The immutable snapshot hash,
+private-media checksums and complete review manifest preserve the same runner
+input identity needed by a later automated transport.
+
+**Limit:** download is a handoff, not a successful publish. Requests remain
+`awaiting_runner` until a separate authenticated result contract records the
+materialization, validation, build, release, deployment and smoke-test outcome.
+Production is not enabled by this decision.
+
 ## Hosting Constraints
 
 - Production: `https://kalitefilo.com.tr`, domain-root cPanel document root.
@@ -367,6 +516,8 @@ only after staging proof.
 | `GET,POST,PATCH /admin-api/campaign-queue.php` | Queue history, audience freeze and queued cancellation | 6 |
 | `GET /admin-api/publishing.php` | Change set and publish history | 7 |
 | `POST /admin-api/publish-staging.php` | Validate/freeze staging request | 7 |
+| `GET /admin-api/publish-request-download.php?id=...` | Owner/Admin frozen request download for the trusted manual runner; audited | 7 |
+| `POST /admin-api/publish-runner-result.php` | CSRF-protected bounded start/result transitions tied to request and snapshot | 7 |
 | `POST /admin-api/publish-production.php` | Explicit approved production request | 8 |
 | `POST /admin-api/rollback.php` | Explicit version rollback request | 8 |
 | `GET,PATCH /admin-api/requests.php` | Private request inbox | 9 |
@@ -383,10 +534,11 @@ never auto-invented. Legal content uses a separate high-approval workflow.
 ## Vehicle Management Model
 
 The logical Vehicle joins `src/data/vehicle-portfolio.json`,
-`src/data/vehicle-list-prices.json`, and the typed media/licence mapping currently
-in `src/data/vehicle-portfolio.ts`. Existing 32-record IDs/source IDs and price
-meaning remain authoritative. Phase 3 will define a normalized, generator-owned
-media metadata source to remove hand-edited TS without weakening types.
+`src/data/vehicle-list-prices.json`, `src/data/featured-vehicle-ids.json` and the
+normalized `src/data/vehicle-media.json` contract. Existing 32-record
+IDs/source IDs and price meaning remain authoritative. TypeScript now adapts the
+JSON contract into the existing strongly typed public model; media and licence
+records are no longer handwritten inside a source module.
 
 Fields include the supplied identity, labels, power/seats, slug, summary,
 features, priority, source/content/price states, monthly list-net price, media,
@@ -433,6 +585,23 @@ height, alt by locale, usage, creator, source page, licence name/URL, upload tim
 uploader, checksum and status. Publication copies immutable/checksummed variants
 to approved `public/images/...` paths through the runner. Existing vehicle
 licence provenance is migrated, not discarded.
+
+Repository vehicle media uses `vehicle-media.json` schema version 1. Each
+record is keyed by vehicle ID and includes its safe filename, dimensions,
+public alt copy, creator/source/licence evidence, derivative note and
+SHA-256 checksum. Release assembly rejects missing assets, checksum drift,
+unknown vehicle references, duplicate IDs and missing featured media. The Phase
+7 review adapter can emit admin-upload metadata with a content-addressed public
+filename; its contained copy pass now transfers only referenced, checksum- and
+size-verified private binaries into the separate review root.
+
+The binary review adapter now implements that copy boundary. Vehicle
+`draftMedia` is read only from the private vehicle media store and written to
+both `/images/vehicles/` and `/images/vehicles/cards/` review paths using its
+content-addressed filename. Referenced Article/General library covers are read
+only from the private library store and written under
+`/images/filo-rehberi/`. Source and destination bytes must match the frozen
+checksum and size; no unreferenced library asset crosses the boundary.
 
 Allowed types are JPEG, PNG and WebP, with a 5 MiB maximum, minimum 400×225 and
 maximum 4096×4096 dimensions. Validation uses PHP image parsing and its detected
@@ -495,6 +664,47 @@ Existing `npm run build:staging`, `npm run build`, `release:staging`, and
 `release:production` remain the only build/release entry points. The future CI
 workflow calls these commands; it does not duplicate them. Required secret names
 will be documented only when transport is selected. No secret values are stored.
+
+The vehicle review adapter now emits portfolio, price, featured-order and media
+JSON contracts. It accepts the current normalized repository media source as an
+explicit input and never generates TypeScript. Admin-upload metadata retains
+the opaque private media ID and checksum so the following binary materializer
+can locate and verify the exact source without trusting a browser filename.
+
+The same review command now emits a localized article manifest and Markdown
+files. The manifest carries explicit TR and EN canonical category/route
+contracts. It excludes Turkish drafts and represents missing English as `null`;
+there is no translation fallback. These review files are not yet applied to the
+current Turkish-centric generator because atomic application and complete
+output-manifest verification remain pending.
+
+The command now also requires an explicit `--private-data-root`. It preflights
+the complete referenced private-media set before copying, so a missing or
+tampered later asset cannot leave a partially copied review set. The result is
+still a review directory only; no credential, remote transport or direct Git
+write is involved.
+
+The final review directory contains `review-manifest.json`. Its schema version,
+frozen snapshot hash and lexically ordered records bind the complete expected
+JSON, Markdown and binary set to exact byte sizes and SHA-256 values. Both
+creation and verification reject missing, extra, duplicate, symlinked or
+changed outputs. The manifest itself is control metadata and is excluded from
+its own recursive file list.
+
+Manual runner reporting uses `awaiting_runner → running → staging_succeeded`
+or `failed`. A successful terminal record requires all six stages to pass and binds
+both review manifest and staging artifact SHA-256 values. Failed results identify
+the failed stage and may omit an artifact when release never completed. These
+records report operator-observed outcomes; they do not themselves run or repeat
+any build/deployment command.
+
+Repository application is a separate local CLI boundary. Its plan includes the
+path action, before/after SHA-256 and size for every manifested output. Only the
+five reviewed data JSON contracts, localized Filo Rehberi Markdown and
+content-addressed vehicle/article media paths are allowed. Apply requires an
+external backup directory and a clean target set. Localized article output now
+targets the canonical Turkish registry and English admin overlay directly; the
+intermediate `article-materialization.json` is no longer an applied build input.
 
 ## Staging Deployment Model
 
@@ -614,12 +824,17 @@ leave private storage. Stored change summaries are deliberately excluded.
   - [x] Add locked/idempotent request creation for identical pending snapshots
   - [x] Enforce publish-time vehicle identity and exactly-four featured invariant
   - [x] Surface article/media blockers and draft warnings before request creation
-  - [ ] Select and authenticate external runner transport
-  - [ ] Implement tested snapshot-to-repository materialization adapters
+  - [x] Select initial manual runner host and authenticated request transport
+  - [x] Implement tested snapshot-to-repository materialization adapters
     - [x] Add deterministic vehicle/price/featured-order review-output adapter
-    - [ ] Add normalized vehicle media/licence materialization
-    - [ ] Add localized Filo Rehberi Markdown/metadata materialization
-    - [ ] Add central media binary materialization and checksum verification
+    - [x] Add normalized vehicle media/licence materialization
+    - [x] Add localized Filo Rehberi Markdown/metadata materialization
+    - [x] Add central media binary materialization and checksum verification
+    - [x] Add complete deterministic review-output manifest and verification
+    - [x] Add plan-first transactional repository application with overlap
+      rejection and external recoverable backup
+    - [x] Merge localized records into canonical TR registry and explicit EN
+      overlay consumed by the static generator
   - [ ] Run existing staging build/release commands and report safe status
   - [ ] Deploy staging artifact and complete automated smoke verification
 - [ ] **Phase 8:** production publish, rollback and version history
@@ -627,6 +842,75 @@ leave private storage. Stored change summaries are deliberately excluded.
 - [ ] **Phase 10:** security/accessibility/responsive audit and full regression
 
 ## Completed Tasks
+
+- [x] Added stable-ID canonical Turkish article registry merge that preserves
+  unaffected published records, existing tags and verified covers.
+- [x] Added a typed English admin overlay consumed by public routes and release
+  snapshots while retaining legacy verified copy for unaffected articles.
+- [x] Added tests for registry update/add, unaffected-record preservation,
+  existing-tag preservation and no invented missing-English record.
+
+- [x] Added `apply-admin-materialization.mjs` with manifest-bound plan mode and
+  separately authorized `--apply` mode.
+- [x] Added strict repository path allowlisting, dirty-target rejection,
+  pre-staging verification, external backup manifest and failure restoration.
+- [x] Added temporary-Git integration tests for create/replace with backup,
+  overlapping local changes and a manifested path outside the allowlist.
+
+- [x] Added a locked, atomic and idempotent manual-runner state machine bound to
+  canonical request ID and frozen snapshot hash.
+- [x] Added CSRF/role-protected runner start/result API with bounded hashes,
+  allowlisted stage statuses, safe summary, reporter/timestamp and audit events.
+- [x] Added Publishing Center controls for runner start and success/failure
+  reporting with manifest/artifact SHA-256 and explicit failed-stage selection.
+
+- [x] Selected the operator-controlled workstation as the initial staging
+  runner and documented authenticated admin download plus cPanel SFTP/SSH media
+  transfer as the minimal transport.
+- [x] Added an Owner/Admin-only audited frozen-request download endpoint with
+  canonical ID validation, real-path containment and attachment headers.
+- [x] Added snapshot hash visibility and `Snapshot İndir` access to staging
+  request history without changing `awaiting_runner` or implying deployment.
+
+- [x] Added `review-manifest.json` with snapshot identity, deterministic path
+  ordering, exact byte sizes and SHA-256 for all generated JSON, Markdown and
+  referenced binary outputs.
+- [x] Derived the permitted file set from validated materialization results and
+  rejected missing, extra, duplicate, reordered, symlinked or modified output.
+- [x] Added integration coverage for successful full-set verification and
+  separate missing, extra and checksum-drift failures.
+
+- [x] Added explicit-private-root binary materialization for vehicle uploads
+  and referenced central article covers with fixed opaque source paths.
+- [x] Added real-path source/output containment, destination symlink and
+  duplicate-path rejection, full-set preflight and source/destination SHA-256
+  plus byte-size verification.
+- [x] Added deterministic vehicle detail/card and content-addressed article
+  cover review paths while excluding every unreferenced central media record.
+
+- [x] Added deterministic localized article manifest and Markdown review
+  outputs with canonical TR/EN category and public route mappings.
+- [x] Enforced ready-only Turkish publication and explicit ready-only English
+  emission; missing or draft translations remain absent instead of synthesized.
+- [x] Added fail-closed article identity, slug, metadata, date, reading-time,
+  content-size and cover-media validation plus contained review writes.
+
+- [x] Migrated 28 reviewed vehicle media/licence records from handwritten
+  TypeScript into a versioned, checksum-bearing JSON source contract.
+- [x] Replaced release-time TypeScript regex parsing with strict normalized
+  media schema, file, provenance, featured coverage and checksum validation.
+- [x] Extended the review-only vehicle materializer with deterministic existing
+  and admin-upload media metadata output; direct repository application and
+  private binary copying remain disabled.
+
+- [x] Fixed subscriber resubscription so an obsolete unsubscribe timestamp is
+  cleared automatically instead of causing a consistency rejection.
+- [x] Added safe, field-specific subscriber correction diagnostics to the edit
+  modal while retaining server-side consent and IYS consistency validation.
+- [x] Added full-result, server-side three-state sorting to subscriber date
+  columns before pagination.
+- [x] Changed the Dashboard draft-content metric to the live private article
+  draft store and refetch it whenever Dashboard is revisited.
 
 - [x] Split vehicle navigation into Published Vehicles and Draft Vehicles, with
   unpublished drafts editable and returnable to published status.
@@ -817,6 +1101,16 @@ leave private storage. Stored change summaries are deliberately excluded.
 
 ## Current Task
 
+Continue Phase 7 with a local staging-runner orchestration command that consumes
+one frozen request, materializes and verifies the review set, prints/applies the
+controlled repository plan, runs the existing lint/typecheck/test and
+`release:staging` commands without duplicating build logic, then emits a bounded
+result JSON containing manifest/artifact hashes and stage outcomes. Deployment
+must remain a separate explicit step until its transport is selected.
+
+Deploy and staging-smoke-test subscriber resubscription, modal validation,
+three-state date sorting and the live Dashboard draft-content metric.
+
 Deploy and staging-smoke-test published/draft list separation, automatic IYS
 download, controlled subscriber correction and the relocated `Yayına Al` UI.
 
@@ -825,11 +1119,6 @@ on HTTPS staging.
 
 Deploy and smoke-test the completed vehicle card/editor interaction update on
 HTTPS staging, including filtered and published-only result sets.
-
-Continue Phase 7 adapters with normalized media/licence materialization, then
-localized article Markdown. The current vehicle adapter output must remain a
-review directory until a runner transport, Git diff review and atomic workspace
-application step are approved.
 
 Deploy and verify the numeric-model taxonomy fix on HTTPS staging. A missing
 `vehicle-taxonomy.json` is valid and must seed groups from vehicles; it will be
@@ -861,6 +1150,28 @@ the still-required Phase 2/3 staging smoke tests before closing those phases.
 
 ## Next Tasks
 
+- [x] Add deterministic TR/EN article Markdown and metadata review outputs from
+  the frozen publish request without inventing a missing translation.
+- [x] Add contained binary materialization for vehicle draft media and central
+  article media; verify every copied byte against the frozen SHA-256 checksum.
+- [x] Add a review-manifest test covering the complete expected output file set
+  before any atomic repository application or Git operation is enabled.
+- [x] Add plan-first transactional repository application with strict path
+  allowlisting, dirty-target rejection and recoverable external backup.
+- [x] Convert localized article materialization into the existing canonical
+  build registry while preserving unaffected published content and explicit
+  missing-translation semantics.
+
+- [ ] Deploy the refreshed staging ZIP; edit the previously unsubscribed test
+  contact back to an active status and verify its unsubscribe date becomes
+  empty, its update timestamp advances and the correction audit is recorded.
+- [ ] Submit one intentionally incomplete correction and confirm the precise
+  red validation message appears inside the edit modal without closing it.
+- [ ] Click each subscriber date heading three times and confirm newest-first,
+  oldest-first and default order across paginated results.
+- [ ] Return to Dashboard and confirm the private draft article count reports
+  `1` for the currently observed staging store.
+
 - [ ] Verify Published/Draft vehicle and Published/Draft blog tabs against live
   staging records; publish one synthetic draft vehicle and confirm it moves from
   Draft Vehicles into Published Vehicles.
@@ -870,9 +1181,11 @@ the still-required Phase 2/3 staging smoke tests before closing those phases.
   and confirm reason/changed fields in the `subscriber` audit entity, immutable
   creation time and server-owned update time. Confirm inconsistent status/date
   or approved-IYS-without-evidence submissions are rejected.
-- [ ] Select the external runner host and authenticated request/result transport;
-  until then every staging request correctly remains `awaiting_runner` and must
-  not be presented as deployed.
+- [x] Select the initial external runner host and authenticated request
+  transport: Owner/Admin download to the operator workstation, with private
+  media transferred through existing cPanel SFTP/SSH access.
+- [x] Add authenticated bounded runner-result reporting with strict transitions,
+  snapshot binding, hashes, stage results and safe audited summaries.
 
 - [ ] On refreshed staging, click the image, title and empty card area of an
   existing Filo Rehberi draft and confirm each opens the correct editor.
@@ -960,13 +1273,14 @@ the still-required Phase 2/3 staging smoke tests before closing those phases.
 - [ ] Deploy the Publishing Center foundation and verify validation blockers,
   exact `STAGING` confirmation, idempotent repeated requests and private request
   permissions on HTTPS staging.
-- [ ] Decide the external runner host/transport before implementing request
-  claim/result endpoints or storing any deployment secret.
-- [ ] Normalize existing vehicle media/licence metadata out of handwritten TS
+- [x] Decide the initial staging runner host/request transport without storing
+  any deployment secret; result reporting remains a separate pending endpoint.
+- [x] Normalize existing vehicle media/licence metadata out of handwritten TS
   into a generator-owned JSON contract so uploaded draft media can be safely
   materialized without generating TypeScript source text.
-- [ ] Extend `materialize-admin-snapshot.mjs` with checksummed media and TR/EN
-  article outputs; keep direct repository application disabled until reviewed.
+- [x] Extend `materialize-admin-snapshot.mjs` with binary-verified media;
+  normalized media metadata and TR/EN article outputs are complete, while
+  direct repository application remains disabled until reviewed.
 
 ## Known Issues
 
@@ -977,8 +1291,8 @@ the still-required Phase 2/3 staging smoke tests before closing those phases.
   deliberately outside sitemap/navigation contracts.
 - Current article generation is Turkish-centric and English metadata is TS code;
   this needs a controlled Phase 4 migration.
-- Public homepage featured order remains implicit until the Phase 7 publishing
-  adapter materializes the explicit private four-ID contract into repository data.
+- Private featured-order changes remain drafts until the Phase 7 runner applies
+  the explicit four-ID contract and deploys a rebuilt public artifact.
 - Existing newsletter CSV permits multiple rows per email/source; audience
   eligibility needs a tested cross-row resolution policy before campaigns.
 - The live vehicle endpoint succeeds. The taxonomy 503 root cause was
@@ -1022,6 +1336,93 @@ src/app/robots.ts                          (update)
 ```
 
 ## Files Changed
+
+Current 2026-09-01 Phase 7 canonical-article-registry continuation:
+
+- `src/data/article-admin-records.en.json` (new)
+- `src/data/articles.en.ts`
+- `scripts/materialize-admin-snapshot.mjs`
+- `scripts/materialize-admin-snapshot.test.mjs`
+- `scripts/apply-admin-materialization.mjs`
+- `scripts/assemble-cpanel-release.mjs`
+- `scripts/assemble-cpanel-release.test.mjs`
+- `docs/ADMIN_DASHBOARD_IMPLEMENTATION.md`
+- `kalite-filo-staging.zip`
+
+Current 2026-09-01 Phase 7 repository-application continuation:
+
+- `scripts/apply-admin-materialization.mjs` (new)
+- `scripts/apply-admin-materialization.test.mjs` (new)
+- `docs/ADMIN_DASHBOARD_IMPLEMENTATION.md`
+- `kalite-filo-staging.zip`
+
+Current 2026-09-01 Phase 7 runner-result continuation:
+
+- `server/admin-api/publishing-store.php`
+- `server/admin-api/publish-runner-result.php` (new)
+- `server/admin-api/tests/publishing-store.test.php`
+- `src/components/admin/publishing-center.tsx`
+- `scripts/assemble-cpanel-release.mjs`
+- `scripts/assemble-cpanel-release.test.mjs`
+- `docs/ADMIN_DASHBOARD_IMPLEMENTATION.md`
+- `kalite-filo-staging.zip`
+
+Current 2026-09-01 Phase 7 manual-runner handoff continuation:
+
+- `server/admin-api/publishing-store.php`
+- `server/admin-api/publish-request-download.php` (new)
+- `server/admin-api/tests/publishing-store.test.php`
+- `src/components/admin/publishing-center.tsx`
+- `scripts/assemble-cpanel-release.mjs`
+- `scripts/assemble-cpanel-release.test.mjs`
+- `docs/ADMIN_DASHBOARD_IMPLEMENTATION.md`
+- `kalite-filo-staging.zip`
+
+Current 2026-09-01 Phase 7 complete review-manifest continuation:
+
+- `scripts/materialize-admin-snapshot.mjs`
+- `scripts/materialize-admin-snapshot.test.mjs`
+- `docs/ADMIN_DASHBOARD_IMPLEMENTATION.md`
+- `kalite-filo-staging.zip`
+
+Current 2026-09-01 Phase 7 private-media binary continuation:
+
+- `scripts/materialize-admin-snapshot.mjs`
+- `scripts/materialize-admin-snapshot.test.mjs`
+- `docs/ADMIN_DASHBOARD_IMPLEMENTATION.md`
+- `kalite-filo-staging.zip`
+
+Current 2026-09-01 Phase 7 localized-article continuation:
+
+- `scripts/materialize-admin-snapshot.mjs`
+- `scripts/materialize-admin-snapshot.test.mjs`
+- `docs/ADMIN_DASHBOARD_IMPLEMENTATION.md`
+- `kalite-filo-staging.zip`
+
+Current 2026-09-01 Phase 7 normalized vehicle-media continuation:
+
+- `src/data/vehicle-media.json` (new canonical media/licence contract)
+- `src/data/vehicle-portfolio.ts`
+- `scripts/assemble-cpanel-release.mjs`
+- `scripts/assemble-cpanel-release.test.mjs`
+- `scripts/materialize-admin-snapshot.mjs`
+- `scripts/materialize-admin-snapshot.test.mjs`
+- `docs/ADMIN_DASHBOARD_IMPLEMENTATION.md`
+- `kalite-filo-staging.zip`
+
+Current 2026-09-01 subscriber/dashboard reliability continuation:
+
+- `src/components/admin/subscriber-list-view.tsx`
+- `src/components/admin/admin-app.tsx`
+- `server/admin-api/subscribers.php`
+- `server/admin-api/subscriber-operation.php`
+- `server/admin-api/read-model.php`
+- `server/admin-api/dashboard.php`
+- `server/admin-api/article-store.php`
+- `server/admin-api/tests/dashboard.test.php`
+- `server/admin-api/tests/article-store.test.php`
+- `docs/ADMIN_DASHBOARD_IMPLEMENTATION.md`
+- `kalite-filo-staging.zip`
 
 Current 2026-09-01 list/IYS/subscriber operations continuation:
 
@@ -1213,6 +1614,138 @@ Current Phase 6 test-mail continuation:
 - `server/admin-api/tests/media-store.test.php`
 
 ## Validation Results
+
+2026-09-01 Phase 7 canonical-article-registry continuation:
+
+- `npm run lint`: passed without warnings.
+- `npm run typecheck`: passed.
+- `npm test`: passed; 71 Node tests and all project-owned PHP suites passed.
+- Materialization tests verify stable-ID TR merge, unaffected record/tag
+  preservation, explicit EN overlay generation and omission of unprovided EN.
+- Release tests verify admin English overlay metadata returns through the
+  published-source snapshot/import boundary.
+- `npm run release:staging`: passed; the unchanged current registry generated
+  all 140 static pages successfully through the canonical loaders.
+- `npm run verify:output`: passed.
+- `git diff --check`: passed; only expected line-ending notices were reported.
+- Refreshed `kalite-filo-staging.zip`: 18,954,952 bytes; SHA-256
+  `F1758713E03B60E2A3A9BA4AAE3801FDF962FFA364D488BB9BDCD0F18A514495`.
+
+2026-09-01 Phase 7 repository-application continuation:
+
+- `npm run lint`: passed without warnings.
+- `npm run typecheck`: passed.
+- `npm test`: passed; 70 Node tests and all project-owned PHP suites passed.
+- New temporary-Git integration tests verify create/replace planning and apply,
+  preservation of the replaced original and backup manifest, rejection of an
+  overlapping local edit, and rejection of a manifested non-allowlisted path.
+- The apply command was deliberately not run against the real dirty worktree.
+- `npm run release:staging`: passed; all 140 static pages generated and the
+  cPanel staging release assembled.
+- `npm run verify:output`: passed.
+- `git diff --check`: passed; only expected line-ending notices were reported.
+- Refreshed `kalite-filo-staging.zip`: 18,955,316 bytes; SHA-256
+  `430828AE6BDCBE55F04FB163F67AFC116D0DDF42F5A2F94375C3867958F12943`.
+
+2026-09-01 Phase 7 runner-result continuation:
+
+- PHP syntax checks for `publishing-store.php` and
+  `publish-runner-result.php`: passed.
+- `npm run lint`: passed without warnings.
+- `npm run typecheck`: passed.
+- `npm test`: passed; 67 Node tests and all project-owned PHP suites passed.
+- Publishing tests cover wrong snapshot rejection, completion-before-start,
+  idempotent start/completion, terminal reporter identity, success requiring all
+  stages and failure requiring an explicit failed stage.
+- `npm run release:staging`: passed; all 140 static pages generated and the new
+  endpoint was included in the cPanel release.
+- `npm run verify:output`: passed.
+- `git diff --check`: passed; only expected line-ending notices were reported.
+- Refreshed `kalite-filo-staging.zip`: 18,955,284 bytes; SHA-256
+  `26A35A1836C9C43C30C4B58F6C06E27B0E6AE6DF010AE7D05C51C944BB6B90D6`.
+
+2026-09-01 Phase 7 manual-runner handoff continuation:
+
+- PHP syntax checks for `publishing-store.php` and
+  `publish-request-download.php`: passed.
+- `npm run lint`: passed without warnings.
+- `npm run typecheck`: passed.
+- `npm test`: passed; 67 Node tests and all project-owned PHP suites passed.
+- Publishing coverage verifies canonical frozen-request retrieval and rejects
+  malformed/traversal IDs; release fixture coverage includes the new endpoint.
+- `npm run release:staging`: passed; all 140 static pages generated and the new
+  authenticated endpoint was packaged in the cPanel staging release.
+- `npm run verify:output`: passed.
+- `git diff --check`: passed; only expected line-ending notices were reported.
+- Refreshed `kalite-filo-staging.zip`: 18,952,980 bytes.
+
+2026-09-01 Phase 7 complete review-manifest continuation:
+
+- `npm run lint`: passed without warnings.
+- `npm run typecheck`: passed.
+- `npm test`: passed; 67 Node tests and all project-owned PHP suites passed.
+- New integration coverage verifies an exact 11-file synthetic review set and
+  independently rejects an extra file, a changed file and a missing file.
+- `npm run release:staging`: passed; all 140 static pages generated and the
+  cPanel staging release assembled.
+- `npm run verify:output`: passed.
+- `git diff --check`: passed; only expected line-ending notices were reported.
+- Refreshed `kalite-filo-staging.zip`: 18,952,588 bytes.
+
+2026-09-01 Phase 7 private-media binary continuation:
+
+- `npm run lint`: passed without warnings.
+- `npm run typecheck`: passed.
+- `npm test`: passed; 66 Node tests and all project-owned PHP suites passed.
+- New integration coverage builds synthetic private vehicle/library stores,
+  proves only referenced files cross the boundary, verifies detail/card/article
+  destinations and rejects a frozen checksum/size mismatch before copying.
+- `npm run release:staging`: passed; all 140 static pages generated and the
+  cPanel staging release assembled without reading any private development data.
+- `npm run verify:output`: passed.
+- `git diff --check`: passed; only expected line-ending notices were reported.
+- Refreshed `kalite-filo-staging.zip`: 18,949,904 bytes.
+
+2026-09-01 Phase 7 localized-article continuation:
+
+- `npm run lint`: passed without warnings.
+- `npm run typecheck`: passed.
+- `npm test`: passed; 64 Node tests and all project-owned PHP suites passed.
+- New tests prove deterministic manifest/Markdown paths, canonical TR/EN public
+  routes, Turkish draft exclusion, missing-English preservation, duplicate-slug
+  rejection and fail-closed missing cover-media references.
+- `npm run release:staging`: passed; all 140 static pages generated and the
+  cPanel staging release assembled without changing current public content.
+- `npm run verify:output`: passed.
+- `git diff --check`: passed; only expected line-ending notices were reported.
+- Refreshed `kalite-filo-staging.zip`: 18,948,368 bytes.
+
+2026-09-01 Phase 7 normalized vehicle-media continuation:
+
+- `npm run lint`: passed without warnings.
+- `npm run typecheck`: passed.
+- `npm test`: passed; 61 Node tests and all project-owned PHP suites passed.
+- New tests reject repository media checksum drift, verify the fourth normalized
+  adapter output and verify content-addressed admin-upload metadata.
+- `npm run release:staging`: passed; all 140 static pages generated, all 28
+  repository media checksums verified and the cPanel release assembled.
+- `npm run verify:output`: passed.
+- Refreshed `kalite-filo-staging.zip`: 18,949,750 bytes.
+
+2026-09-01 subscriber/dashboard reliability continuation:
+
+- `npm run lint`: passed without warnings.
+- `npm run typecheck`: passed.
+- Changed PHP files: syntax checks passed.
+- Focused dashboard and article-store PHP tests: passed.
+- `npm test`: passed; 59 Node tests and all project-owned PHP suites passed.
+- Sorting coverage verifies ascending/descending full-result ordering and
+  rejects incomplete sort parameters; article coverage verifies live draft
+  counting.
+- `npm run release:staging`: passed; all 140 static pages generated and the
+  cPanel staging release was assembled.
+- `npm run verify:output`: passed.
+- Refreshed `kalite-filo-staging.zip`: 18,946,381 bytes.
 
 2026-09-01 published-list/subscriber-correction/publish-CTA refinement:
 
@@ -1451,6 +1984,98 @@ to the browser and no delivery endpoint is packaged.
 
 ## Session Handoff
 
+2026-09-01 Phase 7 canonical-article-registry handoff: review output now writes
+the complete merged `src/data/article-records.json`, the explicit
+`src/data/article-admin-records.en.json` overlay and localized Markdown. The
+public English loader and release snapshot consume the overlay; legacy verified
+English copy remains only for unaffected records. Do not restore the unused
+`article-materialization.json` application path, synthesize missing English or
+replace existing tag IDs with guessed values. The materializer CLI now also
+requires `--article-source` and `--article-en-source`. Next add a local runner
+orchestrator that reuses the existing quality/release commands and emits a
+bounded result file; keep deployment separate and explicit.
+
+2026-09-01 Phase 7 repository-application handoff:
+`apply-admin-materialization.mjs` defaults to JSON plan output and requires
+`--apply --backup <outside-repository-path>` for mutation. It re-verifies the
+review manifest, permits only explicit generated content/media paths, refuses
+overlapping Git changes, stages and rehashes every byte, and writes a recoverable
+backup manifest. It does not commit/build/deploy and was not run on this real
+worktree. Next bridge `article-materialization.json` into the canonical article
+registry used by the static generator; preserve unaffected records and explicit
+TR/EN readiness, then prove new and updated article routes in a temporary build.
+
+2026-09-01 Phase 7 runner-result handoff: `publish-runner-result.php` and the
+Publishing Center now implement explicit `start` and `complete` operations.
+The store accepts only `awaiting_runner → running → staging_succeeded | failed`,
+binds every operation to the frozen snapshot hash, atomically replaces the
+private request and retains bounded stage/hash evidence plus reporter identity.
+Do not add free-form logs, credentials, arbitrary statuses or a shortcut that
+marks an unstarted request successful. Next implement a local atomic application
+adapter that re-verifies the review manifest, previews the exact permitted
+repository diff and creates a recoverable backup without committing/building.
+
+2026-09-01 Phase 7 manual-runner handoff: AD-003 selects the trusted operator
+workstation as the initial staging runner. The admin history now exposes an
+Owner/Admin-only `Snapshot İndir` action backed by
+`publish-request-download.php`; lookup is canonical/contained and each download
+is audited. Retrieve referenced private media separately through existing
+cPanel SFTP/SSH access and pass both roots explicitly to the materializer. A
+download does not change request state or prove a build/deploy. Next implement
+a bounded authenticated result contract tied to request ID plus snapshot hash,
+with strict transitions and safe summaries before any UI can report success.
+
+2026-09-01 Phase 7 review-manifest handoff: the materializer now writes and
+immediately verifies `review-manifest.json`. Expected paths come only from the
+validated vehicle/article models and copied-media records; every entry includes
+size and SHA-256 and the verifier rejects missing, extra, duplicate, reordered,
+symlinked or modified output. The snapshot-to-review adapter checklist is now
+complete. Do not treat this as repository application or deployment. Next
+select the external runner host and authenticated request/result transport,
+then design atomic repository application and safe diff review around this
+manifest before allowing any publish request past `awaiting_runner`.
+
+2026-09-01 Phase 7 private-media binary handoff: the materializer CLI now
+requires `--private-data-root` in addition to the request/output/price/media
+inputs. It accepts only opaque IDs and allowlisted extensions beneath the two
+known private stores, preflights the entire referenced set, then copies and
+rehashes deterministic destinations beneath the review root. Vehicle uploads
+produce identical detail/card binaries; shared article covers are copied once.
+Do not weaken real-path containment, copy unreferenced media, or make cPanel PHP
+perform the build. Next create a deterministic expected-file manifest for every
+review JSON, Markdown and binary with size/checksum, and test missing, extra and
+modified output detection before implementing any repository application.
+
+2026-09-01 Phase 7 localized-article handoff: the review materializer now emits
+`src/data/article-materialization.json` and localized Markdown files beneath
+`src/content/filo-rehberi/` inside the separate output root. TR must be ready;
+EN is written only when explicitly ready, otherwise the manifest stores `null`.
+Canonical locale category IDs and public route paths are explicit, so a later
+adapter must not infer or translate them. The output is deliberately not fed
+into the current generator and does not mutate Git. Next implement contained
+binary copying for vehicle `draftMedia` and central article covers, verifying
+every source and destination byte against the frozen checksum; then create the
+complete expected-file review manifest before any atomic application step.
+
+2026-09-01 Phase 7 normalized vehicle-media handoff: public vehicle media and
+licence data now comes exclusively from `src/data/vehicle-media.json`; do not
+reintroduce a handwritten TS map or release-time source regex. The release
+snapshot validates each repository binary against its recorded SHA-256. The
+review adapter writes `vehicle-media.json`, preserving repository records and
+turning private draft media into content-addressed metadata with its opaque
+source ID. It still intentionally does not copy private binaries or mutate the
+repository. Next implement localized article review outputs, followed by a
+contained/checksummed binary copier and complete output manifest.
+
+2026-09-01 subscriber/dashboard reliability handoff: subscriber correction no
+longer resubmits a stale unsubscribe date when an operator restores an active
+status. Validation remains fail-closed, but approved safe failures now map to
+field-level red messages in the open modal. Date sorting is performed by the
+PHP read model before pagination; the UI cycle is descending, ascending, then
+default. Dashboard draft count reads the private article store and refetches on
+view entry. Deploy the refreshed ZIP and complete the four browser checks at
+the top of Next Tasks before closing this incident.
+
 2026-09-01 list/IYS/subscriber handoff: sidebar list separation is UI state over
 the existing static `/admin/` shell; no new Next runtime route was introduced.
 Published views are strict `published` inventories and draft views are their
@@ -1490,11 +2115,11 @@ successful custom-tag mutation should create the private taxonomy JSON.
 portfolio. Both localized homepages sort by the derived `featuredOrder`; the
 current four cards remain unchanged. `scripts/materialize-admin-snapshot.mjs`
 accepts a private publish-request JSON plus existing price-source metadata,
-verifies the SHA-256 envelope and produces only three JSON files under a
-separate output root. It intentionally does not overwrite repository files.
-Next migrate vehicle media/licence metadata from handwritten TS to normalized
-JSON and extend the adapter to copy/checksum approved media. Do not enable
-automatic Git application or deployment before runner transport is selected.
+verifies the SHA-256 envelope and now produces four normalized JSON files under
+a separate output root, including vehicle media/licence metadata. It
+intentionally does not overwrite repository files. The next work is localized
+article output and contained/checksummed binary copying. Do not enable automatic
+Git application or deployment before runner transport is selected.
 
 2026-08-31 taxonomy incident handoff: `/admin-api/vehicles.php` succeeds with
 the live 32-record draft, so do not change `vehicles.json` or its working 644

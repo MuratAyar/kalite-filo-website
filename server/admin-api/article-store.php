@@ -26,6 +26,7 @@ function kalite_filo_admin_article_drafts(): array
     if(!is_string($raw)||strlen($raw)>8388608)throw new RuntimeException('Article draft store is invalid.');
     $data=json_decode($raw,true,20,JSON_THROW_ON_ERROR);if(!is_array($data)||($data['schemaVersion']??null)!==1||!is_array($data['records']??null))throw new RuntimeException('Article draft store is invalid.');return array_values($data['records']);
 }
+function kalite_filo_admin_article_draft_count(): int{return count(kalite_filo_admin_article_drafts());}
 
 /** @param list<array<string,mixed>> $records */
 function kalite_filo_admin_write_article_drafts(array $records): void

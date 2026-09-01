@@ -8,6 +8,7 @@ import {
   rmSync,
   writeFileSync,
 } from "node:fs";
+import { createHash } from "node:crypto";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -64,6 +65,51 @@ function parseEnglishArticleCopy(source) {
   return records;
 }
 
+export function readVehicleMediaContract(repositoryRoot) {
+  const contractPath = path.join(repositoryRoot, "src", "data", "vehicle-media.json");
+  const contract = JSON.parse(readFileSync(contractPath, "utf8"));
+  if (contract?.schemaVersion !== 1 || !Array.isArray(contract.records)) {
+    throw new Error("Vehicle media contract has an unsupported schema.");
+  }
+  const mediaById = {};
+  for (const record of contract.records) {
+    if (
+      !record || typeof record !== "object"
+      || !/^[a-z0-9][a-z0-9-]{0,79}$/.test(record.vehicleId)
+      || !/^[a-z0-9][a-z0-9-]*\.(?:jpg|jpeg|png|webp)$/.test(record.fileName)
+      || !Number.isSafeInteger(record.width) || record.width <= 0
+      || !Number.isSafeInteger(record.height) || record.height <= 0
+      || !["alt", "creator", "sourcePage", "licenseName", "licenseUrl", "localDerivativeNote"]
+        .every((field) => typeof record[field] === "string" && record[field].trim() !== "")
+      || !/^https:\/\//.test(record.sourcePage)
+      || !/^https:\/\//.test(record.licenseUrl)
+      || !/^[a-f0-9]{64}$/.test(record.checksum)
+      || mediaById[record.vehicleId]
+    ) {
+      throw new Error("Vehicle media contract contains an invalid or duplicate record.");
+    }
+    const assetPath = path.join(repositoryRoot, "public", "images", "vehicles", record.fileName);
+    if (!existsSync(assetPath)) throw new Error(`Vehicle media asset is missing: ${record.fileName}`);
+    const checksum = createHash("sha256").update(readFileSync(assetPath)).digest("hex");
+    if (checksum !== record.checksum) {
+      throw new Error(`Vehicle media checksum mismatch: ${record.fileName}`);
+    }
+    mediaById[record.vehicleId] = {
+      src: `/images/vehicles/cards/${record.fileName}`,
+      alt: record.alt,
+      width: record.width,
+      height: record.height,
+      creator: record.creator,
+      sourcePage: record.sourcePage,
+      licenseName: record.licenseName,
+      licenseUrl: record.licenseUrl,
+      localDerivativeNote: record.localDerivativeNote,
+      checksum: record.checksum,
+    };
+  }
+  return mediaById;
+}
+
 export function createAdminContentSnapshot(repositoryRoot, target) {
   const vehicles = JSON.parse(readFileSync(
     path.join(repositoryRoot, "src", "data", "vehicle-portfolio.json"),
@@ -81,32 +127,30 @@ export function createAdminContentSnapshot(repositoryRoot, target) {
   const englishArticleSourcePath = path.join(repositoryRoot, "src", "data", "articles.en.ts");
   const englishArticleSource = existsSync(englishArticleSourcePath)
     ? readFileSync(englishArticleSourcePath, "utf8") : "";
-  const englishArticlesByTurkishSlug = parseEnglishArticleCopy(englishArticleSource);
+  const englishArticlesBySourceId = parseEnglishArticleCopy(englishArticleSource);
+  const adminEnglishPath = path.join(repositoryRoot, "src", "data", "article-admin-records.en.json");
+  const adminEnglishRecords = existsSync(adminEnglishPath) ? JSON.parse(readFileSync(adminEnglishPath, "utf8")) : [];
+  if (!Array.isArray(adminEnglishRecords)) throw new Error("Admin English article registry must be an array.");
+  for (const record of adminEnglishRecords) {
+    if (!record || typeof record.sourceArticleId !== "string" || typeof record.slug !== "string" || typeof record.title !== "string" || typeof record.excerpt !== "string") throw new Error("Admin English article registry contains an invalid record.");
+    englishArticlesBySourceId.set(record.sourceArticleId, record);
+  }
   const articleContentRoot = path.join(repositoryRoot, "src", "content", "filo-rehberi");
   const prices = JSON.parse(readFileSync(
     path.join(repositoryRoot, "src", "data", "vehicle-list-prices.json"), "utf8",
   ));
-  const mediaSource = readFileSync(
-    path.join(repositoryRoot, "src", "data", "vehicle-portfolio.ts"), "utf8",
-  );
-  const mediaById = {};
-  for (const match of mediaSource.matchAll(/"(kf-\d{3})": createPortfolioMedia\(\{([\s\S]*?)\n  \}\),/g)) {
-    const text = match[2];
-    const field = (name) => text.match(new RegExp(`${name}:\\s*"([^"]+)"`))?.[1];
-    const numberField = (name) => Number(text.match(new RegExp(`${name}:\\s*(\\d+)`))?.[1]);
-    const fileName = field("fileName");
-    if (fileName) mediaById[match[1]] = {
-      src: `/images/vehicles/cards/${fileName}`,
-      alt: field("alt") ?? "",
-      width: numberField("width"), height: numberField("height"),
-      creator: field("creator") ?? "", sourcePage: field("sourcePage") ?? "",
-      licenseName: field("licenseName") ?? "", licenseUrl: field("licenseUrl") ?? "",
-    };
-  }
+  const mediaById = readVehicleMediaContract(repositoryRoot);
   if (!Array.isArray(vehicles) || !Array.isArray(articles)) {
     throw new Error("Admin content snapshot sources must be JSON arrays.");
   }
+  const vehicleIds = new Set(vehicles.map((vehicle) => vehicle?.id));
+  if (Object.keys(mediaById).some((id) => !vehicleIds.has(id))) {
+    throw new Error("Vehicle media contract references an unknown vehicle.");
+  }
   if(featuredVehicleIds.some((id)=>!vehicles.some((vehicle)=>vehicle?.id===id))){throw new Error("Admin content snapshot featured order references an unknown vehicle.");}
+  if (featuredVehicleIds.some((id) => !mediaById[id])) {
+    throw new Error("Admin content snapshot featured vehicle is missing licensed media.");
+  }
   return {
     schemaVersion: 1,
     environment: target,
@@ -128,22 +172,23 @@ export function createAdminContentSnapshot(repositoryRoot, target) {
       total: articles.length,
       draft: articles.filter((article) => article?.publicationStatus === "draft").length,
       records: articles.map((article) => {
-        const englishArticle = englishArticlesByTurkishSlug.get(article.slug) ?? null;
+        const englishArticle = englishArticlesBySourceId.get(article.id) ?? null;
         const englishSlug = englishArticle?.slug ?? null;
         const turkishMarkdown = readArticleMarkdownBody(
           path.join(articleContentRoot, `${article.contentKey}.md`),
         );
         const englishMarkdown = typeof englishSlug === "string"
           ? readArticleMarkdownBody(path.join(articleContentRoot, `${englishSlug}-en.md`)) : null;
+        const turkishCoverAlt = article.coverAlt ?? article.coverImage?.alt;
         const importDraft = turkishMarkdown && article.title && article.excerpt
           && article.categoryId && article.publishedAt && article.readingMinutes
-          && article.coverImage?.alt && article.seo?.title && article.seo?.description ? {
+          && turkishCoverAlt && article.seo?.title && article.seo?.description ? {
             categoryId: article.categoryId,
             featured: article.featured === true,
             locales: {
               tr: {
                 status: "ready", title: article.title, slug: article.slug,
-                excerpt: article.excerpt, coverAlt: article.coverImage.alt,
+                excerpt: article.excerpt, coverAlt: turkishCoverAlt,
                 publishedAt: article.publishedAt, readingMinutes: article.readingMinutes,
                 seoTitle: article.seo.title, metaDescription: article.seo.description,
                 markdown: turkishMarkdown,
@@ -151,10 +196,10 @@ export function createAdminContentSnapshot(repositoryRoot, target) {
               en: englishArticle && englishMarkdown ? {
                 status: "ready", title: englishArticle.title, slug: englishArticle.slug,
                 excerpt: englishArticle.excerpt,
-                coverAlt: englishArticle.alt ?? article.coverImage.alt,
-                publishedAt: article.publishedAt, readingMinutes: article.readingMinutes,
-                seoTitle: `${englishArticle.title} | Kalite Filo`,
-                metaDescription: englishArticle.excerpt, markdown: englishMarkdown,
+                coverAlt: englishArticle.coverAlt ?? englishArticle.coverImage?.alt ?? englishArticle.alt ?? turkishCoverAlt,
+                publishedAt: englishArticle.publishedAt ?? article.publishedAt, readingMinutes: englishArticle.readingMinutes ?? article.readingMinutes,
+                seoTitle: englishArticle.seo?.title ?? `${englishArticle.title} | Kalite Filo`,
+                metaDescription: englishArticle.seo?.description ?? englishArticle.excerpt, markdown: englishMarkdown,
               } : null,
             },
           } : null;
@@ -258,6 +303,8 @@ export function assembleCpanelRelease(target, repositoryRoot = defaultRepository
     "publishing-store.php",
     "publishing.php",
     "publish-staging.php",
+    "publish-request-download.php",
+    "publish-runner-result.php",
   ];
   for (const requiredFile of adminRuntimeFiles) {
     if (!existsSync(path.join(adminApiSource, requiredFile))) {

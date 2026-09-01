@@ -55,6 +55,9 @@ try {
     $leadPage=kalite_filo_admin_contact_page($contactPath,1,20,'lead@','lead_only','not_requested','website_quote_form');
     dashboard_test_assert($leadPage['total']===1&&$leadPage['records'][0]['email']==='lead@example.com','Contact filters must preserve lead-only semantics.');
     try{kalite_filo_admin_contact_page($contactPath,1,20,'','','','../unsafe');dashboard_test_assert(false,'Unsafe contact source filter must fail.');}catch(InvalidArgumentException){/* expected */}
+    $oldestUpdated=kalite_filo_admin_contact_page($contactPath,1,20,'','','','','updatedAt','asc');dashboard_test_assert($oldestUpdated['records'][0]['id']==='1','Contact date sorting must apply before pagination in ascending order.');
+    $newestUpdated=kalite_filo_admin_contact_page($contactPath,1,20,'','','','','updatedAt','desc');dashboard_test_assert($newestUpdated['records'][0]['id']==='4','Contact date sorting must apply before pagination in descending order.');
+    try{kalite_filo_admin_contact_page($contactPath,1,20,'','','','','updatedAt','');dashboard_test_assert(false,'Incomplete contact sort input must fail closed.');}catch(InvalidArgumentException){/* expected */}
     file_put_contents(dirname($contactPath).DIRECTORY_SEPARATOR.'iys-email-permissions-2026-08-30.csv',"recipient,consentDate,type,recipientType,source\n");
     file_put_contents(dirname($contactPath).DIRECTORY_SEPARATOR.'iys-export-state.json',json_encode(['last_exported_at_utc'=>'2026-08-30 12:00:00'],JSON_THROW_ON_ERROR));
     $iys=kalite_filo_admin_iys_overview($contactPath);dashboard_test_assert($iys['counts']['pending']===2&&$iys['counts']['notRequested']===2,'IYS overview must preserve exact row states.');dashboard_test_assert(count($iys['exports'])===1&&$iys['lastExportedAt']==='2026-08-30 12:00:00','IYS overview must expose bounded manual export history.');

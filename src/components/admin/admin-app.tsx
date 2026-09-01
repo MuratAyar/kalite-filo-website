@@ -259,7 +259,7 @@ export function AdminApp() {
   }, []);
 
   useEffect(() => {
-    if (!session?.authenticated) return;
+    if (!session?.authenticated || view !== "dashboard") return;
     let active = true;
     void fetch(endpoints.dashboard, {
       cache: "no-store",
@@ -284,7 +284,7 @@ export function AdminApp() {
     return () => {
       active = false;
     };
-  }, [session?.authenticated]);
+  }, [session?.authenticated, view]);
 
   async function handleLogin(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -684,6 +684,7 @@ export function AdminApp() {
           />
         ) : view === "subscribers" ? (
           <SubscriberListView
+            canCorrect={["owner", "admin"].includes(session.user.role)}
             canManage={["owner", "admin", "marketing"].includes(
               session.user.role,
             )}

@@ -28,9 +28,11 @@ function dateInput(value: string) {
 export function SubscriberListView({
   csrfToken,
   canManage,
+  canCorrect,
 }: {
   csrfToken: string;
   canManage: boolean;
+  canCorrect: boolean;
 }) {
   const [records, setRecords] = useState<Contact[]>([]);
   const [page, setPage] = useState(1);
@@ -44,6 +46,8 @@ export function SubscriberListView({
   const [loading, setLoading] = useState(true);
   const [refresh, setRefresh] = useState(0);
   const [editing, setEditing] = useState<Contact | null>(null);
+  const [editError, setEditError] = useState("");
+  const [sort, setSort] = useState<{ field: string; direction: "asc" | "desc" } | null>(null);
   useEffect(() => {
     const controller = new AbortController();
     const params = new URLSearchParams({ page: String(page), limit: "25" });
@@ -51,6 +55,7 @@ export function SubscriberListView({
     if (status) params.set("status", status);
     if (iysStatus) params.set("iysStatus", iysStatus);
     if (source) params.set("source", source);
+    if (sort) { params.set("sort", sort.field); params.set("direction", sort.direction); }
     void fetch(`/admin-api/subscribers.php?${params}`, {
       credentials: "same-origin",
       cache: "no-store",
@@ -70,11 +75,15 @@ export function SubscriberListView({
       })
       .finally(() => setLoading(false));
     return () => controller.abort();
-  }, [page, query, status, iysStatus, source, refresh]);
+  }, [page, query, status, iysStatus, source, sort, refresh]);
   function filter(setter: (value: string) => void, value: string) {
     setLoading(true);
     setPage(1);
     setter(value);
+  }
+  function cycleSort(field: string) {
+    setLoading(true); setPage(1);
+    setSort((current) => current?.field !== field ? { field, direction: "desc" } : current.direction === "desc" ? { field, direction: "asc" } : null);
   }
   async function unsubscribe(record: Contact) {
     if (
@@ -106,7 +115,13 @@ export function SubscriberListView({
     event.preventDefault();
     if (!editing) return;
     const form = new FormData(event.currentTarget);
-    const body = Object.fromEntries(form.entries());
+    const body = Object.fromEntries(form.entries()) as Record<string, string>;
+    if (body.status !== "unsubscribed") body.unsubscribedAt = "";
+    const reason = body.reason?.trim() ?? "";
+    if (reason.length < 10) { setEditError("Düzeltme gerekçesi en az 10 karakter olmalıdır."); return; }
+    if (body.status === "unsubscribed" && !body.unsubscribedAt) { setEditError("Unsubscribed durumunda abonelikten çıkış tarihi zorunludur."); return; }
+    if (["pending", "failed", "approved", "synced"].includes(body.iysStatus) && (body.status !== "approved" || !body.consentTextVersion?.trim() || !body.consentAt)) { setEditError("Seçilen İYS durumu için Durum approved olmalı; consent versiyonu ve consent tarihi girilmelidir."); return; }
+    setEditError("");
     if (
       !window.confirm(`${editing.email} kaydındaki düzeltmeler kaydedilsin mi?`)
     )
@@ -126,12 +141,15 @@ export function SubscriberListView({
           ...body,
         }),
       });
-      if (!response.ok) throw new Error();
+      const payload = await response.json();
+      if (!response.ok) throw new Error(String(payload.error ?? "validation_failed"));
       setEditing(null);
       setRefresh((value) => value + 1);
       setError("");
-    } catch {
-      setError("Kayıt güncellenemedi.");
+    } catch (cause) {
+      const code = cause instanceof Error ? cause.message : "validation_failed";
+      const messages: Record<string,string> = { correction_reason_required: "Düzeltme gerekçesi en az 10 karakter olmalıdır.", invalid_contact_date: "Tarih alanlarından biri geçerli değil.", unsubscribe_date_required: "Unsubscribed durumunda abonelikten çıkış tarihi zorunludur.", unsubscribe_date_must_be_empty: "Aboneliğe geri alınan kaydın çıkış tarihi boş olmalıdır.", iys_requires_consent: "Seçilen İYS durumu için approved durum ve geçerli consent kanıtı gereklidir.", invalid_consent_version: "Consent metin versiyonu geçerli değil.", not_found: "Düzenlenen kayıt artık bulunamıyor." };
+      setEditError(messages[code] ?? "Kayıt güncellenemedi. Alanları kontrol edip tekrar deneyin.");
       setLoading(false);
     }
   }
@@ -142,8 +160,8 @@ export function SubscriberListView({
       </p>
       <h2 className="mt-1 text-heading-md">Newsletter Kişileri</h2>
       <p className="mt-2 text-sm text-text-secondary">
-        Salt okunur · Teklif/iletişim kaydı pazarlama izni değildir. Consent
-        evidence bu ekrandan değiştirilemez.
+        Teklif/iletişim kaydı pazarlama izni değildir. Owner/Admin düzeltmeleri
+        gerekçe ve denetim kaydıyla uygulanır.
       </p>
       <div className="mt-6 grid gap-3 rounded-card border bg-surface-card p-4 md:grid-cols-2 xl:grid-cols-4">
         <input
@@ -197,19 +215,13 @@ export function SubscriberListView({
           <thead className="bg-surface-muted text-text-secondary">
             <tr>
               {[
-                "E-posta",
-                "Durum",
-                "Kaynak",
-                "Consent kanıtı",
-                "İYS",
-                "Alıcı",
-                "Abonelikten çıkış",
-                "Oluşturma",
-                "Güncelleme",
-                "İşlem",
-              ].map((label) => (
+                ["E-posta", ""], ["Durum", ""], ["Kaynak", ""],
+                ["Consent kanıtı", "consentAt"], ["İYS", "iysSyncedAt"],
+                ["Alıcı", ""], ["Abonelikten çıkış", "unsubscribedAt"],
+                ["Oluşturma", "createdAt"], ["Güncelleme", "updatedAt"], ["İşlem", ""],
+              ].map(([label, field]) => (
                 <th className="px-4 py-3" key={label}>
-                  {label}
+                  {field ? <button className="inline-flex items-center gap-1 font-semibold hover:text-corporate-blue" onClick={() => cycleSort(field)} type="button">{label}<span aria-hidden="true">{sort?.field === field ? sort.direction === "desc" ? "↓" : "↑" : "↕"}</span></button> : label}
                 </th>
               ))}
             </tr>
@@ -242,11 +254,11 @@ export function SubscriberListView({
                 <td className="px-4 py-4">{record.updated_at}</td>
                 <td className="px-4 py-4">
                   <div className="flex gap-2">
-                    {canManage ? (
+                    {canCorrect ? (
                       <button
                         className="rounded-control border border-corporate-blue px-3 py-2 text-xs font-semibold text-corporate-blue"
                         disabled={loading}
-                        onClick={() => setEditing(record)}
+                        onClick={() => { setEditError(""); setEditing(record); }}
                       >
                         Düzenle
                       </button>
@@ -340,6 +352,13 @@ export function SubscriberListView({
                   className={`${control} mt-1 w-full`}
                   defaultValue={editing.status}
                   name="status"
+                  onChange={(event) => {
+                    setEditError("");
+                    if (event.target.value !== "unsubscribed") {
+                      const field = event.currentTarget.form?.elements.namedItem("unsubscribedAt");
+                      if (field instanceof HTMLInputElement) field.value = "";
+                    }
+                  }}
                 >
                   {["approved", "active", "lead_only", "unsubscribed"].map(
                     (value) => (
@@ -454,6 +473,7 @@ export function SubscriberListView({
                 />
               </label>
             </div>
+            {editError ? <p className="mt-5 rounded-control bg-error-surface px-4 py-3 text-sm font-semibold text-error" role="alert">{editError}</p> : null}
             <button
               className="mt-6 min-h-11 w-full rounded-control bg-accent-orange font-bold"
               disabled={loading}

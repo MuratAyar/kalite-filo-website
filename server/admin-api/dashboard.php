@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/auth.php';
 require_once __DIR__ . '/read-model.php';
+require_once __DIR__ . '/article-store.php';
 
 try {
     kalite_filo_admin_require_method('GET');
@@ -16,7 +17,7 @@ try {
             'activeVehicles' => (int) ($snapshot['vehicles']['active'] ?? 0),
             'featuredVehicles' => (int) ($snapshot['vehicles']['featured'] ?? 0),
             'articles' => (int) ($snapshot['articles']['total'] ?? 0),
-            'draftArticles' => (int) ($snapshot['articles']['draft'] ?? 0),
+            'draftArticles' => kalite_filo_admin_article_draft_count(),
             'newsletterContacts' => $contacts['contacts'],
             'approvedMarketingConsents' => $contacts['approved'],
             'iysPending' => $contacts['iysPending'],

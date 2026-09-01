@@ -4,6 +4,20 @@ declare(strict_types=1);
 require_once __DIR__ . '/auth.php';
 require_once __DIR__ . '/read-model.php';
 
+function kalite_filo_admin_contact_validation_code(InvalidArgumentException $exception): string
+{
+    return match ($exception->getMessage()) {
+        'Correction reason is required.' => 'correction_reason_required',
+        'Invalid contact date.' => 'invalid_contact_date',
+        'Unsubscribe date is required.' => 'unsubscribe_date_required',
+        'Unsubscribe state is inconsistent.' => 'unsubscribe_date_must_be_empty',
+        'IYS state requires consent evidence.' => 'iys_requires_consent',
+        'Invalid consent version.' => 'invalid_consent_version',
+        'Contact was not found.' => 'not_found',
+        default => 'validation_failed',
+    };
+}
+
 try {
     kalite_filo_admin_require_method('POST');
     kalite_filo_admin_require_same_origin();
@@ -68,8 +82,8 @@ try {
     }
 
     throw new InvalidArgumentException('Invalid operation.');
-} catch (InvalidArgumentException) {
-    kalite_filo_admin_json(['error' => 'validation_failed'], 422);
+} catch (InvalidArgumentException $exception) {
+    kalite_filo_admin_json(['error' => kalite_filo_admin_contact_validation_code($exception)], 422);
 } catch (Throwable $exception) {
     error_log('Subscriber operation failed: ' . $exception->getMessage());
     kalite_filo_admin_json(['error' => 'service_unavailable'], 503);

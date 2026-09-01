@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { createHash } from "node:crypto";
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
@@ -8,6 +9,7 @@ import {
   assembleCpanelRelease,
   assertNoReleaseSecrets,
   createAdminContentSnapshot,
+  readVehicleMediaContract,
 } from "./assemble-cpanel-release.mjs";
 
 function createFixture(name) {
@@ -29,12 +31,25 @@ function createFixture(name) {
     { id: "two", slug: "two", contentKey: "two", publicationStatus: "draft" },
   ]));
   writeFileSync(path.join(root, "src", "data", "articles.en.ts"), '  "one": { slug: "one-english", title: "One", excerpt: "One excerpt", alt: "English alternative text" },\n');
+  writeFileSync(path.join(root, "src", "data", "article-admin-records.en.json"), JSON.stringify([{ sourceArticleId: "one", slug: "one-english", title: "Admin One", excerpt: "Admin excerpt", categoryId: "fleet-management", publishedAt: "2026-08-30", readingMinutes: 5, featured: true, coverAlt: "Admin English alternative text", coverImage: null, contentKey: "one-english-en", seo: { title: "Admin SEO", description: "Admin meta" } }]));
   mkdirSync(path.join(root, "src", "content", "filo-rehberi"), { recursive: true });
   writeFileSync(path.join(root, "src", "content", "filo-rehberi", "one.md"), "---\ntitle: Fixture\n---\n\n## Türkçe gövde");
   writeFileSync(path.join(root, "src", "content", "filo-rehberi", "one-english-en.md"), "## English body");
   writeFileSync(path.join(root, "src", "content", "filo-rehberi", "two.md"), "fixture");
   writeFileSync(path.join(root, "src", "data", "vehicle-list-prices.json"), JSON.stringify({ amountsMinor: {} }));
-  writeFileSync(path.join(root, "src", "data", "vehicle-portfolio.ts"), "const portfolioMedia = {};\n");
+  mkdirSync(path.join(root, "public", "images", "vehicles"), { recursive: true });
+  const fixtureMedia = "fixture image";
+  writeFileSync(path.join(root, "public", "images", "vehicles", "fixture.jpg"), fixtureMedia);
+  const fixtureChecksum = createHash("sha256").update(fixtureMedia).digest("hex");
+  writeFileSync(path.join(root, "src", "data", "vehicle-media.json"), JSON.stringify({
+    schemaVersion: 1,
+    records: ["one", "two", "three", "four"].map((id) => ({
+      vehicleId: `vehicle-${id}`, fileName: "fixture.jpg", width: 960, height: 640,
+      alt: "Araç", creator: "Creator", sourcePage: "https://example.com/source",
+      licenseName: "CC", licenseUrl: "https://example.com/license",
+      localDerivativeNote: "Local derivative", checksum: fixtureChecksum,
+    })),
+  }));
   for (const file of [
     "teklif.php",
     "iletisim.php",
@@ -95,6 +110,8 @@ function createFixture(name) {
     "publishing-store.php",
     "publishing.php",
     "publish-staging.php",
+    "publish-request-download.php",
+    "publish-runner-result.php",
   ]) {
     writeFileSync(path.join(root, "server", "admin-api", file), "fixture");
   }
@@ -123,6 +140,22 @@ test("release secret scan rejects an admin config inside a web root", () => {
   mkdirSync(path.join(root, "out", "admin-api"), { recursive: true });
   writeFileSync(path.join(root, "out", "admin-api", "config.php"), "secret");
   assert.throws(() => assertNoReleaseSecrets(path.join(root, "out")), /runtime configuration/);
+});
+
+test("vehicle media contract rejects checksum drift", () => {
+  const root = createFixture("vehicle-media-checksum");
+  mkdirSync(path.join(root, "public", "images", "vehicles"), { recursive: true });
+  writeFileSync(path.join(root, "public", "images", "vehicles", "vehicle.jpg"), "binary");
+  writeFileSync(path.join(root, "src", "data", "vehicle-media.json"), JSON.stringify({
+    schemaVersion: 1,
+    records: [{
+      vehicleId: "kf-001", fileName: "vehicle.jpg", width: 960, height: 640,
+      alt: "Araç", creator: "Creator", sourcePage: "https://example.com/source",
+      licenseName: "CC", licenseUrl: "https://example.com/license",
+      localDerivativeNote: "Local derivative", checksum: "0".repeat(64),
+    }],
+  }));
+  assert.throws(() => readVehicleMediaContract(root), /checksum mismatch/);
 });
 
 test("release assembly includes the complete Composer mail runtime and no private config", () => {
@@ -211,5 +244,7 @@ test("release assembly includes the complete Composer mail runtime and no privat
   assert.equal(snapshot.articles.records[1].translations.en.complete, false);
   assert.equal(snapshot.articles.records[0].importDraft.locales.tr.markdown, "## Türkçe gövde");
   assert.equal(snapshot.articles.records[0].importDraft.locales.en.markdown, "## English body");
+  assert.equal(snapshot.articles.records[0].importDraft.locales.en.title, "Admin One");
+  assert.equal(snapshot.articles.records[0].importDraft.locales.en.seoTitle, "Admin SEO");
   assert.equal(snapshot.articles.records[1].importDraft, null);
 });

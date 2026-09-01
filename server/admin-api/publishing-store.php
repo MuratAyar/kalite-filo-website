@@ -84,6 +84,99 @@ function kalite_filo_admin_publish_requests(): array
     return $records;
 }
 
+/** @return array<string,mixed>|null */
+function kalite_filo_admin_publish_request(string $id): ?array
+{
+    if (preg_match('/^publish-\d{8}-\d{6}-[a-f0-9]{12}$/', $id) !== 1) return null;
+    $directory = kalite_filo_admin_publish_root() . DIRECTORY_SEPARATOR . 'requests';
+    $path = $directory . DIRECTORY_SEPARATOR . $id . '.json';
+    if (!is_file($path) || filesize($path) > 33554432) return null;
+    $directoryReal = realpath($directory);
+    $pathReal = realpath($path);
+    if (!is_string($directoryReal) || !is_string($pathReal) || !str_starts_with($pathReal, $directoryReal . DIRECTORY_SEPARATOR)) return null;
+    $raw = file_get_contents($pathReal);
+    if (!is_string($raw)) return null;
+    $record = json_decode($raw, true, 30, JSON_THROW_ON_ERROR);
+    if (!is_array($record) || ($record['schemaVersion'] ?? null) !== 1 || ($record['id'] ?? null) !== $id) return null;
+    return $record;
+}
+
+/** @param array<string,mixed> $record */
+function kalite_filo_admin_replace_publish_request(array $record): void
+{
+    $id = (string) ($record['id'] ?? '');
+    if (preg_match('/^publish-\d{8}-\d{6}-[a-f0-9]{12}$/', $id) !== 1) throw new InvalidArgumentException('Invalid publish request ID.');
+    $directory = kalite_filo_admin_publish_root() . DIRECTORY_SEPARATOR . 'requests';
+    kalite_filo_admin_ensure_private_directory($directory);
+    $path = $directory . DIRECTORY_SEPARATOR . $id . '.json';
+    $temporary = $path . '.tmp-' . bin2hex(random_bytes(5));
+    $encoded = json_encode($record, JSON_THROW_ON_ERROR | JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    if (file_put_contents($temporary, $encoded, LOCK_EX) === false) throw new RuntimeException('Publish request result could not be written.');
+    @chmod($temporary, 0600);
+    if (!rename($temporary, $path)) { @unlink($temporary); throw new RuntimeException('Publish request result could not be replaced.'); }
+    @chmod($path, 0600);
+}
+
+/** @return array<string,mixed> */
+function kalite_filo_admin_normalize_runner_result(array $input): array
+{
+    $outcome = $input['outcome'] ?? null;
+    if (!in_array($outcome, ['succeeded', 'failed'], true)) throw new InvalidArgumentException('Invalid runner outcome.');
+    $manifestHash = strtolower(trim((string) ($input['manifestHash'] ?? '')));
+    $artifactHash = strtolower(trim((string) ($input['artifactHash'] ?? '')));
+    if (preg_match('/^[a-f0-9]{64}$/', $manifestHash) !== 1) throw new InvalidArgumentException('Invalid manifest hash.');
+    if ($artifactHash !== '' && preg_match('/^[a-f0-9]{64}$/', $artifactHash) !== 1) throw new InvalidArgumentException('Invalid artifact hash.');
+    if ($outcome === 'succeeded' && $artifactHash === '') throw new InvalidArgumentException('Successful runner result requires an artifact hash.');
+    $stageNames = ['materialization', 'validation', 'build', 'release', 'deployment', 'smoke'];
+    $stages = $input['stages'] ?? null;
+    if (!is_array($stages) || array_keys($stages) !== $stageNames) throw new InvalidArgumentException('Invalid runner stages.');
+    $normalizedStages = [];
+    foreach ($stageNames as $name) {
+        $status = $stages[$name] ?? null;
+        if (!in_array($status, ['passed', 'failed', 'skipped'], true)) throw new InvalidArgumentException('Invalid runner stage status.');
+        $normalizedStages[$name] = $status;
+    }
+    if ($outcome === 'succeeded' && count(array_filter($normalizedStages, static fn (string $status): bool => $status !== 'passed')) > 0) throw new InvalidArgumentException('Successful runner stages must all pass.');
+    if ($outcome === 'failed' && !in_array('failed', $normalizedStages, true)) throw new InvalidArgumentException('Failed runner result requires a failed stage.');
+    $summary = trim((string) ($input['summary'] ?? ''));
+    $summaryLength = preg_match_all('/./us', $summary, $unused);
+    if ($summaryLength === false || $summaryLength > 300 || preg_match('/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/u', $summary) === 1) throw new InvalidArgumentException('Invalid runner summary.');
+    return ['outcome' => $outcome, 'manifestHash' => $manifestHash, 'artifactHash' => $artifactHash !== '' ? $artifactHash : null, 'stages' => $normalizedStages, 'summary' => $summary !== '' ? $summary : null];
+}
+
+/** @return array<string,mixed> */
+function kalite_filo_admin_transition_publish_request(string $id, string $snapshotHash, string $action, array $input = []): array
+{
+    if (preg_match('/^[a-f0-9]{64}$/', $snapshotHash) !== 1) throw new InvalidArgumentException('Invalid snapshot hash.');
+    $record = kalite_filo_admin_publish_request($id);
+    if ($record === null) throw new OutOfBoundsException('Publish request was not found.');
+    if (!hash_equals((string) ($record['snapshotHash'] ?? ''), $snapshotHash)) throw new InvalidArgumentException('Snapshot identity mismatch.');
+    $status = $record['status'] ?? null;
+    if ($action === 'start') {
+        if ($status === 'running') return $record;
+        if ($status !== 'awaiting_runner') throw new DomainException('Invalid publish transition.');
+        $record['status'] = 'running';
+        $record['startedAt'] = gmdate('c');
+        kalite_filo_admin_replace_publish_request($record);
+        return $record;
+    }
+    if ($action !== 'complete') throw new InvalidArgumentException('Invalid runner action.');
+    if (!in_array($status, ['running', 'staging_succeeded', 'failed'], true)) throw new DomainException('Runner must be started before completion.');
+    $result = kalite_filo_admin_normalize_runner_result($input);
+    $terminalStatus = $result['outcome'] === 'succeeded' ? 'staging_succeeded' : 'failed';
+    if (in_array($status, ['staging_succeeded', 'failed'], true)) {
+        $storedResult = is_array($record['result'] ?? null) ? $record['result'] : [];
+        unset($storedResult['reportedAt'], $storedResult['reportedBy']);
+        if ($status === $terminalStatus && $storedResult === $result) return $record;
+        throw new DomainException('Publish result is already final.');
+    }
+    $record['status'] = $terminalStatus;
+    $record['completedAt'] = gmdate('c');
+    $record['result'] = $result + ['reportedAt' => $record['completedAt'], 'reportedBy' => $_SESSION['identity']['id'] ?? null];
+    kalite_filo_admin_replace_publish_request($record);
+    return $record;
+}
+
 /** @return array{valid:bool,blockers:list<array{code:string,message:string}>,warnings:list<array{code:string,message:string}>} */
 function kalite_filo_admin_validate_staging_publish_payload(array $payload): array
 {
