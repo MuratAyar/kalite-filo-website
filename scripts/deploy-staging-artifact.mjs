@@ -50,6 +50,15 @@ export async function smokeStaging(origin, fetcher = fetch) {
   }
 }
 
+export async function verifyStagingReleaseMarker(origin, expected, fetcher = fetch) {
+  const response = await fetcher(`${origin}/kalite-filo-release.json`, { redirect: "error", headers: { "cache-control": "no-cache" } });
+  if (!response.ok) fail(`release marker returned HTTP ${response.status}`);
+  const marker = JSON.parse(await response.text());
+  for (const key of ["requestId", "snapshotHash", "manifestHash"]) if (marker?.[key] !== expected?.[key]) fail(`release marker ${key} mismatch`);
+  if (marker.schemaVersion !== 1 || marker.target !== "staging") fail("release marker contract is invalid");
+  return marker;
+}
+
 const remoteScript = String.raw`set -euo pipefail
 artifact="$1"; expected="$2"; document_root="$3"; work_root="$4"; release_id="$5"
 command -v sha256sum >/dev/null

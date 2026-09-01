@@ -8,37 +8,38 @@ the status and handoff sections before ending.
 
 ## Current Status
 
-The 2026-09-01 Phase 7 staging-transport pass adds a staging-only OpenSSH
-deployment adapter. It consumes only hash-matching `release_ready` evidence,
-uses external SSH agent/key configuration, rejects every document root except
-the canonical cPanel staging path shape and never accepts a password or secret
-through the admin browser.
+TURKTİCARET support has now explicitly confirmed that external SSH is not
+provided on the Web Eko shared-hosting package; only cPanel's browser Terminal
+is available. The previous OpenSSH transport is therefore unsupported for this
+hosting target and is superseded by the 2026-09-01 Phase 7 manual-cPanel
+transport. No SSH key is required for deployment. The previously disclosed key
+must still be revoked as an independent security cleanup.
 
-The remote operation preflights `sha256sum`, `unzip`, `rsync` and `realpath`,
-verifies the uploaded artifact again, captures the complete current staging
-document root beneath the account-private deploy root and restores it if the
-transfer fails. HTTPS smoke checks cover Home, `/admin/`, fail-closed staging
-robots and the unauthenticated/no-store staging session contract. Smoke failure
-also requests rollback. Only a fully passed deployment writes bounded
-`succeeded` evidence; the actual remote run remains pending operator SSH
-configuration and therefore no live publish request has been marked successful.
+The replacement workflow keeps the trusted build runner on the operator
+workstation. A `release_ready` ZIP now contains a non-secret
+`kalite-filo-release.json` marker bound to request ID, frozen snapshot and review
+manifest. The operator uploads that ZIP plus the reviewed executor through
+cPanel File Manager into an account-private directory, then runs one explicit
+cPanel Terminal command. The executor verifies archive SHA-256, path safety,
+required files and marker identity before atomically moving the existing staging
+document root to a private rollback directory and moving the complete new
+release into place. It never targets production and never deletes the retained
+old or failed release.
 
-Operational diagnostic on 2026-09-01: cPanel confirms the account user
-`kal67efilocomtr`, server label `cpanel16-web-host-cl` and shared IP
-`31.186.11.46`; it does not provide an externally reachable SSH hostname or
-port. From the operator workstation the server label did not resolve publicly
-and `31.186.11.46:22` did not accept a TCP connection within five seconds.
-The generated public key is not sufficient for workstation authentication: the
-public key must be authorized in cPanel and the private key must be downloaded
-to the workstation without being committed or shared. No deployment attempt was
-made and the frozen request remains `awaiting_runner`.
+`finalize-manual-staging-publish.mjs` independently fetches the live release
+marker, proves that staging serves the exact frozen request, and only then runs
+Home/admin/robots/session HTTPS smoke checks and emits bounded terminal evidence.
+If finalization fails, the documented Terminal rollback command restores the
+retained previous document root. This transport requires no cPanel API token,
+FTP password, SSH key or repository secret. The code is locally tested; the
+first real cPanel Terminal deployment and rollback drill remain pending.
 
-Follow-up evidence from cPanel Terminal identifies the FQDN as
-`cpanel16-web-host-cl.turkticaret.net`, which resolves to `31.186.11.46`, and
-confirms the account user. The FQDN also did not accept an external TCP
-connection on port 22 within five seconds. The provider must therefore confirm
-the SSH port and any source-IP firewall/hosting-package restriction before the
-staging transport can be executed.
+The earlier OpenSSH adapter and connection diagnostics are retained only as
+historical implementation evidence. Provider policy makes that adapter
+inoperable on Web Eko, so it must not be configured or used for this account.
+The frozen request remains `awaiting_runner` until the cPanel Terminal workflow
+is executed, independently finalized over HTTPS, and its bounded result is
+submitted through the authenticated Publishing Center.
 
 Security incident on 2026-09-01: an operator accidentally disclosed the
 contents of a private SSH deployment key in a chat message. The key material is
@@ -118,8 +119,8 @@ Next.js. An Owner/Admin can download an exact frozen publish-request JSON from
 the Publishing Center. The endpoint resolves only canonical request IDs inside
 the private publish store, returns an attachment with no-store admin headers and
 audits the snapshot download. Private media remains outside HTTP transport and
-is transferred to the trusted runner workspace through the operator's existing
-cPanel SFTP/SSH access.
+is downloaded to the trusted runner workspace through authenticated cPanel
+File Manager access.
 
 The initial runner host is the operator-controlled workstation that already has
 the repository, Node.js and the verified release commands. Downloading a
@@ -406,24 +407,38 @@ restrictive permissions, explicit schemas, and bounded reads. Revisit SQLite
 only after production extension, backup, concurrency, and migration behavior
 are verified. No ORM is planned.
 
-### Architecture Decision AD-003: manual authenticated staging runner handoff
+### Architecture Decision AD-003: workstation runner + cPanel Terminal activation
 
 **Decision:** the first staging runner is the operator-controlled development
 workstation. Owner/Admin downloads the frozen request through the authenticated
-admin session; referenced private media is copied separately with existing
-cPanel SFTP/SSH access into the explicit private-data input root. No deployment
-or cPanel credential is passed through the browser or committed to Git.
+admin session; referenced private media is downloaded separately through the
+authenticated cPanel File Manager into the explicit private-data input root.
+The workstation creates a hash-bound `release_ready` ZIP. The operator uploads
+that ZIP and the reviewed executor to an account-private directory with File
+Manager and activates it with one explicit browser-Terminal command. No
+deployment credential is passed through the admin browser or committed to Git.
 
-**Why:** this is immediately compatible with the verified shared-hosting
-boundary, keeps Node/npm off cPanel and avoids inventing an unprovisioned CI
-provider, webhook secret or background service. The immutable snapshot hash,
-private-media checksums and complete review manifest preserve the same runner
-input identity needed by a later automated transport.
+**Why:** TURKTİCARET has confirmed that external SSH/SFTP is unavailable while
+cPanel Terminal and File Manager are available. This keeps Node/npm off cPanel
+and avoids an account-wide API token, FTP credential, unprovisioned CI provider,
+webhook secret or background service. The immutable snapshot hash,
+private-media checksums, complete review manifest, artifact hash and deployed
+release marker preserve end-to-end identity. Same-filesystem directory moves
+provide a bounded activation and retained rollback transaction.
 
-**Limit:** download is a handoff, not a successful publish. Requests remain
-`awaiting_runner` until a separate authenticated result contract records the
-materialization, validation, build, release, deployment and smoke-test outcome.
+**Limit:** File Manager upload and Terminal activation remain an explicit human
+operation. A downloaded request or `release_ready` artifact is not a successful
+publish. Requests remain `awaiting_runner` until live marker verification and
+HTTPS smoke pass and the authenticated result contract records all stages.
 Production is not enabled by this decision.
+
+**Alternatives reviewed:** cPanel API tokens can authenticate UAPI calls over
+HTTPS port 2083 and Fileman can upload files, but that does not alone provide
+the complete project-owned atomic activate/rollback transaction. FTPS provides
+file transfer but no release switch. GitHub Actions would still require one of
+those powerful transport credentials plus a safe server-side activator. These
+options may be reconsidered only after the manual staging workflow and rollback
+drill are proven; they are not prerequisites for Phase 7 staging.
 
 ## Hosting Constraints
 
@@ -440,6 +455,9 @@ Production is not enabled by this decision.
   allowlisted test recipients are required for staging campaigns.
 - Apache header and directory-listing behavior still requires staging proof.
   PHP endpoints set their own headers; static `/admin/` contains no private data.
+- TURKTİCARET Web Eko explicitly does not permit external SSH/SFTP. cPanel's
+  browser Terminal and File Manager are available and form the approved initial
+  staging deployment boundary.
 
 Proposed private layout (account paths are illustrative, never hard-coded):
 
@@ -765,6 +783,12 @@ release. `plan_ready` means no repository mutation; `release_ready` means only
 that a verified artifact exists locally. Neither is accepted as deployment or
 smoke-test success without the later explicit transport step.
 
+The selected hosting-compatible transport is manual but cryptographically
+bound. The local ZIP carries a public, non-secret release marker; the cPanel
+Terminal executor and later HTTPS finalizer both require the exact request,
+snapshot, manifest and artifact identities. A File Manager upload alone never
+constitutes deployment success.
+
 Repository application is a separate local CLI boundary. Its plan includes the
 path action, before/after SHA-256 and size for every manifested output. Only the
 five reviewed data JSON contracts, localized Filo Rehberi Markdown and
@@ -782,15 +806,21 @@ uploads `release/staging/` to the staging document root and reports a signed or
 authenticated result to the private publish record. Smoke checks must pass before
 the snapshot becomes production-eligible.
 
-The initial transport is `scripts/deploy-staging-artifact.mjs` on the trusted
-operator workstation using OpenSSH `BatchMode`. Its external variables are
-`KALITE_FILO_STAGING_SSH_TARGET`, `KALITE_FILO_STAGING_DOCUMENT_ROOT`,
-`KALITE_FILO_STAGING_REMOTE_WORK_ROOT`, and optional SSH port/key values. The
-document root is restricted to `/home/<account>/staging.kalitefilo.com.tr`; the
-remote work root is restricted to the account-private
-`private/kalite-filo-deploy/staging` path. Timestamp/request-addressed rollback
-directories are retained outside the web root. Production is deliberately not
-supported by this adapter.
+The original OpenSSH adapter is retained only as tested historical work and is
+not usable on TURKTİCARET Web Eko. The active initial transport is documented in
+`deploy/staging/README.md`: File Manager uploads the hash-bound ZIP and
+`deploy-release.sh` to `private/kalite-filo-deploy/staging`; cPanel Terminal runs
+the executor. The executor derives and permits only the canonical staging
+document root beneath the authenticated account home, rejects unsafe ZIP paths
+and symlinks, and uses a same-filesystem directory move for release activation.
+
+The previous complete document root is retained under private `rollbacks/`.
+Interrupted activation restores it automatically. HTTPS verification is a
+separate workstation step bound to the live release marker. A failed smoke
+requires the documented explicit Terminal rollback command and re-verification.
+A planned drill can reapply the already verified preserved release and restore
+the same rollback target without another upload. Production is deliberately
+unsupported.
 
 ## Production Deployment Model
 
@@ -828,6 +858,9 @@ leave private storage. Stored change summaries are deliberately excluded.
   rename, `0600` files/`0700` directories.
 - Recovery drills and RPO/RTO remain open business decisions. A backup is not
   considered operational until restore is tested on staging.
+- Each manual staging release atomically moves the complete prior document root
+  beneath `private/kalite-filo-deploy/staging/rollbacks/<release-id>`. Rollback
+  swaps that directory back and preserves the failed release for diagnosis.
 
 ## Implementation Phases
 
@@ -924,14 +957,20 @@ leave private storage. Stored change summaries are deliberately excluded.
 
 ## Completed Tasks
 
-- [x] Added a staging-only OpenSSH transport that verifies the existing
-  `release_ready` artifact hash locally and remotely without storing credentials.
-- [x] Added private rollback capture, automatic transfer-failure restoration and
-  restoration request after failed HTTPS smoke.
-- [x] Added automated staging Home/admin/robots/session smoke contracts and
-  ordered, bounded deployment result evidence.
-- [x] Documented external environment names, remote prerequisites, execution and
-  retained rollback behavior under `deploy/staging/README.md`.
+- [x] Recorded provider confirmation that Web Eko has no external SSH and
+  superseded the unusable OpenSSH staging transport.
+- [x] Added a secrets-free release identity marker bound to request, snapshot
+  and review-manifest hashes.
+- [x] Added a staging-only cPanel Terminal executor with ZIP traversal/symlink
+  rejection, SHA-256 verification, atomic document-root swap and retained
+  rollback/failed-release state.
+- [x] Added local live-marker verification and bounded HTTPS smoke finalization
+  without cPanel API, FTP or SSH credentials.
+- [x] Documented the exact File Manager, Terminal, finalization and rollback
+  workflow under `deploy/staging/README.md`.
+
+- [x] Retained the tested OpenSSH adapter as historical evidence, then marked it
+  unsupported after the provider confirmed Web Eko has no external SSH/SFTP.
 
 - [x] Added a plan-first local staging runner that composes frozen snapshot
   materialization, manifest verification, transactional apply and existing
@@ -963,8 +1002,8 @@ leave private storage. Stored change summaries are deliberately excluded.
   reporting with manifest/artifact SHA-256 and explicit failed-stage selection.
 
 - [x] Selected the operator-controlled workstation as the initial staging
-  runner and documented authenticated admin download plus cPanel SFTP/SSH media
-  transfer as the minimal transport.
+  runner and documented authenticated admin download plus cPanel File Manager
+  private-media transfer as the minimal transport.
 - [x] Added an Owner/Admin-only audited frozen-request download endpoint with
   canonical ID validation, real-path containment and attachment headers.
 - [x] Added snapshot hash visibility and `Snapshot İndir` access to staging
@@ -1199,22 +1238,17 @@ leave private storage. Stored change summaries are deliberately excluded.
 
 ## Current Task
 
-Complete the first controlled cPanel staging run with operator-supplied OpenSSH
-configuration. Confirm the remote host provides `sha256sum`, `unzip`, `rsync`
-and `realpath`, execute the hash-bound transport, inspect its retained private
-rollback reference and submit the produced bounded result through the existing
-authenticated runner-result flow. Do not mark Phase 7 operationally complete
-until the live HTTPS smoke result is recorded here.
+Complete the first controlled cPanel Terminal staging run. The current frozen
+request has already been regenerated with the release marker and every local
+quality gate passed. Run the documented cPanel command preflight, upload only
+the prepared ZIP and executor into the account-private deploy root, and execute
+the exact hash-bound deploy command. Then run local marker/HTTPS finalization,
+submit the bounded result through the authenticated Publishing Center and
+perform one explicit rollback drill before closing Phase 7 operationally. No
+external SSH step remains.
 
-Hosting support must first supply or enable the public SSH hostname/port for the
-account; the observed cPanel server label/IP is not currently reachable over
-port 22 from the operator workstation.
-
-The confirmed hostname is `cpanel16-web-host-cl.turkticaret.net`; its port 22
-remains unreachable externally, so do not assume the standard port.
-
-Before any SSH test, revoke the accidentally disclosed key and use only a newly
-generated replacement key.
+Separately revoke/delete the accidentally disclosed SSH key even though the new
+deployment route does not use SSH.
 
 Deploy and staging-smoke-test subscriber resubscription, modal validation,
 three-state date sorting and the live Dashboard draft-content metric.
@@ -1273,16 +1307,16 @@ the still-required Phase 2/3 staging smoke tests before closing those phases.
   `release_ready` evidence and no implicit deployment.
 - [x] Select and implement staging-only artifact transport, rollback capture and
   automated HTTPS smoke verification; credentials remain external secrets.
-- [ ] Configure the external staging SSH values, execute one real deployment,
-  verify retained rollback state and submit the bounded terminal result.
-- [ ] Obtain/enable the external SSH hostname and port; authorize the generated
-  public key and download the corresponding private key only to the operator
-  workstation.
-- [x] Determine the external SSH hostname from cPanel Terminal:
-  `cpanel16-web-host-cl.turkticaret.net`.
+- [x] Obtain provider confirmation that external SSH is unavailable on Web Eko;
+  supersede the SSH transport instead of continuing port/key discovery.
+- [x] Record the historical cPanel hostname diagnostic; provider policy confirms
+  that no hostname/port combination enables external SSH on this package.
 - [ ] Revoke the accidentally disclosed cPanel deployment key, remove local
-  copies after revocation and generate/authorize a replacement key without
-  sharing its private material.
+  copies after revocation; no replacement is required for the selected transport.
+- [x] Implement the File Manager + cPanel Terminal executor, release marker,
+  manual HTTPS finalizer and explicit rollback command.
+- [ ] Execute the first real staging deployment and rollback drill, then submit
+  bounded authenticated terminal evidence.
 
 - [ ] Deploy the refreshed staging ZIP; edit the previously unsubscribed test
   contact back to an active status and verify its unsubscribe date becomes
@@ -1305,7 +1339,7 @@ the still-required Phase 2/3 staging smoke tests before closing those phases.
   or approved-IYS-without-evidence submissions are rejected.
 - [x] Select the initial external runner host and authenticated request
   transport: Owner/Admin download to the operator workstation, with private
-  media transferred through existing cPanel SFTP/SSH access.
+  media transferred through authenticated cPanel File Manager access.
 - [x] Add authenticated bounded runner-result reporting with strict transitions,
   snapshot binding, hashes, stage results and safe audited summaries.
 
@@ -1421,16 +1455,18 @@ the still-required Phase 2/3 staging smoke tests before closing those phases.
   numeric-only model labels becoming integer PHP array keys under strict types;
   the code fix is local and awaits deployment. The unrelated LiteSpeed `__next`
   404 probe lines are static-export probes and not the PHP failure.
+- External SSH/SFTP is unavailable by hosting-provider policy. The historical
+  OpenSSH adapter cannot be used on this account; use the documented cPanel
+  File Manager + browser Terminal transport.
 
 ## Open Decisions
 
 - Whether the tested operator-workstation runner should later move to CI; the
   initial request and staging deployment transport are now selected.
-- Production deployment transport and secret names. Staging uses the documented
-  external `KALITE_FILO_STAGING_*` OpenSSH variables.
-- Whether SSH access is available on the current hosting package and, if so,
-  its externally reachable hostname/port. Port 22 at the supplied shared IP was
-  unreachable from the operator workstation during the 2026-09-01 check.
+- Production deployment transport and secret names. Staging initially uses no
+  transport secret: File Manager upload plus authenticated browser Terminal.
+- Whether a later cPanel HTTPS UAPI or FTPS automation is worth the broader
+  credential and atomicity trade-offs after the manual staging flow is proven.
 - Verified production PHP modules (`fileinfo`, image functions, PDO drivers) and
   cPanel Cron PHP CLI path/environment handling.
 - Admin hostname policy: same `/admin/` path on both origins is planned; an
@@ -1463,6 +1499,20 @@ src/app/robots.ts                          (update)
 ```
 
 ## Files Changed
+
+Current 2026-09-01 Phase 7 no-external-SSH transport continuation:
+
+- `scripts/run-staging-publish.mjs`
+- `scripts/run-staging-publish.test.mjs`
+- `scripts/deploy-staging-artifact.mjs`
+- `scripts/deploy-staging-artifact.test.mjs`
+- `scripts/finalize-manual-staging-publish.mjs` (new)
+- `scripts/finalize-manual-staging-publish.test.mjs` (new)
+- `scripts/manual-staging-deploy.test.mjs` (new)
+- `deploy/staging/deploy-release.sh` (new)
+- `deploy/staging/README.md`
+- `src/components/admin/publishing-center.tsx`
+- `docs/ADMIN_DASHBOARD_IMPLEMENTATION.md`
 
 Current 2026-09-01 Phase 7 staging-transport continuation:
 
@@ -1761,6 +1811,29 @@ Current Phase 6 test-mail continuation:
 - `server/admin-api/tests/media-store.test.php`
 
 ## Validation Results
+
+2026-09-01 Phase 7 no-external-SSH transport continuation:
+
+- Focused release/deployment/finalizer suite: passed; 11 tests.
+- `bash -n deploy/staging/deploy-release.sh`: passed with Git for Windows Bash.
+- `npm run lint`: passed without warnings.
+- `npm run typecheck`: passed.
+- `npm test`: passed; 82 Node tests and all project-owned PHP suites passed.
+- `npm run release:staging`: passed; all 140 static pages generated and the
+  cPanel staging release assembled.
+- `npm run verify:output`: passed.
+- Full `run-staging-publish.mjs --apply`: passed and produced fresh
+  `release_ready` evidence with materialization, validation, build and release
+  all passed; deployment and smoke remain correctly skipped.
+- Final generated staging artifact SHA-256:
+  `4e38e64eaf2b5c8559b10c3ebd5e3cd5cedddb2fe7c730b98221372eaf3d0e56`.
+- The ZIP contains `kalite-filo-release.json` bound to request
+  `publish-20260901-185336-c6e2e73e03fb`, snapshot
+  `e21bdb57e2641795f4818565caddec79d5d95ffca01b1b6df2a1a8b4b05197a1`
+  and manifest
+  `4d5e8a5b5f56cf6d05829ac01e2be6936612981d4ab34b0e36b9dc18baf5d105`.
+- No cPanel upload, Terminal mutation, live smoke or production operation was
+  performed from the development workstation.
 
 2026-09-01 Phase 7 staging-transport continuation:
 
@@ -2174,6 +2247,21 @@ to the browser and no delivery endpoint is packaged.
 
 ## Session Handoff
 
+2026-09-01 Phase 7 no-external-SSH handoff: external SSH/SFTP is conclusively
+unavailable on TURKTİCARET Web Eko. Do not continue hostname, port, SSH-agent or
+replacement-key work. Use `deploy/staging/README.md`. The fresh upload artifact
+is `C:\Users\murat\Downloads\kalite-filo-runner\publish-20260901-185336-c6e2e73e03fb\kalite-filo-staging-manual-cpanel-final.zip` and its bounded input/result
+is the adjacent `result-release-ready-manual-cpanel-final.json`. Upload those bytes
+unchanged plus `deploy/staging/deploy-release.sh` to the documented private
+cPanel paths, run the exact hash-bound browser-Terminal command, retain the
+printed rollback ID, and run `finalize-manual-staging-publish.mjs`. Submit a
+success result only after marker and HTTPS smoke pass. Then perform one explicit
+rollback drill before closing Phase 7. Production remains disabled.
+
+The obsolete OpenSSH handoffs below are historical records only and must not be
+followed for this hosting account. Independently revoke/delete the previously
+disclosed cPanel SSH key; the selected workflow does not need a replacement.
+
 2026-09-01 Phase 7 staging-transport handoff:
 `deploy-staging-artifact.mjs` accepts only the artifact and result produced by
 the local runner, rechecks SHA-256 before and after OpenSSH transfer, retains a
@@ -2256,7 +2344,7 @@ workstation as the initial staging runner. The admin history now exposes an
 Owner/Admin-only `Snapshot İndir` action backed by
 `publish-request-download.php`; lookup is canonical/contained and each download
 is audited. Retrieve referenced private media separately through existing
-cPanel SFTP/SSH access and pass both roots explicitly to the materializer. A
+cPanel File Manager access and pass both roots explicitly to the materializer. A
 download does not change request state or prove a build/deploy. Next implement
 a bounded authenticated result contract tied to request ID plus snapshot hash,
 with strict transitions and safe summaries before any UI can report success.

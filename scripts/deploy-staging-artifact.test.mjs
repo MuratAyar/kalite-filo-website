@@ -4,7 +4,7 @@ import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import test from "node:test";
-import { deploymentStages, smokeStaging, validateReleaseReady } from "./deploy-staging-artifact.mjs";
+import { deploymentStages, smokeStaging, validateReleaseReady, verifyStagingReleaseMarker } from "./deploy-staging-artifact.mjs";
 
 const headers = (values) => ({ get: (name) => values[name.toLowerCase()] ?? null });
 
@@ -30,4 +30,11 @@ test("smokes public, admin, robots and unauthenticated session contracts", async
     const pathname = new URL(url).pathname;
     return { ok: true, status: 200, headers: headers({ "content-type": pathname.endsWith(".php") ? "application/json" : pathname.endsWith(".txt") ? "text/plain" : "text/html", "cache-control": pathname.endsWith(".php") ? "no-store" : "public" }), text: async () => bodies[pathname] };
   });
+});
+
+test("binds live staging to the expected request marker", async () => {
+  const expected = { requestId: "publish-20260901-120000-abcdef123456", snapshotHash: "a".repeat(64), manifestHash: "b".repeat(64) };
+  const fetcher = async () => ({ ok: true, status: 200, text: async () => JSON.stringify({ schemaVersion: 1, target: "staging", ...expected }) });
+  assert.equal((await verifyStagingReleaseMarker("https://staging.kalitefilo.com.tr", expected, fetcher)).requestId, expected.requestId);
+  await assert.rejects(() => verifyStagingReleaseMarker("https://staging.kalitefilo.com.tr", { ...expected, snapshotHash: "c".repeat(64) }, fetcher), /snapshotHash mismatch/);
 });

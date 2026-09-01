@@ -1,51 +1,132 @@
-# Staging artifact deployment
+# Staging deployment without external SSH
 
-`scripts/deploy-staging-artifact.mjs` is the staging-only transport boundary for
-an artifact produced by `scripts/run-staging-publish.mjs --apply`. It refuses an
-artifact unless the supplied runner result is `release_ready`, all four local
-stages passed and the artifact SHA-256 still matches.
+TURKTİCARET has confirmed that the Web Eko shared-hosting package does not
+provide external SSH. cPanel's browser Terminal remains available. The initial
+Phase 7 deployment transport is therefore a controlled manual handoff:
 
-The transport uses the workstation's OpenSSH client and SSH agent/key. Passwords,
-private keys and cPanel credentials must not be placed in this repository, the
-admin browser or command arguments. The target account must already trust the
-server host key. Non-interactive `BatchMode` is mandatory.
+1. the trusted workstation materializes the frozen request, validates it,
+   builds the static export and produces a hash-bound ZIP;
+2. the operator uploads the ZIP and `deploy-release.sh` through cPanel File
+   Manager to an account-private directory;
+3. the operator runs one explicit cPanel Terminal command;
+4. the workstation verifies the deployed release identity and HTTPS contracts;
+5. the bounded result is submitted through the existing authenticated Admin
+   Publishing Center.
 
-## Required external environment
+No Node.js build runs on cPanel. No cPanel password, API token, SSH key or FTP
+credential is stored in the repository or browser bundle.
 
-Set these in the operator's PowerShell session:
+## Why this transport
 
-```powershell
-$env:KALITE_FILO_STAGING_SSH_TARGET = 'CPANEL_USER@CPANEL_SSH_HOST'
-$env:KALITE_FILO_STAGING_DOCUMENT_ROOT = '/home/CPANEL_USER/staging.kalitefilo.com.tr'
-$env:KALITE_FILO_STAGING_REMOTE_WORK_ROOT = '/home/CPANEL_USER/private/kalite-filo-deploy/staging'
+cPanel officially supports API-token-authenticated UAPI calls over HTTPS 2083
+and Fileman uploads, but the available Fileman UAPI does not by itself provide
+the complete atomic release/rollback transaction needed here. A cPanel API token
+also carries broad account authority. FTPS can transfer files but does not
+provide an atomic release switch. Both may be reconsidered after staging proof;
+neither is required for this first safe workflow.
+
+Official capability references used for this decision:
+
+- cPanel API token authentication:
+  <https://api.docs.cpanel.net/cpanel/tokens>
+- UAPI Fileman upload operation:
+  <https://api.docs.cpanel.net/specifications/cpanel.openapi/manage-files/fileman-upload_files>
+- cPanel FTP account/client behavior:
+  <https://docs.cpanel.net/cpanel/files/ftp-accounts/>
+
+The browser Terminal is already verified on the account. The project-owned
+executor performs an atomic same-filesystem directory swap and retains the old
+document root outside the web root for explicit rollback.
+
+## Local release inputs
+
+Run `scripts/run-staging-publish.mjs --apply` as documented by the implementation
+record. Its final outputs are:
+
+- `kalite-filo-staging.zip`;
+- `result-release-ready.json`.
+
+The ZIP contains `kalite-filo-release.json`, a non-secret marker bound to the
+publish request, frozen snapshot and review manifest. Its identity is verified
+again after deployment.
+
+## One-time cPanel preparation
+
+In cPanel Terminal:
+
+```bash
+mkdir -p "$HOME/private/kalite-filo-deploy/staging/uploads"
+chmod 700 "$HOME/private/kalite-filo-deploy/staging"
+chmod 700 "$HOME/private/kalite-filo-deploy/staging/uploads"
+command -v bash sha256sum unzip realpath php find mv awk date mkdir chmod
 ```
 
-Optional variables are `KALITE_FILO_STAGING_SSH_PORT` and
-`KALITE_FILO_STAGING_SSH_KEY`. The key value is a local path and remains outside
-the repository. `KALITE_FILO_STAGING_ORIGIN` may be omitted; if supplied it must
-equal `https://staging.kalitefilo.com.tr`.
+Every named command must print a path. Upload with cPanel File Manager:
 
-The remote account must provide `bash`, `sha256sum`, `unzip`, `rsync` and
-`realpath`. The script validates their availability before changing the document
-root. It also rejects a symlinked or non-canonical document root.
+- `deploy/staging/deploy-release.sh` to
+  `/home/kal67efilocomtr/private/kalite-filo-deploy/staging/deploy-release.sh`;
+- the generated ZIP to
+  `/home/kal67efilocomtr/private/kalite-filo-deploy/staging/uploads/`.
 
-## Run
+Then run `chmod 700` on the uploaded script.
+
+## Deploy
+
+Read `requestId`, `snapshotHash`, `manifestHash` and `artifactHash` from the
+generated `result-release-ready.json`. In cPanel Terminal execute:
+
+```bash
+bash "$HOME/private/kalite-filo-deploy/staging/deploy-release.sh" deploy \
+  "$HOME/private/kalite-filo-deploy/staging/uploads/kalite-filo-staging.zip" \
+  ARTIFACT_SHA256 REQUEST_ID SNAPSHOT_SHA256 MANIFEST_SHA256
+```
+
+The executor rejects a wrong hash, unsafe archive path, symlink, missing release
+file, mismatched marker, non-canonical document root or reused release ID. It
+moves the previous document root to:
+
+```text
+/home/kal67efilocomtr/private/kalite-filo-deploy/staging/rollbacks/<rollback-id>
+```
+
+and moves the complete new release into the canonical staging document root.
+An interrupted swap restores the old directory automatically. Nothing is
+deleted.
+
+## HTTPS verification
+
+Back on the workstation:
 
 ```powershell
-node scripts/deploy-staging-artifact.mjs `
+node scripts/finalize-manual-staging-publish.mjs `
   --release-result C:\secure-runner\result-release-ready.json `
   --artifact C:\secure-runner\kalite-filo-staging.zip `
   --result C:\secure-runner\result-staging.json
 ```
 
-The remote private work root retains
-`rollback-<publish-request-id>-<artifact-hash-prefix>/`. A failed transfer is
-restored automatically. A failed HTTPS smoke check also requests restoration.
-The retained rollback directory is not public and is not deleted automatically.
+This first checks the live release marker, then Home, `/admin/`, staging robots
+and the unauthenticated/no-store session API. Success produces bounded evidence
+accepted by the existing runner-result workflow.
 
-Success writes bounded `succeeded` evidence for the existing authenticated
-runner-result endpoint. Deployment is not considered successful merely because
-upload completed: public Home, `/admin/`, staging robots policy and the
-unauthenticated/no-store staging session contract must all pass.
+## Rollback
 
-Do not point this script at production. Production publishing remains disabled.
+If finalization fails, use the exact `ROLLBACK_ID` printed by the deploy command:
+
+```bash
+bash "$HOME/private/kalite-filo-deploy/staging/deploy-release.sh" rollback ROLLBACK_ID
+```
+
+The failed release is preserved in the private deploy directory for diagnosis.
+Confirm the previous staging version is restored. For a planned rollback drill,
+reapply the already verified new release without another upload:
+
+```bash
+bash "$HOME/private/kalite-filo-deploy/staging/deploy-release.sh" reapply ROLLBACK_ID
+```
+
+Run HTTPS finalization again after reapply. The previous version is retained as
+the rollback target again. Do not delete the rollback or failed-release
+directory until the incident or drill is reviewed.
+
+Production publishing remains disabled. This script rejects every target except
+the canonical staging document root.
