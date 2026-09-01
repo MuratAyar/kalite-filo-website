@@ -78,9 +78,11 @@ const blankLocale: DraftLocale = {
 export function ArticleListView({
   csrfToken,
   canEdit,
+  draftOnly,
 }: {
   csrfToken: string;
   canEdit: boolean;
+  draftOnly: boolean;
 }) {
   const [articles, setArticles] = useState<Article[]>([]);
   const [drafts, setDrafts] = useState<Draft[]>([]);
@@ -334,7 +336,7 @@ export function ArticleListView({
           <p className="text-label font-semibold text-corporate-blue">
             İçerik yönetimi
           </p>
-          <h2 className="mt-1 text-heading-md">Filo Rehberi</h2>
+          <h2 className="mt-1 text-heading-md">{draftOnly ? "Draft Bloglar" : "Tüm Bloglar"}</h2>
         </div>
         {canEdit ? (
           <button
@@ -371,8 +373,8 @@ export function ArticleListView({
             ))}
           </div>
         </section>
-      ) : null}
-      <div className="mt-6 grid gap-3 rounded-card border border-border-subtle bg-surface-card p-4 md:grid-cols-3">
+      ) : draftOnly ? <p className="mt-6 rounded-card border border-border-subtle bg-surface-card p-6 text-text-secondary">Henüz kaydedilmiş private draft blog bulunmuyor.</p> : null}
+      {!draftOnly ? <div className="mt-6 grid gap-3 rounded-card border border-border-subtle bg-surface-card p-4 md:grid-cols-3">
         <input
           className={controlClass}
           onChange={(event) => setQuery(event.target.value)}
@@ -397,7 +399,7 @@ export function ArticleListView({
           <option value="complete">İngilizce tamamlandı</option>
           <option value="missing">İngilizce eksik</option>
         </select>
-      </div>
+      </div> : null}
       {error ? (
         <p
           className="mt-5 rounded-control bg-error-surface px-4 py-3 text-error"
@@ -409,7 +411,7 @@ export function ArticleListView({
       {loading ? (
         <p className="mt-6 text-text-secondary">İçerikler yükleniyor…</p>
       ) : null}
-      {!loading ? (
+      {!loading && !draftOnly ? (
         <div className="mt-6 grid gap-5 lg:grid-cols-2">
           {shown.map((article) => {
             const existingDraft = drafts.find(

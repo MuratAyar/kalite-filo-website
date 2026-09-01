@@ -8,6 +8,19 @@ the status and handoff sections before ending.
 
 ## Current Status
 
+The 2026-09-01 admin navigation pass splits vehicle operations into All Vehicles
+and Draft Vehicles, and Filo Rehberi into All Blogs and Draft Blogs. Draft
+vehicles are every private record not currently `published` and use the same
+editor to return to publication. Draft Blogs reads only the private article
+draft store; All Blogs retains the combined published inventory and draft view.
+
+IYS export now downloads a newly created CSV immediately. A first environment,
+or an orphan checkpoint with no CSV artifact, starts from the epoch so migrated
+older pending consent is not silently stranded. Subscriber editing is a named,
+CSRF/role-protected, audited IYS-only operation: status and recipient type may
+change, while consent source/version/date remain immutable and lead-only or
+unsubscribed rows cannot be promoted to approved/synced.
+
 The 2026-09-01 Filo Rehberi interaction pass makes each complete published
 content card the edit/import trigger, matching vehicle cards without nesting
 interactive controls. Existing private drafts open directly; repository-backed
@@ -291,11 +304,11 @@ later routes remain checklist items, not placeholder pages.
 | Route | Purpose | Phase |
 | --- | --- | ---: |
 | `/admin/` | Login gate and operational dashboard | 1–2 |
-| `/admin/araclar/` | Vehicle list, filters and CRUD | 3 |
+| `/admin/araclar/` | All/draft vehicle views, filters and CRUD | 3 |
 | `/admin/araclar/yeni/` | Vehicle creation | 3 |
 | `/admin/araclar/[id]/` | Vehicle editor | 3 |
 | `/admin/one-cikan-araclar/` | Exactly four ordered featured vehicles | 3 |
-| `/admin/filo-rehberi/` | Article list and translation completeness | 4 |
+| `/admin/filo-rehberi/` | All/private-draft article views and translation completeness | 4 |
 | `/admin/filo-rehberi/yeni/` | Article creation | 4 |
 | `/admin/filo-rehberi/[id]/` | TR/EN Markdown editor and preview | 4 |
 | `/admin/medya/` | Media library and rights metadata | 4 |
@@ -336,7 +349,7 @@ only after staging proof.
 | `GET /admin-api/media-file.php?id=` | Authorized private preview | 4 |
 | `POST /admin-api/media-delete.php` | Delete an unreferenced private asset | 4 |
 | `GET /admin-api/subscribers.php` | Filtered contact view | 5 |
-| `POST /admin-api/subscriber-operation.php` | Explicit audited status operation | 5 |
+| `POST /admin-api/subscriber-operation.php` | Explicit audited unsubscribe or constrained IYS operation | 5 |
 | `GET /admin-api/iys.php` | State and export history | 5 |
 | `POST /admin-api/iys-export.php` | Generate export | 5 |
 | `GET /admin-api/iys-download.php?id=` | Authorized CSV download | 5 |
@@ -432,6 +445,10 @@ reason, before/after summary, role authorization and audit. Campaign audience
 calculation is fail-closed and excludes unsubscribed, missing/invalid consent,
 unapproved IYS state, suppressed, staging-forbidden, or malformed recipients.
 
+The first editable subscriber operation changes only `iys_status` and
+`recipient_type`; it updates `iys_synced_at` automatically for approved/synced.
+Those states require an active approved row with existing consent date/version.
+
 ## IYS Model
 
 The existing CLI exporter, daily state file, CSV schema and manual portal upload
@@ -439,6 +456,9 @@ remain authoritative. Admin adds visibility, generation and controlled download,
 not an invented portal API. Export files and result imports are private and
 audited. `pending`, `failed`, and verified `synced` are distinct; CSV creation is
 not synchronization. Portal template/enums must be reverified before live use.
+Newly generated CSV files download immediately. A checkpoint is trusted only
+when at least one matching private CSV artifact exists; otherwise the exporter
+recovers all older still-pending/failed consent records on the next run.
 
 ## Mail Campaign Model
 
@@ -596,6 +616,17 @@ leave private storage. Stored change summaries are deliberately excluded.
 - [ ] **Phase 10:** security/accessibility/responsive audit and full regression
 
 ## Completed Tasks
+
+- [x] Split vehicle navigation into All Vehicles and Draft Vehicles, with
+  unpublished drafts editable and returnable to published status.
+- [x] Split Filo Rehberi navigation into All Blogs and private Draft Blogs.
+- [x] Added immediate authenticated CSV download after successful IYS export
+  and recovery for first/orphan checkpoints that previously stranded older
+  pending records.
+- [x] Added a controlled subscriber IYS editor for status and recipient type,
+  with atomic CSV replacement, role/CSRF enforcement, consent guards and audit.
+- [x] Classified subscriber and IYS audit events under their correct entity
+  types instead of authentication.
 
 - [x] Made complete Filo Rehberi cards accessible edit/import triggers while
   retaining explicit confirmation before repository content becomes a draft.
@@ -770,6 +801,9 @@ leave private storage. Stored change summaries are deliberately excluded.
 
 ## Current Task
 
+Deploy and staging-smoke-test the new logical list tabs, automatic IYS download
+and controlled subscriber IYS update before continuing Phase 7 adapters.
+
 Deploy and smoke-test the completed Filo Rehberi card/editor interaction update
 on HTTPS staging.
 
@@ -810,6 +844,15 @@ implemented; next smoke-test staging dry-run before any live delivery. In parall
 the still-required Phase 2/3 staging smoke tests before closing those phases.
 
 ## Next Tasks
+
+- [ ] Verify All/Draft vehicle and All/Draft blog tabs against live private
+  staging records; publish one synthetic draft vehicle and confirm it leaves
+  Draft Vehicles while remaining in All Vehicles.
+- [ ] Generate the first staging IYS CSV with the existing older pending row;
+  confirm browser download, private history entry and `iys` audit entity type.
+- [ ] Set a consented staging subscriber from pending to approved and confirm
+  automatic sync timestamp plus `subscriber` audit entity. Confirm a lead-only
+  record is rejected and consent evidence remains byte-for-byte unchanged.
 
 - [ ] On refreshed staging, click the image, title and empty card area of an
   existing Filo Rehberi draft and confirm each opens the correct editor.
@@ -959,6 +1002,23 @@ src/app/robots.ts                          (update)
 ```
 
 ## Files Changed
+
+Current 2026-09-01 list/IYS/subscriber operations continuation:
+
+- `src/components/admin/admin-app.tsx`
+- `src/components/admin/vehicle-manager.tsx`
+- `src/components/admin/article-list-view.tsx`
+- `src/components/admin/iys-management-view.tsx`
+- `src/components/admin/subscriber-list-view.tsx`
+- `src/components/admin/audit-log-view.tsx`
+- `server/forms/export-iys-daily.php`
+- `server/forms/tests/iys-export.test.php`
+- `server/admin-api/read-model.php`
+- `server/admin-api/subscriber-operation.php`
+- `server/admin-api/bootstrap.php`
+- `server/admin-api/tests/dashboard.test.php`
+- `docs/ADMIN_DASHBOARD_IMPLEMENTATION.md`
+- `kalite-filo-staging.zip`
 
 Current 2026-09-01 Filo Rehberi interaction continuation:
 
@@ -1132,6 +1192,16 @@ Current Phase 6 test-mail continuation:
 - `server/admin-api/tests/media-store.test.php`
 
 ## Validation Results
+
+2026-09-01 list/IYS/subscriber operations continuation:
+
+- `npm run lint`: passed without warnings.
+- `npm run typecheck`: passed.
+- `npm test`: passed; recovery and controlled IYS mutation coverage included.
+- Changed PHP runtime syntax checks: passed.
+- `npm run release:staging`: passed; all 140 static pages generated.
+- `npm run verify:output`: passed.
+- Refreshed `kalite-filo-staging.zip`: 18,947,222 bytes.
 
 2026-09-01 Filo Rehberi interaction continuation:
 
@@ -1347,6 +1417,15 @@ still excludes missing consent and unsubscribed rows. No recipient list is sent
 to the browser and no delivery endpoint is packaged.
 
 ## Session Handoff
+
+2026-09-01 list/IYS/subscriber handoff: sidebar list separation is UI state over
+the existing static `/admin/` shell; no new Next runtime route was introduced.
+Draft Vehicles means publication status other than published. Draft Blogs means
+private article draft records only. IYS generation now auto-downloads and treats
+a state file with no CSV artifact as recoverable, which addresses the live
+staging checkpoint-without-file incident. Subscriber Edit deliberately exposes
+only IYS status and recipient type; never widen it to ordinary consent CRUD.
+Deploy the refreshed ZIP and complete the three Next Tasks smoke tests.
 
 2026-09-01 Filo Rehberi interaction handoff: a full-card overlay button now
 routes published cards to either an existing draft editor or the already

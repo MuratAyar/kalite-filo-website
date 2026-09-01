@@ -53,6 +53,19 @@ try {
     iys_test_assert($row[3] === 'TACIR', 'The latest same-day consent must determine recipient type.');
     iys_test_assert($extra === false, 'Duplicate email addresses must be collapsed into one IYS row.');
 
+    iys_test_assert(
+        kalite_filo_iys_last_export_at($temporaryDirectory . DIRECTORY_SEPARATOR . 'missing-state.json', $now)->getTimestamp() === 0,
+        'A first export must include older pending consent records instead of starting at the current day.'
+    );
+    $orphanDirectory = $temporaryDirectory . DIRECTORY_SEPARATOR . 'orphan';
+    mkdir($orphanDirectory, 0700, true);
+    $orphanState = $orphanDirectory . DIRECTORY_SEPARATOR . 'iys-export-state.json';
+    file_put_contents($orphanState, json_encode(['last_exported_at_utc' => '2026-08-28 16:00:00'], JSON_THROW_ON_ERROR));
+    iys_test_assert(
+        kalite_filo_iys_last_export_at($orphanState, $now)->getTimestamp() === 0,
+        'A checkpoint without any CSV artifact must include older pending records.'
+    );
+
     $secondOutput = kalite_filo_export_iys_daily(new DateTimeImmutable('2026-08-28 18:00:00', new DateTimeZone('UTC')));
     iys_test_assert($secondOutput === null, 'No file may be created when there are no new consent records.');
 } finally {
@@ -62,9 +75,11 @@ try {
         $temporaryDirectory . DIRECTORY_SEPARATOR . 'iys-email-permissions-2026-08-28.csv',
         $temporaryDirectory . DIRECTORY_SEPARATOR . 'iys-export-state.json',
         $temporaryDirectory . DIRECTORY_SEPARATOR . 'iys-export.lock',
+        $temporaryDirectory . DIRECTORY_SEPARATOR . 'orphan' . DIRECTORY_SEPARATOR . 'iys-export-state.json',
     ] as $path) {
         @unlink($path);
     }
+    @rmdir($temporaryDirectory . DIRECTORY_SEPARATOR . 'orphan');
     @rmdir($temporaryDirectory);
 }
 

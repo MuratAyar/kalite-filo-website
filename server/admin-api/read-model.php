@@ -98,6 +98,23 @@ function kalite_filo_admin_contact_page(string $path,int $page,int $limit,string
     finally{flock($handle,LOCK_UN);fclose($handle);}usort($matched,static fn(array $a,array $b):int=>strcmp((string)$b['updated_at'],(string)$a['updated_at']));$total=count($matched);$offset=($page-1)*$limit;return ['records'=>array_values(array_slice($matched,$offset,$limit)),'page'=>$page,'limit'=>$limit,'total'=>$total,'hasNext'=>$offset+$limit<$total];
 }
 
+/** @return array<string,string> */
+function kalite_filo_admin_update_contact_iys(string $path,string $id,string $iysStatus,string $recipientType):array
+{
+    $allowedIys=['not_requested','pending','failed','approved','synced'];
+    $recipientType=strtoupper(trim($recipientType));
+    if(preg_match('/^[1-9][0-9]{0,19}$/',$id)!==1||!in_array($iysStatus,$allowedIys,true)||!in_array($recipientType,['BIREYSEL','TACIR'],true))throw new InvalidArgumentException('Invalid IYS operation.');
+    $lock=fopen($path.'.lock','c+');if($lock===false||!flock($lock,LOCK_EX)){if(is_resource($lock))fclose($lock);throw new RuntimeException('Contact store could not be locked.');}
+    try{
+        if(!is_file($path))throw new InvalidArgumentException('Contact was not found.');
+        $input=fopen($path,'rb');if($input===false)throw new RuntimeException('Contact store could not be read.');
+        $header=fgetcsv($input);$legacy=array_slice(KALITE_FILO_ADMIN_CONTACT_COLUMNS,0,-1);if($header!==KALITE_FILO_ADMIN_CONTACT_COLUMNS&&$header!==$legacy){fclose($input);throw new RuntimeException('Contact store schema is not recognized.');}
+        $rows=[];$updated=null;while(($values=fgetcsv($input))!==false){if($header===$legacy&&count($values)===count($legacy))$values[]='BIREYSEL';if(count($values)!==count(KALITE_FILO_ADMIN_CONTACT_COLUMNS))continue;$row=array_combine(KALITE_FILO_ADMIN_CONTACT_COLUMNS,$values);if(!is_array($row))continue;if($row['id']===$id){$hasConsent=$row['status']==='approved'&&trim($row['consent_at'])!==''&&trim($row['consent_text_version'])!==''&&trim($row['unsubscribed_at'])==='';if(in_array($iysStatus,['pending','failed','approved','synced'],true)&&!$hasConsent){fclose($input);throw new InvalidArgumentException('IYS status requires valid consent evidence.');}$row['iys_status']=$iysStatus;$row['iys_synced_at']=in_array($iysStatus,['approved','synced'],true)?gmdate('Y-m-d H:i:s'):'';$row['recipient_type']=$recipientType;$row['updated_at']=gmdate('Y-m-d H:i:s');$updated=$row;}$rows[]=$row;}
+        fclose($input);if($updated===null)throw new InvalidArgumentException('Contact was not found.');
+        $temporary=$path.'.tmp-'.bin2hex(random_bytes(6));$output=fopen($temporary,'xb');if($output===false)throw new RuntimeException('Temporary contact store could not be created.');fputcsv($output,KALITE_FILO_ADMIN_CONTACT_COLUMNS);foreach($rows as $row)fputcsv($output,array_map(static fn(string $column):string=>(string)$row[$column],KALITE_FILO_ADMIN_CONTACT_COLUMNS));fflush($output);fclose($output);@chmod($temporary,0600);if(!rename($temporary,$path)){@unlink($temporary);throw new RuntimeException('Contact store could not be replaced atomically.');}@chmod($path,0600);return $updated;
+    }finally{flock($lock,LOCK_UN);fclose($lock);}
+}
+
 /** @return array{counts:array{pending:int,failed:int,synced:int,approved:int,notRequested:int},records:list<array<string,string>>,exports:list<array<string,mixed>>,lastExportedAt:?string} */
 function kalite_filo_admin_iys_overview(string $path):array
 {

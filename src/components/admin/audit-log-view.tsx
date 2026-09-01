@@ -11,6 +11,8 @@ const actionLabels: Record<string, string> = {
   vehicle_image_update: "Araç görseli güncellendi", vehicle_image_delete: "Araç görseli silindi",
   featured_vehicle_change: "Öne çıkan araçlar değiştirildi",
   vehicle_tag_create: "Etiket oluşturuldu", vehicle_tag_update: "Etiket güncellendi", vehicle_tag_delete: "Etiket silindi",
+  iys_export: "İYS CSV export oluşturuldu", subscriber_unsubscribe: "Abonelik sonlandırıldı",
+  subscriber_iys_update: "Abone İYS bilgileri güncellendi",
 };
 
 function formatDate(value: string) {

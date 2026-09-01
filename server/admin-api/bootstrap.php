@@ -306,8 +306,8 @@ function kalite_filo_admin_audit(string $action, string $result, array $summary 
             throw new RuntimeException('Audit log could not be locked.');
         }
         $entityType = str_starts_with($action, 'vehicle_tag_') ? 'vehicle_taxonomy'
-            : ((str_starts_with($action, 'vehicle_') || $action === 'featured_vehicle_change') ? 'vehicle' : (str_starts_with($action,'article_')?'article':(str_starts_with($action,'campaign_')?'campaign':'authentication')));
-        $entityId = in_array($entityType,['vehicle','article'],true) && is_string($summary['id'] ?? null) ? $summary['id'] : null;
+            : ((str_starts_with($action, 'vehicle_') || $action === 'featured_vehicle_change') ? 'vehicle' : (str_starts_with($action,'article_')?'article':(str_starts_with($action,'campaign_')?'campaign':(str_starts_with($action,'subscriber_')?'subscriber':(str_starts_with($action,'iys_')?'iys':'authentication')))));
+        $entityId = in_array($entityType,['vehicle','article','subscriber'],true) && is_string($summary['id'] ?? null) ? $summary['id'] : null;
         $record = [
             'id' => bin2hex(random_bytes(16)),
             'timestamp' => gmdate('c'),

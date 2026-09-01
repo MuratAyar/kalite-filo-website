@@ -58,6 +58,9 @@ try {
     file_put_contents(dirname($contactPath).DIRECTORY_SEPARATOR.'iys-email-permissions-2026-08-30.csv',"recipient,consentDate,type,recipientType,source\n");
     file_put_contents(dirname($contactPath).DIRECTORY_SEPARATOR.'iys-export-state.json',json_encode(['last_exported_at_utc'=>'2026-08-30 12:00:00'],JSON_THROW_ON_ERROR));
     $iys=kalite_filo_admin_iys_overview($contactPath);dashboard_test_assert($iys['counts']['pending']===2&&$iys['counts']['notRequested']===2,'IYS overview must preserve exact row states.');dashboard_test_assert(count($iys['exports'])===1&&$iys['lastExportedAt']==='2026-08-30 12:00:00','IYS overview must expose bounded manual export history.');
+    $updatedIys=kalite_filo_admin_update_contact_iys($contactPath,'1','approved','TACIR');
+    dashboard_test_assert($updatedIys['iys_status']==='approved'&&$updatedIys['recipient_type']==='TACIR'&&$updatedIys['iys_synced_at']!==''&&$updatedIys['consent_at']==='2026-08-20 10:00:00'&&$updatedIys['consent_text_version']==='v1','Controlled IYS updates must preserve consent evidence and record a sync timestamp.');
+    try{kalite_filo_admin_update_contact_iys($contactPath,'2','approved','BIREYSEL');dashboard_test_assert(false,'Lead-only records must not be administratively promoted to approved IYS.');}catch(InvalidArgumentException){/* expected */}
 
     $auditPath = $auditDirectory . DIRECTORY_SEPARATOR . 'audit-2026-08.jsonl';
     file_put_contents($auditPath, implode("\n", [

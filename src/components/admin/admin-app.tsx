@@ -151,6 +151,9 @@ const activityLabels: Record<string, string> = {
   login: "Oturum açıldı",
   logout: "Oturum kapatıldı",
   failed_login: "Başarısız giriş denemesi",
+  iys_export: "İYS CSV export oluşturuldu",
+  subscriber_unsubscribe: "Abonelik sonlandırıldı",
+  subscriber_iys_update: "Abone İYS bilgileri güncellendi",
 };
 
 function formatActivityDate(value: string): string {
@@ -215,11 +218,12 @@ export function AdminApp() {
   const [view, setView] = useState<
     | "dashboard"
     | "vehicles"
-    | "publishedVehicles"
+    | "draftVehicles"
     | "featuredVehicles"
     | "tags"
     | "audit"
     | "articles"
+    | "draftArticles"
     | "media"
     | "subscribers"
     | "iys"
@@ -227,6 +231,7 @@ export function AdminApp() {
     | "publishing"
   >("dashboard");
   const [vehiclesOpen, setVehiclesOpen] = useState(false);
+  const [articlesOpen, setArticlesOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
 
   useEffect(() => {
@@ -556,9 +561,9 @@ export function AdminApp() {
               </button>
               <button
                 className="flex min-h-10 w-full items-center px-3 text-sm text-text-inverse-muted hover:text-white"
-                onClick={() => setView("publishedVehicles")}
+                onClick={() => setView("draftVehicles")}
               >
-                Yayındaki Araçlar
+                Draft Araçlar
               </button>
               <button
                 className="flex min-h-10 w-full items-center px-3 text-sm text-text-inverse-muted hover:text-white"
@@ -569,11 +574,18 @@ export function AdminApp() {
             </div>
           ) : null}
           <button
-            className={`flex min-h-11 w-full items-center rounded-control px-4 text-left text-label font-semibold text-text-inverse hover:bg-white/10 ${view === "articles" ? "bg-white/10" : ""}`}
-            onClick={() => setView("articles")}
+            aria-expanded={articlesOpen}
+            className={`flex min-h-11 w-full items-center rounded-control px-4 text-left text-label font-semibold text-text-inverse hover:bg-white/10 ${view === "articles" || view === "draftArticles" ? "bg-white/10" : ""}`}
+            onClick={() => setArticlesOpen((value) => !value)}
           >
-            Filo Rehberi
+            Filo Rehberi <span className="ml-auto">{articlesOpen ? "−" : "+"}</span>
           </button>
+          {articlesOpen ? (
+            <div className="ml-3 border-l border-white/15 pl-2">
+              <button className="flex min-h-10 w-full items-center px-3 text-sm text-text-inverse-muted hover:text-white" onClick={() => setView("articles")}>Tüm Bloglar</button>
+              <button className="flex min-h-10 w-full items-center px-3 text-sm text-text-inverse-muted hover:text-white" onClick={() => setView("draftArticles")}>Draft Bloglar</button>
+            </div>
+          ) : null}
           <button
             className={`flex min-h-11 w-full items-center rounded-control px-4 text-left text-label font-semibold text-text-inverse hover:bg-white/10 ${view === "media" ? "bg-white/10" : ""}`}
             onClick={() => setView("media")}
@@ -681,10 +693,11 @@ export function AdminApp() {
             canEdit={["owner", "admin", "editor"].includes(session.user.role)}
             csrfToken={session.csrfToken}
           />
-        ) : view === "articles" ? (
+        ) : view === "articles" || view === "draftArticles" ? (
           <ArticleListView
             canEdit={["owner", "admin", "editor"].includes(session.user.role)}
             csrfToken={session.csrfToken}
+            draftOnly={view === "draftArticles"}
           />
         ) : view === "audit" ? (
           <AuditLogView />
@@ -695,7 +708,7 @@ export function AdminApp() {
         ) : view !== "dashboard" ? (
           <VehicleManager
             csrfToken={session.csrfToken}
-            publishedOnly={view === "publishedVehicles"}
+            draftOnly={view === "draftVehicles"}
           />
         ) : (
           <section className="mt-8">

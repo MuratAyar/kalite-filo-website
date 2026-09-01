@@ -38,7 +38,8 @@ function kalite_filo_read_contact_rows(string $storePath): array
 
 function kalite_filo_iys_last_export_at(string $statePath, DateTimeImmutable $now): DateTimeImmutable
 {
-    if (is_file($statePath)) {
+    $existingExports = glob(dirname($statePath) . DIRECTORY_SEPARATOR . 'iys-email-permissions-????-??-??.csv') ?: [];
+    if (is_file($statePath) && $existingExports !== []) {
         $decoded = json_decode((string) file_get_contents($statePath), true);
         $value = is_array($decoded) ? ($decoded['last_exported_at_utc'] ?? null) : null;
         if (is_string($value)) {
@@ -47,10 +48,9 @@ function kalite_filo_iys_last_export_at(string $statePath, DateTimeImmutable $no
         }
     }
 
-    return $now
-        ->setTimezone(new DateTimeZone('Europe/Istanbul'))
-        ->setTime(0, 0)
-        ->setTimezone(new DateTimeZone('UTC'));
+    // A newly provisioned environment must include every still-pending consent,
+    // including records created before the current day or migrated into staging.
+    return new DateTimeImmutable('@0');
 }
 
 /** @return list<array{recipient: string, consentDate: string, type: string, recipientType: string, source: string}> */
