@@ -8,18 +8,26 @@ the status and handoff sections before ending.
 
 ## Current Status
 
-The 2026-09-01 admin navigation pass splits vehicle operations into All Vehicles
-and Draft Vehicles, and Filo Rehberi into All Blogs and Draft Blogs. Draft
+The 2026-09-01 admin navigation pass splits vehicle operations into Published
+Vehicles and Draft Vehicles, and Filo Rehberi into Published Blogs and Draft
+Blogs. Published views now filter strictly to public-status records; draft
 vehicles are every private record not currently `published` and use the same
 editor to return to publication. Draft Blogs reads only the private article
-draft store; All Blogs retains the combined published inventory and draft view.
+draft store.
 
 IYS export now downloads a newly created CSV immediately. A first environment,
 or an orphan checkpoint with no CSV artifact, starts from the epoch so migrated
-older pending consent is not silently stranded. Subscriber editing is a named,
-CSRF/role-protected, audited IYS-only operation: status and recipient type may
-change, while consent source/version/date remain immutable and lead-only or
-unsubscribed rows cannot be promoted to approved/synced.
+older pending consent is not silently stranded. Owner/Admin now has a named,
+reason-required subscriber correction operation covering status, source,
+consent version/dates, unsubscribe state, IYS and recipient type. Creation time
+remains immutable and update time is server-owned. Every correction uses the
+shared lock, atomic replacement, semantic consistency checks and before/after
+field audit; resubscription is explicit rather than an ordinary toggle.
+
+Publishing is now visually separated as the orange `Yayına Al` action at the
+bottom of the sidebar. `awaiting_runner` still means only that a validated
+snapshot was frozen: no build or deploy occurs until an external authenticated
+runner host/transport and result callback are implemented.
 
 The 2026-09-01 Filo Rehberi interaction pass makes each complete published
 content card the edit/import trigger, matching vehicle cards without nesting
@@ -349,7 +357,7 @@ only after staging proof.
 | `GET /admin-api/media-file.php?id=` | Authorized private preview | 4 |
 | `POST /admin-api/media-delete.php` | Delete an unreferenced private asset | 4 |
 | `GET /admin-api/subscribers.php` | Filtered contact view | 5 |
-| `POST /admin-api/subscriber-operation.php` | Explicit audited unsubscribe or constrained IYS operation | 5 |
+| `POST /admin-api/subscriber-operation.php` | Explicit audited unsubscribe/IYS or reason-required Owner correction | 5 |
 | `GET /admin-api/iys.php` | State and export history | 5 |
 | `POST /admin-api/iys-export.php` | Generate export | 5 |
 | `GET /admin-api/iys-download.php?id=` | Authorized CSV download | 5 |
@@ -445,9 +453,12 @@ reason, before/after summary, role authorization and audit. Campaign audience
 calculation is fail-closed and excludes unsubscribed, missing/invalid consent,
 unapproved IYS state, suppressed, staging-forbidden, or malformed recipients.
 
-The first editable subscriber operation changes only `iys_status` and
-`recipient_type`; it updates `iys_synced_at` automatically for approved/synced.
-Those states require an active approved row with existing consent date/version.
+The Owner/Admin correction operation may repair status, source, consent
+version/dates, unsubscribe state, `iys_status` and `recipient_type` only with a
+mandatory reason and audited changed-field list. `created_at` is immutable and
+`updated_at` is server-owned. Approved/synced requires an approved row with
+explicit consent date/version and no unsubscribe timestamp; unsubscribe state
+and timestamp must remain consistent.
 
 ## IYS Model
 
@@ -617,9 +628,9 @@ leave private storage. Stored change summaries are deliberately excluded.
 
 ## Completed Tasks
 
-- [x] Split vehicle navigation into All Vehicles and Draft Vehicles, with
+- [x] Split vehicle navigation into Published Vehicles and Draft Vehicles, with
   unpublished drafts editable and returnable to published status.
-- [x] Split Filo Rehberi navigation into All Blogs and private Draft Blogs.
+- [x] Split Filo Rehberi navigation into Published Blogs and private Draft Blogs.
 - [x] Added immediate authenticated CSV download after successful IYS export
   and recovery for first/orphan checkpoints that previously stranded older
   pending records.
@@ -627,6 +638,11 @@ leave private storage. Stored change summaries are deliberately excluded.
   with atomic CSV replacement, role/CSRF enforcement, consent guards and audit.
 - [x] Classified subscriber and IYS audit events under their correct entity
   types instead of authentication.
+- [x] Expanded Owner/Admin subscriber correction to status, source, evidence
+  dates/version, unsubscribe state, IYS and recipient type with mandatory reason,
+  immutable creation time, server-owned update time and semantic validation.
+- [x] Moved publishing to an orange bottom-sidebar `Yayına Al` action and added
+  an in-product explanation for `awaiting_runner` requests.
 
 - [x] Made complete Filo Rehberi cards accessible edit/import triggers while
   retaining explicit confirmation before repository content becomes a draft.
@@ -801,8 +817,8 @@ leave private storage. Stored change summaries are deliberately excluded.
 
 ## Current Task
 
-Deploy and staging-smoke-test the new logical list tabs, automatic IYS download
-and controlled subscriber IYS update before continuing Phase 7 adapters.
+Deploy and staging-smoke-test published/draft list separation, automatic IYS
+download, controlled subscriber correction and the relocated `Yayına Al` UI.
 
 Deploy and smoke-test the completed Filo Rehberi card/editor interaction update
 on HTTPS staging.
@@ -845,14 +861,18 @@ the still-required Phase 2/3 staging smoke tests before closing those phases.
 
 ## Next Tasks
 
-- [ ] Verify All/Draft vehicle and All/Draft blog tabs against live private
-  staging records; publish one synthetic draft vehicle and confirm it leaves
-  Draft Vehicles while remaining in All Vehicles.
+- [ ] Verify Published/Draft vehicle and Published/Draft blog tabs against live
+  staging records; publish one synthetic draft vehicle and confirm it moves from
+  Draft Vehicles into Published Vehicles.
 - [ ] Generate the first staging IYS CSV with the existing older pending row;
   confirm browser download, private history entry and `iys` audit entity type.
-- [ ] Set a consented staging subscriber from pending to approved and confirm
-  automatic sync timestamp plus `subscriber` audit entity. Confirm a lead-only
-  record is rejected and consent evidence remains byte-for-byte unchanged.
+- [ ] Correct a synthetic subscriber, including explicit unsubscribe reversal,
+  and confirm reason/changed fields in the `subscriber` audit entity, immutable
+  creation time and server-owned update time. Confirm inconsistent status/date
+  or approved-IYS-without-evidence submissions are rejected.
+- [ ] Select the external runner host and authenticated request/result transport;
+  until then every staging request correctly remains `awaiting_runner` and must
+  not be presented as deployed.
 
 - [ ] On refreshed staging, click the image, title and empty card area of an
   existing Filo Rehberi draft and confirm each opens the correct editor.
@@ -1011,6 +1031,7 @@ Current 2026-09-01 list/IYS/subscriber operations continuation:
 - `src/components/admin/iys-management-view.tsx`
 - `src/components/admin/subscriber-list-view.tsx`
 - `src/components/admin/audit-log-view.tsx`
+- `src/components/admin/publishing-center.tsx`
 - `server/forms/export-iys-daily.php`
 - `server/forms/tests/iys-export.test.php`
 - `server/admin-api/read-model.php`
@@ -1192,6 +1213,18 @@ Current Phase 6 test-mail continuation:
 - `server/admin-api/tests/media-store.test.php`
 
 ## Validation Results
+
+2026-09-01 published-list/subscriber-correction/publish-CTA refinement:
+
+- `npm run lint`: passed without warnings.
+- `npm run typecheck`: passed.
+- `npm test`: passed; 59 Node tests and all project-owned PHP suites passed.
+- Controlled correction tests cover explicit resubscription, immutable creation
+  time and rejection of approved IYS without approved consent evidence.
+- Changed PHP runtime syntax checks: passed.
+- `npm run release:staging`: passed; all 140 static pages generated.
+- `npm run verify:output`: passed.
+- Refreshed `kalite-filo-staging.zip`: 18,947,091 bytes.
 
 2026-09-01 list/IYS/subscriber operations continuation:
 
@@ -1420,12 +1453,13 @@ to the browser and no delivery endpoint is packaged.
 
 2026-09-01 list/IYS/subscriber handoff: sidebar list separation is UI state over
 the existing static `/admin/` shell; no new Next runtime route was introduced.
-Draft Vehicles means publication status other than published. Draft Blogs means
-private article draft records only. IYS generation now auto-downloads and treats
-a state file with no CSV artifact as recoverable, which addresses the live
-staging checkpoint-without-file incident. Subscriber Edit deliberately exposes
-only IYS status and recipient type; never widen it to ordinary consent CRUD.
-Deploy the refreshed ZIP and complete the three Next Tasks smoke tests.
+Published views are strict `published` inventories and draft views are their
+private counterparts. IYS auto-download and orphan-checkpoint recovery remain.
+Subscriber corrections are Owner/Admin-only, reason-required, audit-tracked and
+semantically validated; do not make creation/update timestamps arbitrary client
+fields or remove evidence consistency checks. `Yayına Al` is now a bottom CTA.
+An `awaiting_runner` request is only a frozen snapshot: next choose an external
+runner host and authenticated claim/result transport before build/deploy can run.
 
 2026-09-01 Filo Rehberi interaction handoff: a full-card overlay button now
 routes published cards to either an existing draft editor or the already

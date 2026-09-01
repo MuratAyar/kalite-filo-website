@@ -7,6 +7,7 @@ type Contact = {
   consent_source: string;
   consent_text_version: string;
   consent_at: string;
+  confirmed_at: string;
   unsubscribed_at: string;
   created_at: string;
   updated_at: string;
@@ -21,7 +22,16 @@ const sources: Record<string, string> = {
   website_quote_form: "Teklif formu",
   website_contact_form: "İletişim formu",
 };
-export function SubscriberListView({csrfToken,canManage}:{csrfToken:string;canManage:boolean}) {
+function dateInput(value: string) {
+  return value ? value.replace(" ", "T").slice(0, 16) : "";
+}
+export function SubscriberListView({
+  csrfToken,
+  canManage,
+}: {
+  csrfToken: string;
+  canManage: boolean;
+}) {
   const [records, setRecords] = useState<Contact[]>([]);
   const [page, setPage] = useState(1);
   const [hasNext, setHasNext] = useState(false);
@@ -66,8 +76,65 @@ export function SubscriberListView({csrfToken,canManage}:{csrfToken:string;canMa
     setPage(1);
     setter(value);
   }
-  async function unsubscribe(record:Contact){if(!window.confirm(`${record.email} adresi gelecekteki pazarlama gönderimlerinden çıkarılsın mı? Consent kanıtı korunacaktır.`))return;setLoading(true);try{const response=await fetch("/admin-api/subscriber-operation.php",{method:"POST",credentials:"same-origin",headers:{"Content-Type":"application/json","X-CSRF-Token":csrfToken},body:JSON.stringify({operation:"unsubscribe",email:record.email})});if(!response.ok)throw new Error();setRefresh(value=>value+1);setError("");}catch{setError("Abonelikten çıkarma işlemi tamamlanamadı.");setLoading(false)}}
-  async function updateIys(event:FormEvent<HTMLFormElement>){event.preventDefault();if(!editing)return;const form=new FormData(event.currentTarget);const iysStatus=String(form.get("iysStatus")??"");const recipientType=String(form.get("recipientType")??"");if(!window.confirm(`${editing.email} için İYS durumu “${iysStatus}” olarak kaydedilsin mi? Bu işlem denetim kaydına yazılacaktır.`))return;setLoading(true);try{const response=await fetch("/admin-api/subscriber-operation.php",{method:"POST",credentials:"same-origin",headers:{"Content-Type":"application/json","X-CSRF-Token":csrfToken},body:JSON.stringify({operation:"update_iys",id:editing.id,iysStatus,recipientType})});if(!response.ok)throw new Error();setEditing(null);setRefresh(value=>value+1);setError("");}catch{setError("İYS bilgileri güncellenemedi. Approved/synced için geçerli consent kanıtı ve aktif abonelik gerekir.");setLoading(false)}}
+  async function unsubscribe(record: Contact) {
+    if (
+      !window.confirm(
+        `${record.email} adresi gelecekteki pazarlama gönderimlerinden çıkarılsın mı? Consent kanıtı korunacaktır.`,
+      )
+    )
+      return;
+    setLoading(true);
+    try {
+      const response = await fetch("/admin-api/subscriber-operation.php", {
+        method: "POST",
+        credentials: "same-origin",
+        headers: {
+          "Content-Type": "application/json",
+          "X-CSRF-Token": csrfToken,
+        },
+        body: JSON.stringify({ operation: "unsubscribe", email: record.email }),
+      });
+      if (!response.ok) throw new Error();
+      setRefresh((value) => value + 1);
+      setError("");
+    } catch {
+      setError("Abonelikten çıkarma işlemi tamamlanamadı.");
+      setLoading(false);
+    }
+  }
+  async function correctRecord(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!editing) return;
+    const form = new FormData(event.currentTarget);
+    const body = Object.fromEntries(form.entries());
+    if (
+      !window.confirm(`${editing.email} kaydındaki düzeltmeler kaydedilsin mi?`)
+    )
+      return;
+    setLoading(true);
+    try {
+      const response = await fetch("/admin-api/subscriber-operation.php", {
+        method: "POST",
+        credentials: "same-origin",
+        headers: {
+          "Content-Type": "application/json",
+          "X-CSRF-Token": csrfToken,
+        },
+        body: JSON.stringify({
+          operation: "correct_record",
+          id: editing.id,
+          ...body,
+        }),
+      });
+      if (!response.ok) throw new Error();
+      setEditing(null);
+      setRefresh((value) => value + 1);
+      setError("");
+    } catch {
+      setError("Kayıt güncellenemedi.");
+      setLoading(false);
+    }
+  }
   return (
     <section className="mt-8">
       <p className="text-label font-semibold text-corporate-blue">
@@ -173,7 +240,29 @@ export function SubscriberListView({csrfToken,canManage}:{csrfToken:string;canMa
                 <td className="px-4 py-4">{record.unsubscribed_at || "—"}</td>
                 <td className="px-4 py-4">{record.created_at}</td>
                 <td className="px-4 py-4">{record.updated_at}</td>
-                <td className="px-4 py-4"><div className="flex gap-2">{canManage?<button className="rounded-control border border-corporate-blue px-3 py-2 text-xs font-semibold text-corporate-blue" disabled={loading} onClick={()=>setEditing(record)}>Düzenle</button>:null}{canManage&&record.status!=="unsubscribed"?<button className="rounded-control border border-error px-3 py-2 text-xs font-semibold text-error" disabled={loading} onClick={()=>void unsubscribe(record)}>Abonelikten Çıkar</button>:null}{!canManage?"—":null}</div></td>
+                <td className="px-4 py-4">
+                  <div className="flex gap-2">
+                    {canManage ? (
+                      <button
+                        className="rounded-control border border-corporate-blue px-3 py-2 text-xs font-semibold text-corporate-blue"
+                        disabled={loading}
+                        onClick={() => setEditing(record)}
+                      >
+                        Düzenle
+                      </button>
+                    ) : null}
+                    {canManage && record.status !== "unsubscribed" ? (
+                      <button
+                        className="rounded-control border border-error px-3 py-2 text-xs font-semibold text-error"
+                        disabled={loading}
+                        onClick={() => void unsubscribe(record)}
+                      >
+                        Abonelikten Çıkar
+                      </button>
+                    ) : null}
+                    {!canManage ? "—" : null}
+                  </div>
+                </td>
               </tr>
             ))}
           </tbody>
@@ -213,7 +302,167 @@ export function SubscriberListView({csrfToken,canManage}:{csrfToken:string;canMa
           </button>
         </div>
       </div>
-      {editing?<div className="fixed inset-0 z-50 overflow-y-auto bg-brand-navy/75 p-4" onMouseDown={(event)=>{if(event.target===event.currentTarget)setEditing(null)}}><form className="mx-auto my-8 max-w-xl rounded-card bg-page p-6" onSubmit={updateIys}><div className="flex items-start justify-between gap-4"><div><p className="text-sm font-semibold text-corporate-blue">Kontrollü idari işlem</p><h3 className="mt-1 text-xl font-bold">İYS Bilgilerini Düzenle</h3><p className="mt-1 text-sm text-text-secondary">{editing.email}</p></div><button className="rounded-control border px-3 py-2" onClick={()=>setEditing(null)} type="button">Kapat</button></div><div className="mt-6 grid gap-4 sm:grid-cols-2"><label className="text-sm font-semibold">İYS durumu<select className={`${control} mt-1 w-full`} defaultValue={editing.iys_status} name="iysStatus">{["not_requested","pending","failed","approved","synced"].map(value=><option key={value}>{value}</option>)}</select></label><label className="text-sm font-semibold">Alıcı tipi<select className={`${control} mt-1 w-full`} defaultValue={editing.recipient_type} name="recipientType"><option value="BIREYSEL">BIREYSEL</option><option value="TACIR">TACIR</option></select></label></div><div className="mt-5 rounded-control bg-surface-muted p-4 text-sm text-text-secondary">Consent kaynağı, metin versiyonu ve consent tarihi bu işlemle değiştirilemez. Approved veya synced yalnızca mevcut geçerli pazarlama izni bulunan kayıtlar için kabul edilir. İşlem audit log’a yazılır.</div><button className="mt-6 min-h-11 w-full rounded-control bg-accent-orange font-bold" disabled={loading}>İYS Bilgilerini Kaydet</button></form></div>:null}
+      {editing ? (
+        <div
+          className="fixed inset-0 z-50 overflow-y-auto bg-brand-navy/75 p-4"
+          onMouseDown={(event) => {
+            if (event.target === event.currentTarget) setEditing(null);
+          }}
+        >
+          <form
+            className="mx-auto my-8 max-w-3xl rounded-card bg-page p-6"
+            onSubmit={correctRecord}
+          >
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <p className="text-sm font-semibold text-corporate-blue">
+                  Kontrollü idari düzeltme
+                </p>
+                <h3 className="mt-1 text-xl font-bold">
+                  Bülten Kişisini Düzenle
+                </h3>
+                <p className="mt-1 text-sm text-text-secondary">
+                  {editing.email}
+                </p>
+              </div>
+              <button
+                className="rounded-control border px-3 py-2"
+                onClick={() => setEditing(null)}
+                type="button"
+              >
+                Kapat
+              </button>
+            </div>
+            <div className="mt-6 grid gap-4 sm:grid-cols-2">
+              <label className="text-sm font-semibold">
+                Durum
+                <select
+                  className={`${control} mt-1 w-full`}
+                  defaultValue={editing.status}
+                  name="status"
+                >
+                  {["approved", "active", "lead_only", "unsubscribed"].map(
+                    (value) => (
+                      <option key={value}>{value}</option>
+                    ),
+                  )}
+                </select>
+              </label>
+              <label className="text-sm font-semibold">
+                Kaynak
+                <select
+                  className={`${control} mt-1 w-full`}
+                  defaultValue={editing.consent_source}
+                  name="consentSource"
+                >
+                  {Object.entries(sources).map(([value, label]) => (
+                    <option key={value} value={value}>
+                      {label}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label className="text-sm font-semibold">
+                Consent metin versiyonu
+                <input
+                  className={`${control} mt-1 w-full`}
+                  defaultValue={editing.consent_text_version}
+                  maxLength={160}
+                  name="consentTextVersion"
+                />
+              </label>
+              <label className="text-sm font-semibold">
+                Consent tarihi
+                <input
+                  className={`${control} mt-1 w-full`}
+                  defaultValue={dateInput(editing.consent_at)}
+                  name="consentAt"
+                  type="datetime-local"
+                />
+              </label>
+              <label className="text-sm font-semibold">
+                Onay tarihi
+                <input
+                  className={`${control} mt-1 w-full`}
+                  defaultValue={dateInput(editing.confirmed_at)}
+                  name="confirmedAt"
+                  type="datetime-local"
+                />
+              </label>
+              <label className="text-sm font-semibold">
+                Abonelikten çıkış
+                <input
+                  className={`${control} mt-1 w-full`}
+                  defaultValue={dateInput(editing.unsubscribed_at)}
+                  name="unsubscribedAt"
+                  type="datetime-local"
+                />
+              </label>
+              <label className="text-sm font-semibold">
+                İYS
+                <select
+                  className={`${control} mt-1 w-full`}
+                  defaultValue={editing.iys_status}
+                  name="iysStatus"
+                >
+                  {[
+                    "not_requested",
+                    "pending",
+                    "failed",
+                    "approved",
+                    "synced",
+                  ].map((value) => (
+                    <option key={value}>{value}</option>
+                  ))}
+                </select>
+              </label>
+              <label className="text-sm font-semibold">
+                Alıcı
+                <select
+                  className={`${control} mt-1 w-full`}
+                  defaultValue={editing.recipient_type}
+                  name="recipientType"
+                >
+                  <option value="BIREYSEL">BIREYSEL</option>
+                  <option value="TACIR">TACIR</option>
+                </select>
+              </label>
+              <label className="text-sm font-semibold">
+                Oluşturma
+                <input
+                  className={`${control} mt-1 w-full bg-surface-muted`}
+                  disabled
+                  value={editing.created_at}
+                />
+              </label>
+              <label className="text-sm font-semibold">
+                Son güncelleme
+                <input
+                  className={`${control} mt-1 w-full bg-surface-muted`}
+                  disabled
+                  value={editing.updated_at}
+                />
+              </label>
+              <label className="text-sm font-semibold sm:col-span-2">
+                Düzeltme gerekçesi *
+                <textarea
+                  className="mt-1 min-h-24 w-full rounded-control border border-border-control bg-white p-3"
+                  maxLength={500}
+                  minLength={10}
+                  name="reason"
+                  required
+                />
+              </label>
+            </div>
+            <button
+              className="mt-6 min-h-11 w-full rounded-control bg-accent-orange font-bold"
+              disabled={loading}
+            >
+              Değişiklikleri Kaydet
+            </button>
+          </form>
+        </div>
+      ) : null}
     </section>
   );
 }

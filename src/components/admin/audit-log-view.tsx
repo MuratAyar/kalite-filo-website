@@ -13,6 +13,7 @@ const actionLabels: Record<string, string> = {
   vehicle_tag_create: "Etiket oluşturuldu", vehicle_tag_update: "Etiket güncellendi", vehicle_tag_delete: "Etiket silindi",
   iys_export: "İYS CSV export oluşturuldu", subscriber_unsubscribe: "Abonelik sonlandırıldı",
   subscriber_iys_update: "Abone İYS bilgileri güncellendi",
+  subscriber_record_correction: "Bülten kişi kaydı düzeltildi",
 };
 
 function formatDate(value: string) {

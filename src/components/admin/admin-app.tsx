@@ -154,6 +154,7 @@ const activityLabels: Record<string, string> = {
   iys_export: "İYS CSV export oluşturuldu",
   subscriber_unsubscribe: "Abonelik sonlandırıldı",
   subscriber_iys_update: "Abone İYS bilgileri güncellendi",
+  subscriber_record_correction: "Bülten kişi kaydı düzeltildi",
 };
 
 function formatActivityDate(value: string): string {
@@ -525,7 +526,7 @@ export function AdminApp() {
 
   return (
     <div className="min-h-svh bg-page lg:grid lg:grid-cols-[17rem_minmax(0,1fr)]">
-      <aside className="bg-brand-navy px-5 py-6 text-text-inverse lg:min-h-svh">
+      <aside className="flex flex-col bg-brand-navy px-5 py-6 text-text-inverse lg:min-h-svh">
         <div className="flex items-center justify-between lg:block">
           <div>
             <p className="text-label font-semibold text-accent-orange">
@@ -537,7 +538,7 @@ export function AdminApp() {
             {session.environment === "staging" ? "Staging" : "Production"}
           </span>
         </div>
-        <nav aria-label="Yönetim" className="mt-8 space-y-1">
+        <nav aria-label="Yönetim" className="mt-8 flex-1 space-y-1">
           <button
             className={`flex min-h-11 w-full items-center rounded-control px-4 text-label font-semibold text-text-inverse ${view === "dashboard" ? "bg-white/10" : ""}`}
             onClick={() => setView("dashboard")}
@@ -557,7 +558,7 @@ export function AdminApp() {
                 className="flex min-h-10 w-full items-center px-3 text-sm text-text-inverse-muted hover:text-white"
                 onClick={() => setView("vehicles")}
               >
-                Tüm Araçlar
+                Yayındaki Araçlar
               </button>
               <button
                 className="flex min-h-10 w-full items-center px-3 text-sm text-text-inverse-muted hover:text-white"
@@ -582,7 +583,7 @@ export function AdminApp() {
           </button>
           {articlesOpen ? (
             <div className="ml-3 border-l border-white/15 pl-2">
-              <button className="flex min-h-10 w-full items-center px-3 text-sm text-text-inverse-muted hover:text-white" onClick={() => setView("articles")}>Tüm Bloglar</button>
+              <button className="flex min-h-10 w-full items-center px-3 text-sm text-text-inverse-muted hover:text-white" onClick={() => setView("articles")}>Yayındaki Bloglar</button>
               <button className="flex min-h-10 w-full items-center px-3 text-sm text-text-inverse-muted hover:text-white" onClick={() => setView("draftArticles")}>Draft Bloglar</button>
             </div>
           ) : null}
@@ -610,7 +611,6 @@ export function AdminApp() {
           >
             Mail Kampanyaları
           </button>
-          <button className={`flex min-h-11 w-full items-center rounded-control px-4 text-left text-label font-semibold text-text-inverse hover:bg-white/10 ${view === "publishing" ? "bg-white/10" : ""}`} onClick={() => setView("publishing")}>Yayınlama</button>
           <button
             aria-expanded={settingsOpen}
             className="flex min-h-11 w-full items-center rounded-control px-4 text-left text-label font-semibold text-text-inverse hover:bg-white/10"
@@ -635,6 +635,7 @@ export function AdminApp() {
             Denetim Kaydı
           </button>
         </nav>
+        <button className={`mt-6 flex min-h-12 w-full items-center justify-center rounded-control bg-accent-orange px-4 text-label font-bold text-on-accent shadow-lg transition hover:bg-orange-dark ${view === "publishing" ? "ring-2 ring-white/70 ring-offset-2 ring-offset-brand-navy" : ""}`} onClick={() => setView("publishing")}>Yayına Al</button>
       </aside>
       <main className="px-gutter py-8 lg:py-10">
         <header className="flex flex-col gap-5 border-b border-border-subtle pb-6 sm:flex-row sm:items-center sm:justify-between">

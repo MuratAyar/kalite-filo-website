@@ -61,6 +61,9 @@ try {
     $updatedIys=kalite_filo_admin_update_contact_iys($contactPath,'1','approved','TACIR');
     dashboard_test_assert($updatedIys['iys_status']==='approved'&&$updatedIys['recipient_type']==='TACIR'&&$updatedIys['iys_synced_at']!==''&&$updatedIys['consent_at']==='2026-08-20 10:00:00'&&$updatedIys['consent_text_version']==='v1','Controlled IYS updates must preserve consent evidence and record a sync timestamp.');
     try{kalite_filo_admin_update_contact_iys($contactPath,'2','approved','BIREYSEL');dashboard_test_assert(false,'Lead-only records must not be administratively promoted to approved IYS.');}catch(InvalidArgumentException){/* expected */}
+    $corrected=kalite_filo_admin_correct_contact($contactPath,'3',['status'=>'approved','consentSource'=>'website_newsletter','consentTextVersion'=>'v1','consentAt'=>'2026-08-20T12:00','confirmedAt'=>'','unsubscribedAt'=>'','iysStatus'=>'pending','recipientType'=>'BIREYSEL']);
+    dashboard_test_assert($corrected['record']['status']==='approved'&&$corrected['record']['unsubscribed_at']===''&&$corrected['record']['created_at']==='2026-08-20 12:00:00'&&in_array('unsubscribed_at',$corrected['changedFields'],true),'Explicit contact correction must support audited resubscription while preserving creation time.');
+    try{kalite_filo_admin_correct_contact($contactPath,'2',['status'=>'lead_only','consentSource'=>'website_quote_form','consentTextVersion'=>'','consentAt'=>'','confirmedAt'=>'','unsubscribedAt'=>'','iysStatus'=>'approved','recipientType'=>'BIREYSEL']);dashboard_test_assert(false,'Correction must not manufacture approved IYS without approved consent evidence.');}catch(InvalidArgumentException){/* expected */}
 
     $auditPath = $auditDirectory . DIRECTORY_SEPARATOR . 'audit-2026-08.jsonl';
     file_put_contents($auditPath, implode("\n", [

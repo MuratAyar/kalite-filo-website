@@ -336,7 +336,7 @@ export function ArticleListView({
           <p className="text-label font-semibold text-corporate-blue">
             İçerik yönetimi
           </p>
-          <h2 className="mt-1 text-heading-md">{draftOnly ? "Draft Bloglar" : "Tüm Bloglar"}</h2>
+          <h2 className="mt-1 text-heading-md">{draftOnly ? "Draft Bloglar" : "Yayındaki Bloglar"}</h2>
         </div>
         {canEdit ? (
           <button
@@ -354,7 +354,7 @@ export function ArticleListView({
           </button>
         ) : null}
       </div>
-      {drafts.length ? (
+      {draftOnly && drafts.length ? (
         <section className="mt-6 rounded-card border border-accent-orange/30 bg-accent-orange/5 p-5">
           <h3 className="font-bold">Private draft’lar ({drafts.length})</h3>
           <div className="mt-3 grid gap-3 sm:grid-cols-2">
