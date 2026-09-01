@@ -1,12 +1,19 @@
 # Kalite Filo Admin Dashboard Implementation
 
-Last updated: 2026-08-30
+Last updated: 2026-09-01
 
 This document is the single source of truth for Phase 2 Admin Dashboard work.
 Every admin development session must read it before making changes and update
 the status and handoff sections before ending.
 
 ## Current Status
+
+The 2026-09-01 vehicle operations UI now presents both all and published
+vehicles in the same horizontal two-column visual language as Filo Rehberi.
+Records are always ordered and grouped by Turkish A–Z brand headings, then by
+model and trim. Each complete card opens the editor. The wider editor closes on
+backdrop click, Close or Escape and requires explicit confirmation whenever
+form input has changed without a successful save.
 
 Phase 7 now has its first repository-side materialization adapter. Featured
 vehicles use an explicit four-ID ordered JSON contract in the public build, and
@@ -15,11 +22,12 @@ the frozen request hash and writes reviewed vehicle portfolio, price and
 featured-order outputs into a separate directory; it does not mutate the
 repository, commit, build or deploy automatically.
 
-The 2026-08-31 staging retest proves the private 32-record vehicle store and
-`vehicles.php` are healthy. The remaining tag failure is isolated to the custom
-taxonomy read path. Taxonomy now has dedicated validation/diagnostic codes and
-automated seeded/custom/corrupt-store coverage; refreshed staging deployment is
-required to identify or clear any malformed `vehicle-taxonomy.json`.
+The 2026-09-01 staging evidence proves the private 32-record vehicle store and
+`vehicles.php` are healthy and that no custom taxonomy file exists. The tags
+503 was reproduced from numeric-only model names such as `2008`: PHP converts
+numeric string array keys to integers, which violated the strict string taxonomy
+ID boundary. Values are now normalized back to strings and a numeric-model
+regression test protects the fix. A refreshed staging deployment is required.
 
 The 2026-08-30 live staging diagnostic cycle confirmed session authentication,
 login throttling, audit access and Newsletter/IYS reads. The supplied vehicle
@@ -582,6 +590,14 @@ leave private storage. Stored change summaries are deliberately excluded.
 
 ## Completed Tasks
 
+- [x] Redesigned all/published vehicle cards as horizontal two-column admin
+  operation cards aligned with the Filo Rehberi card language.
+- [x] Added deterministic Turkish A–Z brand grouping with model/trim ordering.
+- [x] Made the entire accessible vehicle card open the edit interface while
+  preserving a visible Edit affordance.
+- [x] Added backdrop/Close/Escape editor dismissal with unsaved-change
+  confirmation and a wider Filo Rehberi-aligned editing surface.
+
 - [x] Replaced implicit featured boolean/portfolio-order behavior with an
   explicit, build-validated four-ID ordering source while preserving the current
   homepage cards and order.
@@ -742,14 +758,17 @@ leave private storage. Stored change summaries are deliberately excluded.
 
 ## Current Task
 
+Deploy and smoke-test the completed vehicle card/editor interaction update on
+HTTPS staging, including filtered and published-only result sets.
+
 Continue Phase 7 adapters with normalized media/licence materialization, then
 localized article Markdown. The current vehicle adapter output must remain a
 review directory until a runner transport, Git diff review and atomic workspace
 application step are approved.
 
-Deploy and verify the taxonomy incident fix on HTTPS staging. A missing
-`vehicle-taxonomy.json` is valid and must seed groups from vehicles; only a
-present but invalid custom store should require removal/recovery.
+Deploy and verify the numeric-model taxonomy fix on HTTPS staging. A missing
+`vehicle-taxonomy.json` is valid and must seed groups from vehicles; it will be
+created atomically only after the first custom tag mutation.
 
 Phase 7 publishing request foundation is now implemented locally. It deliberately
 stops at `awaiting_runner`: cPanel PHP does not run the Next.js build, and no
@@ -777,9 +796,29 @@ the still-required Phase 2/3 staging smoke tests before closing those phases.
 
 ## Next Tasks
 
+- [ ] On refreshed staging, confirm complete vehicle cards open the correct
+  editor by mouse and keyboard in both All Vehicles and Published Vehicles.
+- [ ] Confirm brands remain Turkish A–Z grouped after search/brand/segment
+  filtering and each desktop row contains at most two horizontal cards.
+- [ ] Change a field without saving and verify backdrop click, Close and Escape
+  each show confirmation; verify Cancel preserves the editor and Confirm closes
+  it. Confirm an untouched or successfully saved form closes without warning.
+
 - [x] Provision the staging private Owner config and verify the session endpoint.
 - [x] Verify first-attempt Owner login on HTTPS staging.
-- [ ] Deploy the refreshed staging artifact, set `drafts/vehicles.json` to a
+- [ ] Deploy the 2026-09-01 refreshed staging artifact, keep
+  `drafts/vehicles.json` at its working `644` permission, then record the exact
+  `/admin-api/tags.php` response. It must return five populated groups including
+  model values `2008` and `3008` as strings.
+- [x] Confirm `drafts/vehicles.json` is PHP-readable and
+  `/admin-api/vehicles.php` returns the live 32-record draft. The supplied file
+  works at `644` on cPanel.
+- [x] Confirm no `vehicle-taxonomy.json` exists; absence is the expected initial
+  state and is not a deployment or permission error.
+- [ ] After tags load, create one harmless custom label in the UI and confirm
+  `data/drafts/vehicle-taxonomy.json` is created, then delete the unused label.
+<!-- Historical deployment diagnostic retained below. -->
+- [x] Deploy the earlier diagnostic staging artifact, set `drafts/vehicles.json` to a
   PHP-readable private permission (`600` preferred, `644` if cPanel PHP ownership
   requires it), then record the exact `/admin-api/vehicles.php` and `tags.php`
   responses. The supplied 32-record JSON is locally valid.
@@ -857,12 +896,10 @@ the still-required Phase 2/3 staging smoke tests before closing those phases.
   adapter materializes the explicit private four-ID contract into repository data.
 - Existing newsletter CSV permits multiple rows per email/source; audience
   eligibility needs a tested cross-row resolution policy before campaigns.
-- The live staging vehicle/tag failure is narrowed to private draft readability
-  or an outdated runtime artifact. The supplied JSON parses successfully as
-  schema version 1 with 32 records; the unrelated LiteSpeed `__next` 404 probe
-  lines do not contain the PHP exception.
-- The live vehicle endpoint now succeeds; the remaining taxonomy 503 predates
-  the dedicated taxonomy diagnostic release. Exact cause awaits one redeploy.
+- The live vehicle endpoint succeeds. The taxonomy 503 root cause was
+  numeric-only model labels becoming integer PHP array keys under strict types;
+  the code fix is local and awaits deployment. The unrelated LiteSpeed `__next`
+  404 probe lines are static-export probes and not the PHP failure.
 
 ## Open Decisions
 
@@ -901,6 +938,12 @@ src/app/robots.ts                          (update)
 
 ## Files Changed
 
+Current 2026-09-01 vehicle operations UI continuation:
+
+- `src/components/admin/vehicle-manager.tsx`
+- `docs/ADMIN_DASHBOARD_IMPLEMENTATION.md`
+- `kalite-filo-staging.zip`
+
 Current 2026-08-31 taxonomy incident continuation:
 
 - `server/admin-api/taxonomy-store.php`
@@ -909,6 +952,13 @@ Current 2026-08-31 taxonomy incident continuation:
 - `src/components/admin/tag-manager.tsx`
 - `src/components/admin/vehicle-manager.tsx`
 - `package.json`
+- `docs/ADMIN_DASHBOARD_IMPLEMENTATION.md`
+- `kalite-filo-staging.zip`
+
+Current 2026-09-01 numeric-model taxonomy fix:
+
+- `server/admin-api/taxonomy-store.php`
+- `server/admin-api/tests/taxonomy-store.test.php`
 - `docs/ADMIN_DASHBOARD_IMPLEMENTATION.md`
 - `kalite-filo-staging.zip`
 
@@ -1054,6 +1104,29 @@ Current Phase 6 test-mail continuation:
 - `server/admin-api/tests/media-store.test.php`
 
 ## Validation Results
+
+2026-09-01 vehicle operations UI continuation:
+
+- `npm run lint`: passed without warnings.
+- `npm run typecheck`: passed.
+- `npm test`: passed; 59 Node tests and all project-owned PHP suites passed.
+- `npm run release:staging`: passed; all 140 static pages generated.
+- `npm run verify:output`: passed.
+- Refreshed `kalite-filo-staging.zip`: 18,944,467 bytes.
+
+2026-09-01 numeric-model taxonomy fix:
+
+- Root cause proven: PHP converts numeric-only string keys such as `2008` to
+  integers; strict taxonomy ID generation previously rejected that key type.
+- Focused taxonomy PHP test: passed, including numeric-only model preservation.
+- `npm test`: passed, including all PHP admin suites and 59 Node tests.
+- `npm run lint`: passed without warnings.
+- `npm run typecheck`: passed.
+- `npm run release:staging`: passed; all 140 static pages generated and the
+  corrected taxonomy runtime is present in `release/staging/admin-api/`.
+- `npm run verify:output`: passed.
+- PHP syntax checks for taxonomy runtime and endpoint: passed.
+- Refreshed `kalite-filo-staging.zip`: 18,943,511 bytes.
 
 2026-08-31 Phase 7 vehicle materialization continuation:
 
@@ -1237,6 +1310,23 @@ still excludes missing consent and unsubscribed rows. No recipient list is sent
 to the browser and no delivery endpoint is packaged.
 
 ## Session Handoff
+
+2026-09-01 vehicle UI handoff: All Vehicles and Published Vehicles share one
+deterministically brand-grouped horizontal card renderer. The card itself is a
+keyboard-accessible button and its visible Edit treatment is an affordance, not
+a second nested control. The editor tracks user input as dirty and routes
+backdrop, Close and Escape dismissal through the same confirmation guard. Next
+deploy the refreshed staging ZIP and execute the three interaction smoke tests
+listed under Next Tasks before marking the browser behavior complete.
+
+2026-09-01 taxonomy root-cause handoff: cPanel's missing
+`data/drafts/vehicle-taxonomy.json` is expected and must not be created manually.
+The failure came from existing Peugeot model names `2008`/`3008`, whose numeric
+string keys PHP converts to integers. The runtime now casts taxonomy labels back
+to strings before hashing and returning them; regression coverage includes
+`2008`. Deploy the refreshed ZIP over the same staging document root, log in,
+open `/admin-api/tags.php`, and confirm five populated groups. Only the first
+successful custom-tag mutation should create the private taxonomy JSON.
 
 2026-08-31 Phase 7 vehicle-adapter handoff: public featured order now lives in
 `src/data/featured-vehicle-ids.json` and is validated against the 32-record

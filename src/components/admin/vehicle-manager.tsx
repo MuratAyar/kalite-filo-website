@@ -1,7 +1,7 @@
 /* eslint-disable @next/next/no-img-element */
 "use client";
 
-import { FormEvent, useEffect, useMemo, useState } from "react";
+import { FormEvent, useCallback, useEffect, useMemo, useState } from "react";
 import { TagGroups, vehicleTagLabels } from "./tag-manager";
 
 type Media = { id: string; alt: string; creator: string; sourcePage: string; licenseName: string; licenseUrl: string };
@@ -31,6 +31,7 @@ export function VehicleManager({ csrfToken, publishedOnly }: { csrfToken: string
   const [revisions, setRevisions] = useState<VehicleRevision[]>([]);
   const [revisionsLoading, setRevisionsLoading] = useState(false);
   const [error, setError] = useState("");
+  const [dirty, setDirty] = useState(false);
 
   async function load() {
     try {
@@ -49,7 +50,12 @@ export function VehicleManager({ csrfToken, publishedOnly }: { csrfToken: string
   // Initial network synchronization intentionally populates this client-only admin view.
   // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => { void load(); }, []);
-  const shown = useMemo(() => items.filter((vehicle) => (!publishedOnly || vehicle.publicationStatus === "published") && (!make || vehicle.make === make) && (!segment || vehicle.segmentLabel === segment) && `${vehicle.make} ${vehicle.model} ${vehicle.trim}`.toLocaleLowerCase("tr").includes(query.toLocaleLowerCase("tr"))), [items, publishedOnly, make, segment, query]);
+  const shown = useMemo(() => items.filter((vehicle) => (!publishedOnly || vehicle.publicationStatus === "published") && (!make || vehicle.make === make) && (!segment || vehicle.segmentLabel === segment) && `${vehicle.make} ${vehicle.model} ${vehicle.trim}`.toLocaleLowerCase("tr").includes(query.toLocaleLowerCase("tr"))).sort((left, right) => left.make.localeCompare(right.make, "tr", { sensitivity: "base" }) || left.model.localeCompare(right.model, "tr", { sensitivity: "base" }) || left.trim.localeCompare(right.trim, "tr", { sensitivity: "base" })), [items, publishedOnly, make, segment, query]);
+  const grouped = useMemo(() => {
+    const groups = new Map<string, Vehicle[]>();
+    for (const vehicle of shown) groups.set(vehicle.make, [...(groups.get(vehicle.make) ?? []), vehicle]);
+    return [...groups.entries()];
+  }, [shown]);
 
   async function save(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -64,7 +70,7 @@ export function VehicleManager({ csrfToken, publishedOnly }: { csrfToken: string
       const mediaResponse = await fetch("/admin-api/media.php", { method: "POST", credentials: "same-origin", headers: { "X-CSRF-Token": csrfToken }, body: form });
       if (!mediaResponse.ok) { setError("Araç kaydedildi ancak görsel yüklenemedi."); await load(); return; }
     }
-    setEditing(null); setCreating(false); await load();
+    setDirty(false); setEditing(null); setCreating(false); await load();
   }
 
   async function removeImage() {
@@ -74,7 +80,7 @@ export function VehicleManager({ csrfToken, publishedOnly }: { csrfToken: string
   }
 
   async function openEditor(vehicle: Vehicle) {
-    setEditing(vehicle); setCreating(false); setRevisions([]); setRevisionsLoading(true);
+    setDirty(false); setEditing(vehicle); setCreating(false); setRevisions([]); setRevisionsLoading(true);
     try {
       const response = await fetch(`/admin-api/vehicle-revisions.php?id=${encodeURIComponent(vehicle.id)}`, { credentials: "same-origin", cache: "no-store" });
       const payload = await response.json();
@@ -88,14 +94,27 @@ export function VehicleManager({ csrfToken, publishedOnly }: { csrfToken: string
     return typeof vehicle.priceAmountMinor === "number" ? String(vehicle.priceAmountMinor / 100) : "";
   }
 
+  const closeEditor = useCallback(() => {
+    if (dirty && !window.confirm("Kaydedilmemiş değişiklikleriniz var. Düzenleme ekranını kapatmak istediğinizden emin misiniz?")) return;
+    setDirty(false); setEditing(null); setCreating(false);
+  }, [dirty]);
+
+  useEffect(() => {
+    if (!editing && !creating) return;
+    const handleKeyDown = (event: KeyboardEvent) => { if (event.key === "Escape") closeEditor(); };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [editing, creating, closeEditor]);
+
   const formVehicle = editing ?? ({ publicationStatus: "unpublished" } as Vehicle);
   const controlledFields = Object.entries(vehicleTagLabels);
   return <section className="mt-8">
-    <div className="flex justify-between gap-4"><h2 className="text-heading-md">{publishedOnly ? "Yayındaki Araçlar" : "Tüm Araçlar"}</h2><button className="rounded-control bg-accent-orange px-5 font-semibold" onClick={() => setCreating(true)}>Yeni Araç</button></div>
+    <div className="flex justify-between gap-4"><h2 className="text-heading-md">{publishedOnly ? "Yayındaki Araçlar" : "Tüm Araçlar"}</h2><button className="rounded-control bg-accent-orange px-5 font-semibold" onClick={() => { setDirty(false); setEditing(null); setCreating(true); }}>Yeni Araç</button></div>
     <div className="mt-6 grid gap-3 rounded-card border bg-white p-4 md:grid-cols-3"><input className={fieldClass} onChange={(event) => setQuery(event.target.value)} placeholder="Marka, model veya donanım ara"/><select className={fieldClass} onChange={(event) => setMake(event.target.value)}><option value="">Tüm markalar</option>{(tags.make ?? []).map((tag) => <option key={tag.id} value={tag.value}>{tag.value}</option>)}</select><select className={fieldClass} onChange={(event) => setSegment(event.target.value)}><option value="">Tüm segmentler</option>{(tags.segmentLabel ?? []).map((tag) => <option key={tag.id} value={tag.value}>{tag.value}</option>)}</select></div>
     {error ? <p className="mt-4 text-error">{error}</p> : null}
-    <div className="mt-6 grid gap-5 md:grid-cols-2 xl:grid-cols-3">{shown.map((vehicle) => { const source = vehicle.draftMedia ? `/admin-api/media-file.php?id=${vehicle.draftMedia.id}` : vehicle.coverImage?.src; return <article className="overflow-hidden rounded-card border bg-white" key={vehicle.id}><div className="aspect-video bg-surface-muted">{source ? <img className="size-full object-cover" src={source} alt={vehicle.draftMedia?.alt ?? vehicle.coverImage?.alt ?? ""}/> : null}</div><div className="p-5"><p className="text-sm text-text-secondary">{vehicle.make} · {vehicle.segmentLabel}</p><h3 className="text-lg font-bold">{vehicle.model}</h3><p>{vehicle.trim}</p><p className="mt-3 font-semibold">{vehicle.priceAmountMinor ? `${new Intl.NumberFormat("tr-TR").format(vehicle.priceAmountMinor / 100)} TL + KDV / ay` : "Fiyat girilmemiş"}</p><button className="mt-4 w-full rounded-control border p-2" onClick={() => void openEditor(vehicle)}>Düzenle</button></div></article>; })}</div>
-    {(editing || creating) ? <div className="fixed inset-0 z-50 overflow-y-auto bg-brand-navy/70 p-4"><form className="mx-auto my-8 max-w-3xl rounded-card bg-white p-6" onSubmit={save}><div className="flex justify-between"><h3 className="text-heading-md">{editing ? "Aracı Düzenle" : "Yeni Araç"}</h3><button type="button" onClick={() => { setEditing(null); setCreating(false); }}>Kapat</button></div><div className="mt-6 grid gap-4 sm:grid-cols-2">
+    <div className="mt-7 space-y-8">{grouped.map(([brand, vehicles]) => <section key={brand}><div className="mb-4 flex items-center gap-3"><h3 className="text-xl font-bold text-brand-navy">{brand}</h3><span className="rounded-pill bg-surface-muted px-3 py-1 text-xs font-semibold text-text-secondary">{vehicles.length} araç</span><span aria-hidden="true" className="h-px flex-1 bg-border-subtle"/></div><div className="grid gap-5 lg:grid-cols-2">{vehicles.map((vehicle) => { const source = vehicle.draftMedia ? `/admin-api/media-file.php?id=${vehicle.draftMedia.id}` : vehicle.coverImage?.src; return <button aria-label={`${vehicle.make} ${vehicle.model} aracını düzenle`} className="group grid w-full overflow-hidden rounded-card border border-border-subtle bg-surface-card text-left transition hover:border-corporate-blue hover:shadow-md focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-corporate-blue sm:grid-cols-[12rem_1fr]" key={vehicle.id} onClick={() => void openEditor(vehicle)} type="button"><div className="aspect-video bg-surface-muted sm:aspect-auto">{source ? <img className="size-full object-cover" src={source} alt={vehicle.draftMedia?.alt ?? vehicle.coverImage?.alt ?? ""}/> : <span className="grid size-full min-h-36 place-items-center text-sm text-text-secondary">Araç görseli yok</span>}</div><div className="p-5"><div className="flex flex-wrap items-center gap-2"><span className="rounded-pill bg-surface-muted px-3 py-1 text-xs font-semibold">{vehicle.categoryLabel}</span><span className={`rounded-pill px-3 py-1 text-xs font-semibold ${vehicle.publicationStatus === "published" ? "bg-success-surface text-success" : "bg-surface-muted text-text-secondary"}`}>{vehicle.publicationStatus === "published" ? "Yayında" : "Yayında değil"}</span></div><h4 className="mt-3 text-lg font-bold text-brand-navy">{vehicle.model}</h4><p className="mt-1 line-clamp-2 text-sm text-text-secondary">{vehicle.trim}</p><div className="mt-4 flex flex-wrap gap-x-3 gap-y-1 text-xs text-text-secondary"><span>{vehicle.segmentLabel}</span><span>{vehicle.fuelLabel}</span><span>{vehicle.transmissionLabel}</span><span>{vehicle.modelYearLabel}</span></div><div className="mt-4 flex items-end justify-between gap-4"><p className="font-semibold text-brand-navy">{vehicle.priceAmountMinor ? `${new Intl.NumberFormat("tr-TR").format(vehicle.priceAmountMinor / 100)} TL + KDV / ay` : "Fiyat girilmemiş"}</p><span className="shrink-0 rounded-control border border-corporate-blue px-3 py-2 text-xs font-semibold text-corporate-blue group-hover:bg-corporate-blue group-hover:text-white">Düzenle</span></div></div></button>; })}</div></section>)}</div>
+    {!shown.length ? <p className="mt-6 rounded-card border border-border-subtle bg-surface-card p-6 text-text-secondary">Bu filtrelere uygun araç bulunamadı.</p> : null}
+    {(editing || creating) ? <div className="fixed inset-0 z-50 overflow-y-auto bg-brand-navy/75 p-3" onMouseDown={(event) => { if (event.target === event.currentTarget) closeEditor(); }}><form className="mx-auto my-5 max-w-6xl rounded-card bg-page p-5 sm:p-7" onInput={() => setDirty(true)} onSubmit={save}><div className="flex items-start justify-between gap-4"><div><p className="text-sm font-semibold text-corporate-blue">Araç yönetimi</p><h3 className="mt-1 text-heading-md">{editing ? "Aracı Düzenle" : "Yeni Araç"}</h3></div><button className="rounded-control border border-border-control px-4 py-2 font-semibold" type="button" onClick={closeEditor}>Kapat</button></div><div className="mt-6 grid gap-4 sm:grid-cols-2">
       {controlledFields.map(([name, label]) => <label className="text-sm font-semibold" key={name}>{label} *<select className={fieldClass} defaultValue={String(formVehicle[name] ?? "")} name={name} required><option value="">Seçin</option>{(tags[name] ?? []).map((tag) => <option key={tag.id} value={tag.value}>{tag.value}</option>)}</select></label>)}
       {[['trim', 'Donanım', true], ['modelYearLabel', 'Model yılı', true], ['transmissionLabel', 'Şanzıman', true], ['slug', 'Slug', true], ['powerHp', 'Motor gücü', false], ['seats', 'Koltuk sayısı', false]].map(([name, label, required]) => <label className="text-sm font-semibold" key={String(name)}>{label}{required ? " *" : ""}<input className={fieldClass} defaultValue={String(formVehicle[String(name)] ?? "")} name={String(name)} required={Boolean(required)}/></label>)}
       <label className="text-sm font-semibold">Aylık liste-net fiyatı (TL)<input className={fieldClass} defaultValue={priceTry(formVehicle)} inputMode="numeric" min="1" name="priceAmountTry" placeholder="40200" step="1" type="number"/></label>
