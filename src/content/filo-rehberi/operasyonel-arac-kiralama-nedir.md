@@ -1,19 +1,16 @@
 ---
+article_id: "operasyonel-arac-kiralama-nedir"
+locale: "tr"
 title: "Operasyonel Araç Kiralama Nedir? Şirketler İçin Kapsamlı Rehber"
 slug: "operasyonel-arac-kiralama-nedir"
-category: "Uzun Dönem Kiralama"
+category_id: "uzun-donem-kiralama"
 featured: true
-publish_date: "2026-08-13"
-reading_time: "7 dk."
+publication_status: "ready"
+published_at: "2026-08-13"
+reading_minutes: 7
+cover_alt: "Havadan çekilmiş, sıralar halinde park edilmiş otomobiller"
 seo_title: "Operasyonel Araç Kiralama Nedir? Şirketler İçin Rehber | Kalite Filo"
 meta_description: "Operasyonel araç kiralamanın nasıl çalıştığını, satın almadan farklarını, şirketlere sağladığı operasyonel avantajları ve doğru kiralama modelinin nasıl seçileceğini öğrenin."
-hero_image_brief: "Modern bir kurumsal ofis önünde aynı segmentte düzenli şekilde park edilmiş beyaz ve gri şirket araçları. Ön planda filo yöneticisi ve şirket temsilcisi araçları inceliyor."
-hero_alt: "Kurumsal şirket filosunda operasyonel kiralama kapsamında kullanılan araçlar"
-tags:
-  - "Operasyonel Kiralama"
-  - "Uzun Dönem Kiralama"
-  - "Filo Yönetimi"
-  - "Kurumsal Araç Kiralama"
 ---
 
 # Operasyonel Araç Kiralama Nedir? Şirketler İçin Kapsamlı Rehber

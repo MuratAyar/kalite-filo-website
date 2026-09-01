@@ -1,3 +1,18 @@
+---
+article_id: "operasyonel-arac-kiralama-nedir"
+locale: "en"
+title: "What Is Operational Vehicle Leasing? A Comprehensive Guide for Companies"
+slug: "what-is-operational-vehicle-leasing"
+category_id: "uzun-donem-kiralama"
+featured: true
+publication_status: "ready"
+published_at: "2026-08-13"
+reading_minutes: 7
+cover_alt: "Aerial view of cars parked in organised rows"
+seo_title: "What Is Operational Vehicle Leasing? A Comprehensive Guide for Companies | Kalite Filo"
+meta_description: "Understand how long-term vehicle leasing works and how it can help companies manage cost, maintenance, operations and residual-value risk."
+---
+
 ## The operating model
 
 Operational vehicle leasing gives a company the right to use a vehicle for an agreed term and mileage without purchasing it. The monthly rental is built around the selected vehicle, contract duration, expected distance and included services. Ownership and the vehicle's residual-value risk normally remain with the leasing provider, subject to the agreement.

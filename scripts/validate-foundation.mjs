@@ -1217,14 +1217,18 @@ export function validateHomeInteractionLayouts(html) {
 
 export function validateHomeFeaturedVehiclePrices(
   html,
-  expectedListPricesTry = Object.fromEntries(
-    ["KF-001", "KF-002", "KF-003", "KF-004"].map((sourceId) => [
-      sourceId,
-      JSON.parse(readFileSync(vehicleListPricePath, "utf8")).amountsMinor[
-        sourceId
-      ] / 100,
-    ]),
-  ),
+  expectedListPricesTry = (() => {
+    const featuredIds = JSON.parse(readFileSync(featuredVehicleIdsPath, "utf8"));
+    const portfolio = JSON.parse(readFileSync(vehiclePortfolioPath, "utf8"));
+    const amounts = JSON.parse(readFileSync(vehicleListPricePath, "utf8")).amountsMinor;
+    const recordsById = new Map(portfolio.map((record) => [record.id, record]));
+    return Object.fromEntries(featuredIds.map((id) => {
+      const sourceId = recordsById.get(id)?.sourceId;
+      const amountMinor = sourceId ? amounts[sourceId] : undefined;
+      if (!sourceId || !Number.isInteger(amountMinor)) fail("Featured vehicle price source is incomplete.");
+      return [sourceId, amountMinor / 100];
+    }));
+  })(),
 ) {
   const mainHtml = html.match(/<main\b[\s\S]*?<\/main>/i)?.[0];
   const sectionHtml = mainHtml?.match(

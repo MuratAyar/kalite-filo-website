@@ -1,19 +1,16 @@
 ---
+article_id: "filo-toplam-sahip-olma-maliyeti-tco"
+locale: "tr"
 title: "Filo Maliyetleri Nasıl Hesaplanır? TCO ile Gerçek Araç Maliyetini Görmek"
 slug: "filo-toplam-sahip-olma-maliyeti-tco"
-category: "Maliyet ve Finans"
+category_id: "maliyet-ve-finans"
 featured: false
-publish_date: "2026-08-11"
-reading_time: "8 dk."
+publication_status: "ready"
+published_at: "2026-08-11"
+reading_minutes: 8
+cover_alt: "Hesap makinesi, ABD doları banknotları ve otomobil anahtarı"
 seo_title: "Filo TCO Hesaplama: Şirket Araçlarının Gerçek Maliyeti | Kalite Filo"
 meta_description: "Filo toplam sahip olma maliyeti TCO nedir? Yakıt, bakım, değer kaybı, finansman ve operasyon maliyetleriyle şirket araçlarının gerçek maliyetini hesaplayın."
-hero_image_brief: "Masa üzerinde filo maliyet tabloları ve dizüstü bilgisayarda araç maliyet dashboard'u inceleyen filo yöneticisi."
-hero_alt: "Şirket araç filosunun toplam sahip olma maliyetini analiz eden filo yöneticisi"
-tags:
-  - "TCO"
-  - "Filo Maliyeti"
-  - "Maliyet Analizi"
-  - "Operasyonel Kiralama"
 ---
 
 # Filo Maliyetleri Nasıl Hesaplanır? TCO ile Gerçek Araç Maliyetini Görmek

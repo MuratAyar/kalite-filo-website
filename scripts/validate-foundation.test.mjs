@@ -774,6 +774,8 @@ const approvedVehicleListPrices = JSON.parse(
     "utf8",
   ),
 ).amountsMinor;
+const featuredVehicleIds = JSON.parse(readFileSync(path.join(repositoryRoot, "src", "data", "featured-vehicle-ids.json"), "utf8"));
+const vehicleSourceIdsById = new Map(JSON.parse(readFileSync(path.join(repositoryRoot, "src", "data", "vehicle-portfolio.json"), "utf8")).map((record) => [record.id, record.sourceId]));
 
 function createVehiclePriceMarkup(amountMinor) {
   const amountTry = amountMinor / 100;
@@ -854,7 +856,8 @@ test("formats owner-approved list-net prices deterministically", () => {
 });
 
 test("locks Home featured vehicle prices to the approved source", () => {
-  const cards = ["KF-001", "KF-002", "KF-003", "KF-004"]
+  const featuredSourceIds = featuredVehicleIds.map((id) => vehicleSourceIdsById.get(id));
+  const cards = featuredSourceIds
     .map((sourceId) => {
       const amountMinor = approvedVehicleListPrices[sourceId];
       const slug = sourceId.toLowerCase();
@@ -870,7 +873,7 @@ test("locks Home featured vehicle prices to the approved source", () => {
   assert.throws(
     () =>
       validateHomeFeaturedVehiclePrices(
-        html.replace('data-monthly-list-net-price-try="40200"', 'data-monthly-list-net-price-try="40100"'),
+        html.replace(`data-monthly-list-net-price-try="${approvedVehicleListPrices[featuredSourceIds[0]] / 100}"`, 'data-monthly-list-net-price-try="1"'),
       ),
     /incorrect approved list price/,
   );

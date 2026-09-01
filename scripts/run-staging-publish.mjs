@@ -10,7 +10,14 @@ const stages = ["materialization", "validation", "build", "release", "deployment
 const hashFile = (file) => createHash("sha256").update(readFileSync(file)).digest("hex");
 function fail(message) { throw new Error(`Staging publish runner failed: ${message}`); }
 function argument(name) { const index = process.argv.indexOf(name); return index >= 0 ? process.argv[index + 1] : undefined; }
-function command(binary, args, cwd) { const result = spawnSync(binary, args, { cwd, encoding: "utf8", stdio: "inherit", windowsHide: true }); if (result.status !== 0) fail(`${binary} ${args.join(" ")} exited with ${result.status ?? "unknown"}`); }
+export function command(binary, args, cwd, spawn = spawnSync) {
+  const windowsCommand = process.platform === "win32" && binary.toLowerCase().endsWith(".cmd");
+  const executable = windowsCommand ? process.env.ComSpec ?? "cmd.exe" : binary;
+  const commandArgs = windowsCommand ? ["/d", "/s", "/c", [binary, ...args].join(" ")] : args;
+  const result = spawn(executable, commandArgs, { cwd, encoding: "utf8", stdio: "inherit", windowsHide: true });
+  if (result.error) fail(`${binary} could not start: ${result.error.message}`);
+  if (result.status !== 0) fail(`${binary} ${args.join(" ")} exited with ${result.status ?? "unknown"}`);
+}
 export function runnerStages(failedStage = null, releaseReady = false) { const failedIndex = failedStage === null ? -1 : stages.indexOf(failedStage); if (failedStage !== null && failedIndex < 0) fail("invalid failed stage"); return Object.fromEntries(stages.map((stage, index) => [stage, failedStage === null ? releaseReady && index < 4 ? "passed" : "skipped" : index < failedIndex ? "passed" : index === failedIndex ? "failed" : "skipped"])); }
 export function writeRunnerResult(target, request, outcome, stageResults, manifestHash = null, artifactHash = null, summary = null) { const result = { schemaVersion: 1, requestId: request.id, snapshotHash: request.snapshotHash, outcome, manifestHash, artifactHash, stages: stageResults, summary, createdAt: new Date().toISOString() }; mkdirSync(path.dirname(target), { recursive: true }); writeFileSync(target, `${JSON.stringify(result, null, 2)}\n`, "utf8"); return result; }
 

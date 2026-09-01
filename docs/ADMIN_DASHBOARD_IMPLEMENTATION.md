@@ -23,6 +23,32 @@ also requests rollback. Only a fully passed deployment writes bounded
 `succeeded` evidence; the actual remote run remains pending operator SSH
 configuration and therefore no live publish request has been marked successful.
 
+Operational diagnostic on 2026-09-01: cPanel confirms the account user
+`kal67efilocomtr`, server label `cpanel16-web-host-cl` and shared IP
+`31.186.11.46`; it does not provide an externally reachable SSH hostname or
+port. From the operator workstation the server label did not resolve publicly
+and `31.186.11.46:22` did not accept a TCP connection within five seconds.
+The generated public key is not sufficient for workstation authentication: the
+public key must be authorized in cPanel and the private key must be downloaded
+to the workstation without being committed or shared. No deployment attempt was
+made and the frozen request remains `awaiting_runner`.
+
+Follow-up evidence from cPanel Terminal identifies the FQDN as
+`cpanel16-web-host-cl.turkticaret.net`, which resolves to `31.186.11.46`, and
+confirms the account user. The FQDN also did not accept an external TCP
+connection on port 22 within five seconds. The provider must therefore confirm
+the SSH port and any source-IP firewall/hosting-package restriction before the
+staging transport can be executed.
+
+Security incident on 2026-09-01: an operator accidentally disclosed the
+contents of a private SSH deployment key in a chat message. The key material is
+not recorded in this repository or this document and must not be used. The
+corresponding cPanel key must be revoked/deleted, local downloaded copies
+removed after revocation, and a new passphrase-protected key generated and
+authorized. The replacement private key must remain only on the operator
+workstation or SSH agent; it must never be pasted into chat, source control,
+browser fields or environment files.
+
 The 2026-09-01 Phase 7 local-runner orchestration pass adds
 `run-staging-publish.mjs`. It accepts one downloaded frozen request plus an
 explicit private-media root, produces and verifies the complete review set,
@@ -1180,6 +1206,16 @@ rollback reference and submit the produced bounded result through the existing
 authenticated runner-result flow. Do not mark Phase 7 operationally complete
 until the live HTTPS smoke result is recorded here.
 
+Hosting support must first supply or enable the public SSH hostname/port for the
+account; the observed cPanel server label/IP is not currently reachable over
+port 22 from the operator workstation.
+
+The confirmed hostname is `cpanel16-web-host-cl.turkticaret.net`; its port 22
+remains unreachable externally, so do not assume the standard port.
+
+Before any SSH test, revoke the accidentally disclosed key and use only a newly
+generated replacement key.
+
 Deploy and staging-smoke-test subscriber resubscription, modal validation,
 three-state date sorting and the live Dashboard draft-content metric.
 
@@ -1239,6 +1275,14 @@ the still-required Phase 2/3 staging smoke tests before closing those phases.
   automated HTTPS smoke verification; credentials remain external secrets.
 - [ ] Configure the external staging SSH values, execute one real deployment,
   verify retained rollback state and submit the bounded terminal result.
+- [ ] Obtain/enable the external SSH hostname and port; authorize the generated
+  public key and download the corresponding private key only to the operator
+  workstation.
+- [x] Determine the external SSH hostname from cPanel Terminal:
+  `cpanel16-web-host-cl.turkticaret.net`.
+- [ ] Revoke the accidentally disclosed cPanel deployment key, remove local
+  copies after revocation and generate/authorize a replacement key without
+  sharing its private material.
 
 - [ ] Deploy the refreshed staging ZIP; edit the previously unsubscribed test
   contact back to an active status and verify its unsubscribe date becomes
@@ -1384,6 +1428,9 @@ the still-required Phase 2/3 staging smoke tests before closing those phases.
   initial request and staging deployment transport are now selected.
 - Production deployment transport and secret names. Staging uses the documented
   external `KALITE_FILO_STAGING_*` OpenSSH variables.
+- Whether SSH access is available on the current hosting package and, if so,
+  its externally reachable hostname/port. Port 22 at the supplied shared IP was
+  unreachable from the operator workstation during the 2026-09-01 check.
 - Verified production PHP modules (`fileinfo`, image functions, PDO drivers) and
   cPanel Cron PHP CLI path/environment handling.
 - Admin hostname policy: same `/admin/` path on both origins is planned; an
@@ -1422,6 +1469,10 @@ Current 2026-09-01 Phase 7 staging-transport continuation:
 - `scripts/deploy-staging-artifact.mjs` (new)
 - `scripts/deploy-staging-artifact.test.mjs` (new)
 - `deploy/staging/README.md` (new)
+- `docs/ADMIN_DASHBOARD_IMPLEMENTATION.md`
+
+Current 2026-09-01 Phase 7 SSH-access diagnostic:
+
 - `docs/ADMIN_DASHBOARD_IMPLEMENTATION.md`
 
 Current 2026-09-01 Phase 7 local-runner/admin-publishing UX continuation:
@@ -1725,6 +1776,18 @@ Current Phase 6 test-mail continuation:
 - `git diff --check`: passed; only expected line-ending notices were reported.
 - No SSH upload or live staging mutation was attempted because external cPanel
   SSH target/key configuration was not supplied to this session.
+
+2026-09-01 Phase 7 SSH-access diagnostic:
+
+- Public cPanel server label resolution and TCP connection to the supplied shared
+  IP on port 22 were attempted read-only; neither yielded a usable SSH endpoint.
+- cPanel Terminal later confirmed the public FQDN. It resolves to the supplied
+  IP, but the FQDN's port 22 is also unreachable from the operator workstation.
+- No credential, private key, upload, deployment or production operation was
+  attempted.
+- A private SSH key was accidentally pasted into a chat message after the
+  diagnostic. It was not used or stored in the repository; revocation and
+  replacement are required before deployment can continue.
 
 2026-09-01 Phase 7 local-runner/admin-publishing UX continuation:
 
@@ -2121,6 +2184,31 @@ against cPanel. Next configure the operator's SSH agent and the documented
 `KALITE_FILO_STAGING_*` values, perform one controlled live staging deployment,
 confirm rollback retention, then submit the produced result from the Publishing
 Center. Do not enable production or delete the retained rollback yet.
+
+2026-09-01 SSH-access diagnostic handoff: cPanel-generated public key metadata
+was supplied, but the matching private key has not been downloaded to the
+operator workstation and external SSH access is unverified. `cpanel16-web-host-cl`
+did not resolve publicly and `31.186.11.46:22` was unreachable from this
+workstation. Ask the hosting provider for the exact external SSH hostname and
+port, confirmation that key authentication is enabled for `kal67efilocomtr`,
+and whether `rsync`, `unzip`, `sha256sum` and `realpath` are available. Then
+authorize the public key, download the private key locally and run the documented
+connection test before any staging deployment.
+
+2026-09-01 SSH-key security handoff: do not use the previously generated key;
+its private material was disclosed outside the intended workstation boundary.
+In cPanel revoke/delete that key, then generate and authorize a replacement.
+Do not share the replacement private key or passphrase. Continue only after the
+hosting provider supplies a reachable external SSH hostname/port and the new
+key authenticates locally.
+
+2026-09-01 hostname follow-up: use
+`cpanel16-web-host-cl.turkticaret.net` as the provider-confirmed candidate
+hostname, not the short cPanel server label. It resolves correctly but external
+port 22 is blocked/unreachable, so ask TURKTİCARET for the active SSH port and
+whether the operator's source IP must be allowlisted. Keep the publish request
+in `awaiting_runner` and do not try deployment until a new, undisclosed key and
+successful local SSH test exist.
 
 2026-09-01 Phase 7 local-runner/UI handoff: `run-staging-publish.mjs` composes
 the reviewed materializer and application adapters. Without `--apply` it only

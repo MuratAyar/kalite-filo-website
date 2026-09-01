@@ -2,6 +2,20 @@
   "schemaVersion": 1,
   "records": [
     {
+      "vehicleId": "kf-005",
+      "fileName": "skoda-kamiq.jpg",
+      "width": 960,
+      "height": 600,
+      "alt": "Škoda Kamiq model ailesini temsil eden SUV; donanım ve renk farklı olabilir",
+      "creator": "Alexander Migl",
+      "sourcePage": "https://commons.wikimedia.org/wiki/File:%C5%A0koda_Kamiq_Facelift_IMG_8638.jpg",
+      "licenseName": "CC BY-SA 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
+      "localDerivativeNote": "Wikimedia Commons'taki dosyanın 960 piksel genişliğindeki türevi yerelleştirildi; görsel model ailesini temsil eder, donanım ve renk farklı olabilir.",
+      "checksum": "a5b452c69a8e12519b02cb314c57d0fe21a43fdba7c4fc054f1d5b1ba995b935",
+      "sourceKind": "repository"
+    },
+    {
       "vehicleId": "kf-001",
       "fileName": "renault-clio.jpg",
       "width": 960,
@@ -12,20 +26,8 @@
       "licenseName": "CC BY-SA 4.0",
       "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
       "localDerivativeNote": "Wikimedia Commons'taki dosyanın 960 piksel genişliğindeki türevi yerelleştirildi; görsel model ailesini temsil eder, donanım ve renk farklı olabilir.",
-      "checksum": "cb64de388b827de14d958cdc2c45764521c9b57f3e6424f381035c80e89e2880"
-    },
-    {
-      "vehicleId": "kf-002",
-      "fileName": "hyundai-i20.jpg",
-      "width": 960,
-      "height": 496,
-      "alt": "Beyaz Hyundai i20 hatchback; donanım ve renk temsilidir",
-      "creator": "Alexander Migl",
-      "sourcePage": "https://commons.wikimedia.org/wiki/File:Hyundai_i20_(BC3)_Facelift_IMG_8591.jpg",
-      "licenseName": "CC BY-SA 4.0",
-      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
-      "localDerivativeNote": "Wikimedia Commons'taki dosyanın 960 piksel genişliğindeki türevi yerelleştirildi; görsel model ailesini temsil eder, donanım ve renk farklı olabilir.",
-      "checksum": "788d05f76a0274f4cf6a5b2b5cc64f5554c4da0d653a7373d77f8795874c1aa5"
+      "checksum": "cb64de388b827de14d958cdc2c45764521c9b57f3e6424f381035c80e89e2880",
+      "sourceKind": "repository"
     },
     {
       "vehicleId": "kf-003",
@@ -38,7 +40,8 @@
       "licenseName": "CC BY-SA 4.0",
       "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
       "localDerivativeNote": "Wikimedia Commons'taki dosyanın 960 piksel genişliğindeki türevi yerelleştirildi; görsel model ailesini temsil eder, donanım ve renk farklı olabilir.",
-      "checksum": "4a28fda529999b225191406a65e16472196c7063e2aac32568cab2cfb24dcb9e"
+      "checksum": "4a28fda529999b225191406a65e16472196c7063e2aac32568cab2cfb24dcb9e",
+      "sourceKind": "repository"
     },
     {
       "vehicleId": "kf-004",
@@ -51,20 +54,22 @@
       "licenseName": "CC BY 2.0",
       "licenseUrl": "https://creativecommons.org/licenses/by/2.0/",
       "localDerivativeNote": "Commons'taki kırpılmış ve plakası bulanıklaştırılmış güncel dosyanın 960 piksel türevi yerelleştirildi; Tipo/Egea gövde ailesini temsil eder.",
-      "checksum": "0f7acf1483c70063a19fac06a21e3977ee57471ef83bec79955e9a20bd47e9bb"
+      "checksum": "0f7acf1483c70063a19fac06a21e3977ee57471ef83bec79955e9a20bd47e9bb",
+      "sourceKind": "repository"
     },
     {
-      "vehicleId": "kf-005",
-      "fileName": "skoda-kamiq.jpg",
+      "vehicleId": "kf-002",
+      "fileName": "hyundai-i20.jpg",
       "width": 960,
-      "height": 600,
-      "alt": "Škoda Kamiq model ailesini temsil eden SUV; donanım ve renk farklı olabilir",
+      "height": 496,
+      "alt": "Beyaz Hyundai i20 hatchback; donanım ve renk temsilidir",
       "creator": "Alexander Migl",
-      "sourcePage": "https://commons.wikimedia.org/wiki/File:%C5%A0koda_Kamiq_Facelift_IMG_8638.jpg",
+      "sourcePage": "https://commons.wikimedia.org/wiki/File:Hyundai_i20_(BC3)_Facelift_IMG_8591.jpg",
       "licenseName": "CC BY-SA 4.0",
       "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
       "localDerivativeNote": "Wikimedia Commons'taki dosyanın 960 piksel genişliğindeki türevi yerelleştirildi; görsel model ailesini temsil eder, donanım ve renk farklı olabilir.",
-      "checksum": "a5b452c69a8e12519b02cb314c57d0fe21a43fdba7c4fc054f1d5b1ba995b935"
+      "checksum": "788d05f76a0274f4cf6a5b2b5cc64f5554c4da0d653a7373d77f8795874c1aa5",
+      "sourceKind": "repository"
     },
     {
       "vehicleId": "kf-006",
@@ -77,7 +82,8 @@
       "licenseName": "CC BY-SA 4.0",
       "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
       "localDerivativeNote": "Wikimedia Commons'taki dosyanın 960 piksel genişliğindeki türevi yerelleştirildi; görsel model ailesini temsil eder, donanım ve renk farklı olabilir.",
-      "checksum": "cbeeeff1ae24028372d80a31d6aee295d3e98c2a0933788fd884fcf6a9a5fa42"
+      "checksum": "cbeeeff1ae24028372d80a31d6aee295d3e98c2a0933788fd884fcf6a9a5fa42",
+      "sourceKind": "repository"
     },
     {
       "vehicleId": "kf-007",
@@ -90,7 +96,8 @@
       "licenseName": "CC BY-SA 4.0",
       "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
       "localDerivativeNote": "Wikimedia Commons'taki dosyanın 960 piksel genişliğindeki türevi yerelleştirildi; görsel model ailesini temsil eder, donanım ve renk farklı olabilir.",
-      "checksum": "b1b9bd8a47ba74269c513213af56bc58c0f82b7e40310aed93c3ab99fba6ee70"
+      "checksum": "b1b9bd8a47ba74269c513213af56bc58c0f82b7e40310aed93c3ab99fba6ee70",
+      "sourceKind": "repository"
     },
     {
       "vehicleId": "kf-008",
@@ -103,7 +110,8 @@
       "licenseName": "CC BY-SA 4.0",
       "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
       "localDerivativeNote": "Wikimedia Commons'taki dosyanın 960 piksel genişliğindeki türevi yerelleştirildi; görsel model ailesini temsil eder, donanım ve renk farklı olabilir.",
-      "checksum": "7dd5b861e8140a64eabf543703d3b379ed4c73f1206c4f9cee84c5a2046bd7e4"
+      "checksum": "7dd5b861e8140a64eabf543703d3b379ed4c73f1206c4f9cee84c5a2046bd7e4",
+      "sourceKind": "repository"
     },
     {
       "vehicleId": "kf-009",
@@ -116,7 +124,8 @@
       "licenseName": "CC BY-SA 4.0",
       "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
       "localDerivativeNote": "Wikimedia Commons'taki dosyanın 960 piksel genişliğindeki türevi yerelleştirildi; görsel model ailesini temsil eder, donanım ve renk farklı olabilir.",
-      "checksum": "164435704a96c96e6b63c322ef50f7f7ced475102a2cc78e65a06b1be5c0fc01"
+      "checksum": "164435704a96c96e6b63c322ef50f7f7ced475102a2cc78e65a06b1be5c0fc01",
+      "sourceKind": "repository"
     },
     {
       "vehicleId": "kf-010",
@@ -129,7 +138,8 @@
       "licenseName": "CC BY-SA 4.0",
       "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
       "localDerivativeNote": "Wikimedia Commons'taki dosyanın 960 piksel genişliğindeki türevi yerelleştirildi; görsel model ailesini temsil eder, donanım ve renk farklı olabilir.",
-      "checksum": "d77156ccb32d87b3f61743a6d9eecfdcec9549ef566468b55bf0b48eedfbb16b"
+      "checksum": "d77156ccb32d87b3f61743a6d9eecfdcec9549ef566468b55bf0b48eedfbb16b",
+      "sourceKind": "repository"
     },
     {
       "vehicleId": "kf-011",
@@ -142,7 +152,8 @@
       "licenseName": "CC BY-SA 3.0 DE",
       "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0/de/deed.en",
       "localDerivativeNote": "Wikimedia Commons'taki dosyanın 960 piksel genişliğindeki türevi yerelleştirildi; görsel model ailesini temsil eder, donanım ve renk farklı olabilir.",
-      "checksum": "7d6b25e978e775ee91f8f6345a4f0eff755178f09ce40b591d4176e3957c3b85"
+      "checksum": "7d6b25e978e775ee91f8f6345a4f0eff755178f09ce40b591d4176e3957c3b85",
+      "sourceKind": "repository"
     },
     {
       "vehicleId": "kf-012",
@@ -155,7 +166,8 @@
       "licenseName": "CC BY 4.0",
       "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
       "localDerivativeNote": "Wikimedia Commons'taki dosyanın 960 piksel genişliğindeki türevi yerelleştirildi; görsel model ailesini temsil eder, donanım ve renk farklı olabilir.",
-      "checksum": "d1e810305d999763bcf32f825691fc385db14940878c45559f9a8e0d9ec1834e"
+      "checksum": "d1e810305d999763bcf32f825691fc385db14940878c45559f9a8e0d9ec1834e",
+      "sourceKind": "repository"
     },
     {
       "vehicleId": "kf-013",
@@ -168,7 +180,8 @@
       "licenseName": "CC BY-SA 4.0",
       "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
       "localDerivativeNote": "Wikimedia Commons'taki dosyanın 960 piksel genişliğindeki türevi yerelleştirildi; görsel model ailesini temsil eder, donanım ve renk farklı olabilir.",
-      "checksum": "887938fb58df6962163e10edb0e429491de99cb0efe701ca80ac01ff136d8c31"
+      "checksum": "887938fb58df6962163e10edb0e429491de99cb0efe701ca80ac01ff136d8c31",
+      "sourceKind": "repository"
     },
     {
       "vehicleId": "kf-014",
@@ -181,7 +194,8 @@
       "licenseName": "CC0 1.0",
       "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/deed.en",
       "localDerivativeNote": "Wikimedia Commons'taki dosyanın 960 piksel genişliğindeki türevi yerelleştirildi; görsel model ailesini temsil eder, donanım ve renk farklı olabilir.",
-      "checksum": "539fea5bdda43670bc3387d830c0b145555fc299756bd1295b92b4e6ed263bd2"
+      "checksum": "539fea5bdda43670bc3387d830c0b145555fc299756bd1295b92b4e6ed263bd2",
+      "sourceKind": "repository"
     },
     {
       "vehicleId": "kf-016",
@@ -194,7 +208,8 @@
       "licenseName": "CC BY-SA 4.0",
       "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
       "localDerivativeNote": "Wikimedia Commons'taki dosyanın 960 piksel genişliğindeki türevi yerelleştirildi; görsel model ailesini temsil eder, donanım ve renk farklı olabilir.",
-      "checksum": "660817c16fa544be5b1984084b56fe609fc1200014de7c2b76d3d0820a6e1585"
+      "checksum": "660817c16fa544be5b1984084b56fe609fc1200014de7c2b76d3d0820a6e1585",
+      "sourceKind": "repository"
     },
     {
       "vehicleId": "kf-017",
@@ -207,7 +222,8 @@
       "licenseName": "CC BY-SA 4.0",
       "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
       "localDerivativeNote": "Wikimedia Commons'taki dosyanın 960 piksel genişliğindeki türevi yerelleştirildi; görsel model ailesini temsil eder, donanım ve renk farklı olabilir.",
-      "checksum": "e03e8373c9f93ed7ef8ef6f86ac7d3d454df8876b622c54ecef0311daed363b3"
+      "checksum": "e03e8373c9f93ed7ef8ef6f86ac7d3d454df8876b622c54ecef0311daed363b3",
+      "sourceKind": "repository"
     },
     {
       "vehicleId": "kf-018",
@@ -220,7 +236,8 @@
       "licenseName": "CC BY-SA 4.0",
       "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
       "localDerivativeNote": "Wikimedia Commons'taki dosyanın 960 piksel genişliğindeki türevi yerelleştirildi; görsel model ailesini temsil eder, donanım ve renk farklı olabilir.",
-      "checksum": "a616b55bb861d4d5b1042b9bacbd5c8b2498bc7c9a1206567369d970cfa8f0b7"
+      "checksum": "a616b55bb861d4d5b1042b9bacbd5c8b2498bc7c9a1206567369d970cfa8f0b7",
+      "sourceKind": "repository"
     },
     {
       "vehicleId": "kf-019",
@@ -233,7 +250,8 @@
       "licenseName": "CC0 1.0",
       "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/deed.en",
       "localDerivativeNote": "Wikimedia Commons'taki dosyanın 960 piksel genişliğindeki türevi yerelleştirildi; görsel model ailesini temsil eder, donanım ve renk farklı olabilir.",
-      "checksum": "5517abfb8fcd0b947a309e2f984e0116ea94aa08c6fa917b69b038229d53876c"
+      "checksum": "5517abfb8fcd0b947a309e2f984e0116ea94aa08c6fa917b69b038229d53876c",
+      "sourceKind": "repository"
     },
     {
       "vehicleId": "kf-020",
@@ -246,7 +264,8 @@
       "licenseName": "CC BY-SA 4.0",
       "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
       "localDerivativeNote": "Wikimedia Commons'taki dosyanın 960 piksel genişliğindeki türevi yerelleştirildi; görsel model ailesini temsil eder, donanım ve renk farklı olabilir.",
-      "checksum": "c28fe22de816c51945da51f08552b75b9a2b4410a500669df963e21e1849583c"
+      "checksum": "c28fe22de816c51945da51f08552b75b9a2b4410a500669df963e21e1849583c",
+      "sourceKind": "repository"
     },
     {
       "vehicleId": "kf-021",
@@ -259,7 +278,8 @@
       "licenseName": "CC BY 2.0",
       "licenseUrl": "https://creativecommons.org/licenses/by/2.0/",
       "localDerivativeNote": "Wikimedia Commons'taki dosyanın 960 piksel genişliğindeki türevi yerelleştirildi; görsel model ailesini temsil eder, donanım ve renk farklı olabilir.",
-      "checksum": "10132bc4d2e92f272fa098a7e0ba088eecd9f31fb648478b512d73eb567e1e0d"
+      "checksum": "10132bc4d2e92f272fa098a7e0ba088eecd9f31fb648478b512d73eb567e1e0d",
+      "sourceKind": "repository"
     },
     {
       "vehicleId": "kf-022",
@@ -272,7 +292,8 @@
       "licenseName": "CC BY-SA 4.0",
       "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
       "localDerivativeNote": "Wikimedia Commons'taki dosyanın 960 piksel genişliğindeki türevi yerelleştirildi; görsel model ailesini temsil eder, donanım ve renk farklı olabilir.",
-      "checksum": "37de618b54a00e40b5783acfa31c39bb718c5c4ca0a6f39cde2e799e783021a7"
+      "checksum": "37de618b54a00e40b5783acfa31c39bb718c5c4ca0a6f39cde2e799e783021a7",
+      "sourceKind": "repository"
     },
     {
       "vehicleId": "kf-023",
@@ -285,7 +306,8 @@
       "licenseName": "CC BY-SA 4.0",
       "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
       "localDerivativeNote": "Wikimedia Commons'taki dosyanın 960 piksel genişliğindeki türevi yerelleştirildi; görsel model ailesini temsil eder, donanım ve renk farklı olabilir.",
-      "checksum": "714c249515d1ca55296f3cfec3322a91e3ac22c7468b480213f41639f42e3fce"
+      "checksum": "714c249515d1ca55296f3cfec3322a91e3ac22c7468b480213f41639f42e3fce",
+      "sourceKind": "repository"
     },
     {
       "vehicleId": "kf-024",
@@ -298,7 +320,8 @@
       "licenseName": "CC BY-SA 4.0",
       "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
       "localDerivativeNote": "Wikimedia Commons'taki dosyanın 960 piksel genişliğindeki türevi yerelleştirildi; görsel model ailesini temsil eder, donanım ve renk farklı olabilir.",
-      "checksum": "4c983afe319c78041fb0858f7bf360b8b3c3609e98a93edd3a1daa4a8f4caa90"
+      "checksum": "4c983afe319c78041fb0858f7bf360b8b3c3609e98a93edd3a1daa4a8f4caa90",
+      "sourceKind": "repository"
     },
     {
       "vehicleId": "kf-025",
@@ -311,7 +334,8 @@
       "licenseName": "CC BY-SA 4.0",
       "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
       "localDerivativeNote": "Wikimedia Commons'taki dosyanın 960 piksel genişliğindeki türevi yerelleştirildi; görsel model ailesini temsil eder, donanım ve renk farklı olabilir.",
-      "checksum": "cc9e82102bd3b9eba68b8d9aeb3bfff70e791cbe0e115077c9b857b08b6706a4"
+      "checksum": "cc9e82102bd3b9eba68b8d9aeb3bfff70e791cbe0e115077c9b857b08b6706a4",
+      "sourceKind": "repository"
     },
     {
       "vehicleId": "kf-027",
@@ -324,7 +348,8 @@
       "licenseName": "CC BY-SA 4.0",
       "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
       "localDerivativeNote": "Wikimedia Commons'taki dosyanın 960 piksel genişliğindeki türevi yerelleştirildi; görsel model ailesini temsil eder, donanım ve renk farklı olabilir.",
-      "checksum": "4fa90371a452213a4946e13d78cb593e2bd3b31a1e7674c17cbf64b3b6c2a076"
+      "checksum": "4fa90371a452213a4946e13d78cb593e2bd3b31a1e7674c17cbf64b3b6c2a076",
+      "sourceKind": "repository"
     },
     {
       "vehicleId": "kf-028",
@@ -337,7 +362,8 @@
       "licenseName": "CC BY-SA 4.0",
       "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
       "localDerivativeNote": "Wikimedia Commons'taki dosyanın 960 piksel genişliğindeki türevi yerelleştirildi; görsel model ailesini temsil eder, donanım ve renk farklı olabilir.",
-      "checksum": "99819b70378cc68b588194eca5c5aac468d2e7971248d6385d00d83b8af3e6f0"
+      "checksum": "99819b70378cc68b588194eca5c5aac468d2e7971248d6385d00d83b8af3e6f0",
+      "sourceKind": "repository"
     },
     {
       "vehicleId": "kf-029",
@@ -350,7 +376,8 @@
       "licenseName": "CC0 1.0",
       "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/deed.en",
       "localDerivativeNote": "Wikimedia Commons'taki dosyanın 960 piksel genişliğindeki türevi yerelleştirildi; görsel model ailesini temsil eder, donanım ve renk farklı olabilir.",
-      "checksum": "1b128cada9d1669f50d54482b7475556a2631c1b247c93553cba2dc3de9e7cab"
+      "checksum": "1b128cada9d1669f50d54482b7475556a2631c1b247c93553cba2dc3de9e7cab",
+      "sourceKind": "repository"
     },
     {
       "vehicleId": "kf-032",
@@ -363,7 +390,8 @@
       "licenseName": "CC BY-SA 4.0",
       "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
       "localDerivativeNote": "Wikimedia Commons'taki dosyanın 960 piksel genişliğindeki türevi yerelleştirildi; görsel model ailesini temsil eder, donanım ve renk farklı olabilir.",
-      "checksum": "6717b1889e798f9bbbfba9abff98685c516506ddc9787be3118289f2d3cf4319"
+      "checksum": "6717b1889e798f9bbbfba9abff98685c516506ddc9787be3118289f2d3cf4319",
+      "sourceKind": "repository"
     }
   ]
 }

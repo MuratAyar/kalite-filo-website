@@ -1,3 +1,18 @@
+---
+article_id: "filo-toplam-sahip-olma-maliyeti-tco"
+locale: "en"
+title: "How to Calculate Fleet Costs: Seeing the True Cost with TCO"
+slug: "calculating-fleet-total-cost-of-ownership"
+category_id: "maliyet-ve-finans"
+featured: false
+publication_status: "ready"
+published_at: "2026-08-11"
+reading_minutes: 8
+cover_alt: "Calculator, US dollar banknotes and a car key"
+seo_title: "How to Calculate Fleet Costs: Seeing the True Cost with TCO | Kalite Filo"
+meta_description: "A company vehicle costs more than its purchase price or monthly rental. Explore every element that contributes to total cost of ownership."
+---
+
 ## Why monthly price is not enough
 
 Total cost of ownership (TCO) measures every material cost created by a vehicle over the period in which the business uses it. Purchase price or monthly rental is only the starting point. Financing, taxes, insurance, fuel or electricity, maintenance, tyres, damage, administration and downtime can change the result substantially.

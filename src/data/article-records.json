@@ -3,7 +3,7 @@
     "id": "operasyonel-arac-kiralama-nedir",
     "slug": "operasyonel-arac-kiralama-nedir",
     "title": "Operasyonel Araç Kiralama Nedir? Şirketler İçin Kapsamlı Rehber",
-    "excerpt": "Şirket araçlarını satın almak yerine uzun dönem kiralamanın nasıl çalıştığını; maliyet, operasyon, bakım ve ikinci el riski açısından sunduğu avantajlarla birlikte inceleyin.",
+    "excerpt": "Şirket araçlarını satın almak yerine uzun dönem kiralamanın nasıl çalıştığını; maliyet, operasyon, bakım ve ikinci el riski açısından sunduğu avantajlarla birlikte inceleyelim!",
     "categoryId": "uzun-donem-kiralama",
     "tagIds": [
       "operasyonel-kiralama",
@@ -14,6 +14,7 @@
     "publishedAt": "2026-08-13",
     "readingMinutes": 7,
     "featured": true,
+    "coverAlt": "Havadan çekilmiş, sıralar halinde park edilmiş otomobiller",
     "coverImage": {
       "src": "/images/filo-rehberi/01-operasyonel-arac-kiralama.webp",
       "alt": "Havadan çekilmiş, sıralar halinde park edilmiş otomobiller",
@@ -30,7 +31,7 @@
     "id": "filo-toplam-sahip-olma-maliyeti-tco",
     "slug": "filo-toplam-sahip-olma-maliyeti-tco",
     "title": "Filo Maliyetleri Nasıl Hesaplanır? TCO ile Gerçek Araç Maliyetini Görmek",
-    "excerpt": "Bir şirket aracının maliyeti satın alma veya kira bedelinden ibaret değildir. TCO yaklaşımıyla filonuzun gerçek maliyetini oluşturan kalemleri inceleyin.",
+    "excerpt": "Bir şirket aracının maliyeti satın alma veya kira bedelinden ibaret değildir. TCO yaklaşımıyla filonuzun gerçek maliyetini oluşturan kalemleri inceleyelim!",
     "categoryId": "maliyet-ve-finans",
     "tagIds": [
       "tco",
@@ -41,6 +42,7 @@
     "publishedAt": "2026-08-11",
     "readingMinutes": 8,
     "featured": false,
+    "coverAlt": "Hesap makinesi, ABD doları banknotları ve otomobil anahtarı",
     "coverImage": {
       "src": "/images/filo-rehberi/02-filo-tco-maliyet.webp",
       "alt": "Hesap makinesi, ABD doları banknotları ve otomobil anahtarı",

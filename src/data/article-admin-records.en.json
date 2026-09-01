@@ -1,1 +1,36 @@
-[]
+[
+  {
+    "sourceArticleId": "filo-toplam-sahip-olma-maliyeti-tco",
+    "slug": "calculating-fleet-total-cost-of-ownership",
+    "title": "How to Calculate Fleet Costs: Seeing the True Cost with TCO",
+    "excerpt": "A company vehicle costs more than its purchase price or monthly rental. Explore every element that contributes to total cost of ownership.",
+    "categoryId": "cost-and-finance",
+    "publishedAt": "2026-08-11",
+    "readingMinutes": 8,
+    "featured": false,
+    "coverAlt": "Calculator, US dollar banknotes and a car key",
+    "coverImage": null,
+    "contentKey": "calculating-fleet-total-cost-of-ownership-en",
+    "seo": {
+      "title": "How to Calculate Fleet Costs: Seeing the True Cost with TCO | Kalite Filo",
+      "description": "A company vehicle costs more than its purchase price or monthly rental. Explore every element that contributes to total cost of ownership."
+    }
+  },
+  {
+    "sourceArticleId": "operasyonel-arac-kiralama-nedir",
+    "slug": "what-is-operational-vehicle-leasing",
+    "title": "What Is Operational Vehicle Leasing? A Comprehensive Guide for Companies",
+    "excerpt": "Understand how long-term vehicle leasing works and how it can help companies manage cost, maintenance, operations and residual-value risk.",
+    "categoryId": "long-term-leasing",
+    "publishedAt": "2026-08-13",
+    "readingMinutes": 7,
+    "featured": true,
+    "coverAlt": "Aerial view of cars parked in organised rows",
+    "coverImage": null,
+    "contentKey": "what-is-operational-vehicle-leasing-en",
+    "seo": {
+      "title": "What Is Operational Vehicle Leasing? A Comprehensive Guide for Companies | Kalite Filo",
+      "description": "Understand how long-term vehicle leasing works and how it can help companies manage cost, maintenance, operations and residual-value risk."
+    }
+  }
+]
