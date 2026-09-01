@@ -8,6 +8,26 @@ the status and handoff sections before ending.
 
 ## Current Status
 
+The 2026-09-01 Phase 7 local-runner orchestration pass adds
+`run-staging-publish.mjs`. It accepts one downloaded frozen request plus an
+explicit private-media root, produces and verifies the complete review set,
+prints the controlled repository plan and stops with `plan_ready` unless the
+operator also supplies `--apply`, external backup and artifact paths.
+
+Apply mode reuses the transactional application adapter, then runs the existing
+`lint`, `typecheck`, `test`, `release:staging` and output verification commands.
+It packages the existing `release/staging/` output and writes a bounded local
+result containing request/snapshot identity, manifest/artifact SHA-256 and stage
+statuses. Its maximum success is deliberately `release_ready`: deployment and
+smoke remain `skipped`, no remote upload occurs and no admin request is silently
+marked deployed.
+
+The Publishing navigation action is now sticky at the bottom of the admin
+sidebar. `Staging Talebi Oluştur` remains visually unavailable when there are
+no unpublished changes but retains an accessible click response that displays
+`Henüz yayınlanacak bir güncelleme yapılmadı.` without opening the confirmation
+prompt or calling the PHP mutation endpoint.
+
 The 2026-09-01 Phase 7 canonical-article-registry pass closes the gap between
 review-only localized article output and the public static generator. The
 materializer now merges ready Turkish records by stable ID into the complete
@@ -698,6 +718,12 @@ the failed stage and may omit an artifact when release never completed. These
 records report operator-observed outcomes; they do not themselves run or repeat
 any build/deployment command.
 
+The local orchestrator does not duplicate the public build implementation. It
+calls the existing quality scripts and `release:staging`, then packages that
+release. `plan_ready` means no repository mutation; `release_ready` means only
+that a verified artifact exists locally. Neither is accepted as deployment or
+smoke-test success without the later explicit transport step.
+
 Repository application is a separate local CLI boundary. Its plan includes the
 path action, before/after SHA-256 and size for every manifested output. Only the
 five reviewed data JSON contracts, localized Filo Rehberi Markdown and
@@ -842,6 +868,14 @@ leave private storage. Stored change summaries are deliberately excluded.
 - [ ] **Phase 10:** security/accessibility/responsive audit and full regression
 
 ## Completed Tasks
+
+- [x] Added a plan-first local staging runner that composes frozen snapshot
+  materialization, manifest verification, transactional apply and existing
+  quality/release commands without duplicating build logic.
+- [x] Added bounded `plan_ready`, fail-closed stage evidence and `release_ready`
+  result files with manifest/artifact hashes while leaving deploy/smoke skipped.
+- [x] Kept `Yayına Al` sticky at the sidebar bottom and added an accessible
+  no-change warning without issuing an empty staging request.
 
 - [x] Added stable-ID canonical Turkish article registry merge that preserves
   unaffected published records, existing tags and verified covers.
@@ -1101,12 +1135,12 @@ leave private storage. Stored change summaries are deliberately excluded.
 
 ## Current Task
 
-Continue Phase 7 with a local staging-runner orchestration command that consumes
-one frozen request, materializes and verifies the review set, prints/applies the
-controlled repository plan, runs the existing lint/typecheck/test and
-`release:staging` commands without duplicating build logic, then emits a bounded
-result JSON containing manifest/artifact hashes and stage outcomes. Deployment
-must remain a separate explicit step until its transport is selected.
+Continue Phase 7 by selecting and implementing the explicit staging artifact
+deployment transport plus automated HTTPS smoke checks. The operation must
+consume only a `release_ready` artifact, verify its SHA-256 before transfer,
+target only the staging document root, preserve rollback state and report
+deployment/smoke results without exposing cPanel credentials. Until that
+transport is configured, local runner output must stop at `release_ready`.
 
 Deploy and staging-smoke-test subscriber resubscription, modal validation,
 three-state date sorting and the live Dashboard draft-content metric.
@@ -1161,6 +1195,10 @@ the still-required Phase 2/3 staging smoke tests before closing those phases.
 - [x] Convert localized article materialization into the existing canonical
   build registry while preserving unaffected published content and explicit
   missing-translation semantics.
+- [x] Add local plan/apply/validate/release orchestration with bounded
+  `release_ready` evidence and no implicit deployment.
+- [ ] Select and implement staging-only artifact transport, rollback capture and
+  automated HTTPS smoke verification; credentials remain external secrets.
 
 - [ ] Deploy the refreshed staging ZIP; edit the previously unsubscribed test
   contact back to an active status and verify its unsubscribe date becomes
@@ -1336,6 +1374,15 @@ src/app/robots.ts                          (update)
 ```
 
 ## Files Changed
+
+Current 2026-09-01 Phase 7 local-runner/admin-publishing UX continuation:
+
+- `scripts/run-staging-publish.mjs` (new)
+- `scripts/run-staging-publish.test.mjs` (new)
+- `src/components/admin/admin-app.tsx`
+- `src/components/admin/publishing-center.tsx`
+- `docs/ADMIN_DASHBOARD_IMPLEMENTATION.md`
+- `kalite-filo-staging.zip`
 
 Current 2026-09-01 Phase 7 canonical-article-registry continuation:
 
@@ -1614,6 +1661,22 @@ Current Phase 6 test-mail continuation:
 - `server/admin-api/tests/media-store.test.php`
 
 ## Validation Results
+
+2026-09-01 Phase 7 local-runner/admin-publishing UX continuation:
+
+- `npm run lint`: passed without warnings.
+- `npm run typecheck`: passed.
+- `npm test`: passed; 74 Node tests and all project-owned PHP suites passed.
+- Runner tests verify `release_ready` never claims deployment/smoke, ordered
+  fail-closed stage evidence and request/snapshot-bound result persistence.
+- The real-worktree `--apply` path was deliberately not executed without a
+  downloaded frozen request and isolated backup/review inputs.
+- `npm run release:staging`: passed; all 140 static pages generated and the
+  admin navigation/no-change UX compiled successfully.
+- `npm run verify:output`: passed.
+- `git diff --check`: passed; yalnızca beklenen satır sonu bildirimleri raporlandı.
+- Refreshed `kalite-filo-staging.zip`: 18,955,843 bytes; SHA-256
+  `C8C4D4CE44EECD434D1BFFA3E3B31E4B444CC773522B2BC1721F28CF16745F7E`.
 
 2026-09-01 Phase 7 canonical-article-registry continuation:
 
@@ -1983,6 +2046,16 @@ still excludes missing consent and unsubscribed rows. No recipient list is sent
 to the browser and no delivery endpoint is packaged.
 
 ## Session Handoff
+
+2026-09-01 Phase 7 local-runner/UI handoff: `run-staging-publish.mjs` composes
+the reviewed materializer and application adapters. Without `--apply` it only
+prints a plan and writes `plan_ready`; apply additionally requires external
+backup/artifact paths, runs existing quality/release commands and stops at
+`release_ready` with deployment/smoke skipped. Do not map `release_ready` to the
+server's terminal success or add credentials to this script. `Yayına Al` is
+sticky at the sidebar bottom; an empty change set displays the requested warning
+and sends no publish request. Next choose the staging-only deployment transport,
+external secret names, rollback capture and HTTPS smoke contract.
 
 2026-09-01 Phase 7 canonical-article-registry handoff: review output now writes
 the complete merged `src/data/article-records.json`, the explicit

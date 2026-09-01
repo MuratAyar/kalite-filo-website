@@ -635,7 +635,7 @@ export function AdminApp() {
             Denetim Kaydı
           </button>
         </nav>
-        <button className={`mt-6 flex min-h-12 w-full items-center justify-center rounded-control bg-accent-orange px-4 text-label font-bold text-on-accent shadow-lg transition hover:bg-orange-dark ${view === "publishing" ? "ring-2 ring-white/70 ring-offset-2 ring-offset-brand-navy" : ""}`} onClick={() => setView("publishing")}>Yayına Al</button>
+        <button className={`sticky bottom-4 mt-6 flex min-h-12 w-full items-center justify-center rounded-control bg-accent-orange px-4 text-label font-bold text-on-accent shadow-lg transition hover:bg-orange-dark ${view === "publishing" ? "ring-2 ring-white/70 ring-offset-2 ring-offset-brand-navy" : ""}`} onClick={() => setView("publishing")}>Yayına Al</button>
       </aside>
       <main className="px-gutter py-8 lg:py-10">
         <header className="flex flex-col gap-5 border-b border-border-subtle pb-6 sm:flex-row sm:items-center sm:justify-between">
