@@ -1,7 +1,7 @@
 /* eslint-disable @next/next/no-img-element */
 "use client";
 
-import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
+import { FormEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 type TranslationState = { complete: boolean; slug?: string | null };
 type Article = {
@@ -98,6 +98,7 @@ export function ArticleListView({
   const [previewing, setPreviewing] = useState(false);
   const [importingId, setImportingId] = useState<string | null>(null);
   const [revisions, setRevisions] = useState<Revision[]>([]);
+  const [dirty, setDirty] = useState(false);
   const formRef = useRef<HTMLFormElement>(null);
   async function load() {
     try {
@@ -152,6 +153,7 @@ export function ArticleListView({
     [articles, query, category, translation],
   );
   async function openDraft(draft: Draft) {
+    setDirty(false);
     setEditing(draft);
     setCreating(false);
     setLocale("tr");
@@ -224,6 +226,7 @@ export function ArticleListView({
       );
       return;
     }
+    setDirty(false);
     setEditing(null);
     setCreating(false);
     setPreviewHtml("");
@@ -293,6 +296,26 @@ export function ArticleListView({
       setImportingId(null);
     }
   }
+  const closeEditor = useCallback(() => {
+    if (
+      dirty &&
+      !window.confirm(
+        "Kaydedilmemiş değişiklikleriniz var. Düzenleme ekranını kapatmak istediğinizden emin misiniz?",
+      )
+    )
+      return;
+    setDirty(false);
+    setEditing(null);
+    setCreating(false);
+  }, [dirty]);
+  useEffect(() => {
+    if (!editing && !creating) return;
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") closeEditor();
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [editing, creating, closeEditor]);
   const formDraft =
     editing ??
     ({
@@ -317,6 +340,7 @@ export function ArticleListView({
           <button
             className="min-h-11 rounded-control bg-accent-orange px-5 font-semibold"
             onClick={() => {
+              setDirty(false);
               setCreating(true);
               setEditing(null);
               setLocale("tr");
@@ -393,10 +417,23 @@ export function ArticleListView({
             );
             return (
               <article
-                className="grid overflow-hidden rounded-card border border-border-subtle bg-surface-card sm:grid-cols-[12rem_1fr]"
+                className="group relative grid overflow-hidden rounded-card border border-border-subtle bg-surface-card transition hover:border-corporate-blue hover:shadow-md sm:grid-cols-[12rem_1fr]"
                 key={article.id}
               >
-                <div className="aspect-video bg-surface-muted sm:aspect-auto">
+                {canEdit ? (
+                  <button
+                    aria-label={`${article.title} içeriğini ${existingDraft ? "düzenle" : "private draft'a aktar"}`}
+                    className="absolute inset-0 z-10 rounded-card focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-corporate-blue disabled:cursor-wait"
+                    disabled={importingId === article.id}
+                    onClick={() =>
+                      existingDraft
+                        ? void openDraft(existingDraft)
+                        : void importPublished(article)
+                    }
+                    type="button"
+                  />
+                ) : null}
+                <div className="pointer-events-none relative aspect-video bg-surface-muted sm:aspect-auto">
                   {article.coverImage ? (
                     <img
                       alt={article.coverImage.alt}
@@ -409,7 +446,7 @@ export function ArticleListView({
                     </div>
                   )}
                 </div>
-                <div className="p-5">
+                <div className="pointer-events-none relative p-5">
                   <span className="rounded-pill bg-surface-muted px-3 py-1 text-xs font-semibold">
                     {categoryLabels[article.categoryId] ?? article.categoryId}
                   </span>
@@ -433,22 +470,13 @@ export function ArticleListView({
                       Yayındaki kaynak · salt okunur
                     </span>
                     {canEdit ? (
-                      <button
-                        className="ml-auto rounded-control border border-corporate-blue px-3 py-2 font-semibold text-corporate-blue"
-                        disabled={importingId === article.id}
-                        onClick={() =>
-                          existingDraft
-                            ? void openDraft(existingDraft)
-                            : void importPublished(article)
-                        }
-                        type="button"
-                      >
+                      <span className="ml-auto rounded-control border border-corporate-blue px-3 py-2 font-semibold text-corporate-blue group-hover:bg-corporate-blue group-hover:text-white">
                         {existingDraft
                           ? "Draft’ı Düzenle"
                           : importingId === article.id
                             ? "Aktarılıyor…"
                             : "Private Draft’a Aktar"}
-                      </button>
+                      </span>
                     ) : null}
                   </div>
                 </div>
@@ -458,10 +486,16 @@ export function ArticleListView({
         </div>
       ) : null}
       {creating || editing ? (
-        <div className="fixed inset-0 z-50 overflow-y-auto bg-brand-navy/75 p-3">
+        <div
+          className="fixed inset-0 z-50 overflow-y-auto bg-brand-navy/75 p-3"
+          onMouseDown={(event) => {
+            if (event.target === event.currentTarget) closeEditor();
+          }}
+        >
           <form
             className="mx-auto my-5 max-w-6xl rounded-card bg-page p-5 sm:p-7"
             key={formDraft.id}
+            onInput={() => setDirty(true)}
             onSubmit={save}
             ref={formRef}
           >
@@ -476,10 +510,7 @@ export function ArticleListView({
               </div>
               <button
                 type="button"
-                onClick={() => {
-                  setEditing(null);
-                  setCreating(false);
-                }}
+                onClick={closeEditor}
               >
                 Kapat
               </button>

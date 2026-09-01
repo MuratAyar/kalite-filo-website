@@ -8,6 +8,13 @@ the status and handoff sections before ending.
 
 ## Current Status
 
+The 2026-09-01 Filo Rehberi interaction pass makes each complete published
+content card the edit/import trigger, matching vehicle cards without nesting
+interactive controls. Existing private drafts open directly; repository-backed
+records retain the explicit import confirmation boundary. The article editor
+now shares backdrop/Close/Escape dismissal and unsaved-change confirmation with
+the vehicle editor.
+
 The 2026-09-01 vehicle operations UI now presents both all and published
 vehicles in the same horizontal two-column visual language as Filo Rehberi.
 Records are always ordered and grouped by Turkish A–Z brand headings, then by
@@ -590,6 +597,11 @@ leave private storage. Stored change summaries are deliberately excluded.
 
 ## Completed Tasks
 
+- [x] Made complete Filo Rehberi cards accessible edit/import triggers while
+  retaining explicit confirmation before repository content becomes a draft.
+- [x] Added article editor backdrop/Close/Escape dismissal with shared
+  unsaved-change confirmation behavior.
+
 - [x] Redesigned all/published vehicle cards as horizontal two-column admin
   operation cards aligned with the Filo Rehberi card language.
 - [x] Added deterministic Turkish A–Z brand grouping with model/trim ordering.
@@ -758,6 +770,9 @@ leave private storage. Stored change summaries are deliberately excluded.
 
 ## Current Task
 
+Deploy and smoke-test the completed Filo Rehberi card/editor interaction update
+on HTTPS staging.
+
 Deploy and smoke-test the completed vehicle card/editor interaction update on
 HTTPS staging, including filtered and published-only result sets.
 
@@ -795,6 +810,13 @@ implemented; next smoke-test staging dry-run before any live delivery. In parall
 the still-required Phase 2/3 staging smoke tests before closing those phases.
 
 ## Next Tasks
+
+- [ ] On refreshed staging, click the image, title and empty card area of an
+  existing Filo Rehberi draft and confirm each opens the correct editor.
+- [ ] Click a published record without a draft and confirm the existing import
+  approval remains required before its editor opens.
+- [ ] Modify an article field and verify backdrop click, Close and Escape each
+  show confirmation; Cancel must preserve the editor and Confirm must close it.
 
 - [ ] On refreshed staging, confirm complete vehicle cards open the correct
   editor by mouse and keyboard in both All Vehicles and Published Vehicles.
@@ -937,6 +959,12 @@ src/app/robots.ts                          (update)
 ```
 
 ## Files Changed
+
+Current 2026-09-01 Filo Rehberi interaction continuation:
+
+- `src/components/admin/article-list-view.tsx`
+- `docs/ADMIN_DASHBOARD_IMPLEMENTATION.md`
+- `kalite-filo-staging.zip`
 
 Current 2026-09-01 vehicle operations UI continuation:
 
@@ -1104,6 +1132,15 @@ Current Phase 6 test-mail continuation:
 - `server/admin-api/tests/media-store.test.php`
 
 ## Validation Results
+
+2026-09-01 Filo Rehberi interaction continuation:
+
+- `npm run lint`: passed without warnings.
+- `npm run typecheck`: passed.
+- `npm test`: passed; 59 Node tests and all project-owned PHP suites passed.
+- `npm run release:staging`: passed; all 140 static pages generated.
+- `npm run verify:output`: passed.
+- Refreshed `kalite-filo-staging.zip`: 18,945,856 bytes.
 
 2026-09-01 vehicle operations UI continuation:
 
@@ -1310,6 +1347,13 @@ still excludes missing consent and unsubscribed rows. No recipient list is sent
 to the browser and no delivery endpoint is packaged.
 
 ## Session Handoff
+
+2026-09-01 Filo Rehberi interaction handoff: a full-card overlay button now
+routes published cards to either an existing draft editor or the already
+required explicit import flow. Visual card content remains non-interactive
+inside that single accessible control. Article forms track actual input and use
+one confirmation guard for backdrop, Close and Escape dismissal. Deploy the
+refreshed ZIP and complete the three browser checks listed under Next Tasks.
 
 2026-09-01 vehicle UI handoff: All Vehicles and Published Vehicles share one
 deterministically brand-grouped horizontal card renderer. The card itself is a
