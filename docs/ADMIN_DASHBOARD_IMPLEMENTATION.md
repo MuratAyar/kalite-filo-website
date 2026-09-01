@@ -8,6 +8,21 @@ the status and handoff sections before ending.
 
 ## Current Status
 
+The 2026-09-01 Phase 7 staging-transport pass adds a staging-only OpenSSH
+deployment adapter. It consumes only hash-matching `release_ready` evidence,
+uses external SSH agent/key configuration, rejects every document root except
+the canonical cPanel staging path shape and never accepts a password or secret
+through the admin browser.
+
+The remote operation preflights `sha256sum`, `unzip`, `rsync` and `realpath`,
+verifies the uploaded artifact again, captures the complete current staging
+document root beneath the account-private deploy root and restores it if the
+transfer fails. HTTPS smoke checks cover Home, `/admin/`, fail-closed staging
+robots and the unauthenticated/no-store staging session contract. Smoke failure
+also requests rollback. Only a fully passed deployment writes bounded
+`succeeded` evidence; the actual remote run remains pending operator SSH
+configuration and therefore no live publish request has been marked successful.
+
 The 2026-09-01 Phase 7 local-runner orchestration pass adds
 `run-staging-publish.mjs`. It accepts one downloaded frozen request plus an
 explicit private-media root, produces and verifies the complete review set,
@@ -741,6 +756,16 @@ uploads `release/staging/` to the staging document root and reports a signed or
 authenticated result to the private publish record. Smoke checks must pass before
 the snapshot becomes production-eligible.
 
+The initial transport is `scripts/deploy-staging-artifact.mjs` on the trusted
+operator workstation using OpenSSH `BatchMode`. Its external variables are
+`KALITE_FILO_STAGING_SSH_TARGET`, `KALITE_FILO_STAGING_DOCUMENT_ROOT`,
+`KALITE_FILO_STAGING_REMOTE_WORK_ROOT`, and optional SSH port/key values. The
+document root is restricted to `/home/<account>/staging.kalitefilo.com.tr`; the
+remote work root is restricted to the account-private
+`private/kalite-filo-deploy/staging` path. Timestamp/request-addressed rollback
+directories are retained outside the web root. Production is deliberately not
+supported by this adapter.
+
 ## Production Deployment Model
 
 Production publish is disabled until staging workflow, target isolation,
@@ -861,13 +886,26 @@ leave private storage. Stored change summaries are deliberately excluded.
       rejection and external recoverable backup
     - [x] Merge localized records into canonical TR registry and explicit EN
       overlay consumed by the static generator
-  - [ ] Run existing staging build/release commands and report safe status
-  - [ ] Deploy staging artifact and complete automated smoke verification
+  - [x] Run existing staging build/release commands and emit bounded
+    `release_ready` status locally
+  - [x] Implement staging-only artifact transport, rollback capture and
+    automated HTTPS smoke verification
+  - [ ] Execute the transport against cPanel staging and report the authenticated
+    terminal result
 - [ ] **Phase 8:** production publish, rollback and version history
 - [ ] **Phase 9:** request inbox, Site Settings and remaining operations
 - [ ] **Phase 10:** security/accessibility/responsive audit and full regression
 
 ## Completed Tasks
+
+- [x] Added a staging-only OpenSSH transport that verifies the existing
+  `release_ready` artifact hash locally and remotely without storing credentials.
+- [x] Added private rollback capture, automatic transfer-failure restoration and
+  restoration request after failed HTTPS smoke.
+- [x] Added automated staging Home/admin/robots/session smoke contracts and
+  ordered, bounded deployment result evidence.
+- [x] Documented external environment names, remote prerequisites, execution and
+  retained rollback behavior under `deploy/staging/README.md`.
 
 - [x] Added a plan-first local staging runner that composes frozen snapshot
   materialization, manifest verification, transactional apply and existing
@@ -1135,12 +1173,12 @@ leave private storage. Stored change summaries are deliberately excluded.
 
 ## Current Task
 
-Continue Phase 7 by selecting and implementing the explicit staging artifact
-deployment transport plus automated HTTPS smoke checks. The operation must
-consume only a `release_ready` artifact, verify its SHA-256 before transfer,
-target only the staging document root, preserve rollback state and report
-deployment/smoke results without exposing cPanel credentials. Until that
-transport is configured, local runner output must stop at `release_ready`.
+Complete the first controlled cPanel staging run with operator-supplied OpenSSH
+configuration. Confirm the remote host provides `sha256sum`, `unzip`, `rsync`
+and `realpath`, execute the hash-bound transport, inspect its retained private
+rollback reference and submit the produced bounded result through the existing
+authenticated runner-result flow. Do not mark Phase 7 operationally complete
+until the live HTTPS smoke result is recorded here.
 
 Deploy and staging-smoke-test subscriber resubscription, modal validation,
 three-state date sorting and the live Dashboard draft-content metric.
@@ -1197,8 +1235,10 @@ the still-required Phase 2/3 staging smoke tests before closing those phases.
   missing-translation semantics.
 - [x] Add local plan/apply/validate/release orchestration with bounded
   `release_ready` evidence and no implicit deployment.
-- [ ] Select and implement staging-only artifact transport, rollback capture and
+- [x] Select and implement staging-only artifact transport, rollback capture and
   automated HTTPS smoke verification; credentials remain external secrets.
+- [ ] Configure the external staging SSH values, execute one real deployment,
+  verify retained rollback state and submit the bounded terminal result.
 
 - [ ] Deploy the refreshed staging ZIP; edit the previously unsubscribed test
   contact back to an active status and verify its unsubscribe date becomes
@@ -1340,8 +1380,10 @@ the still-required Phase 2/3 staging smoke tests before closing those phases.
 
 ## Open Decisions
 
-- CI provider/runner location and authenticated publish-request transport.
-- Deployment transport and secret names for staging/production.
+- Whether the tested operator-workstation runner should later move to CI; the
+  initial request and staging deployment transport are now selected.
+- Production deployment transport and secret names. Staging uses the documented
+  external `KALITE_FILO_STAGING_*` OpenSSH variables.
 - Verified production PHP modules (`fileinfo`, image functions, PDO drivers) and
   cPanel Cron PHP CLI path/environment handling.
 - Admin hostname policy: same `/admin/` path on both origins is planned; an
@@ -1374,6 +1416,13 @@ src/app/robots.ts                          (update)
 ```
 
 ## Files Changed
+
+Current 2026-09-01 Phase 7 staging-transport continuation:
+
+- `scripts/deploy-staging-artifact.mjs` (new)
+- `scripts/deploy-staging-artifact.test.mjs` (new)
+- `deploy/staging/README.md` (new)
+- `docs/ADMIN_DASHBOARD_IMPLEMENTATION.md`
 
 Current 2026-09-01 Phase 7 local-runner/admin-publishing UX continuation:
 
@@ -1661,6 +1710,21 @@ Current Phase 6 test-mail continuation:
 - `server/admin-api/tests/media-store.test.php`
 
 ## Validation Results
+
+2026-09-01 Phase 7 staging-transport continuation:
+
+- Focused deployment/runner suite: passed; 6 tests.
+- `npm run lint`: passed without warnings.
+- `npm run typecheck`: passed.
+- `npm test`: passed; 77 Node tests and all project-owned PHP suites passed.
+- Tests cover release-ready/hash binding, ordered failure evidence, staging
+  public/admin/robots/session HTTPS contracts and no-store session enforcement.
+- `npm run release:staging`: passed; all 140 static pages generated and the
+  cPanel staging release assembled.
+- `npm run verify:output`: passed.
+- `git diff --check`: passed; only expected line-ending notices were reported.
+- No SSH upload or live staging mutation was attempted because external cPanel
+  SSH target/key configuration was not supplied to this session.
 
 2026-09-01 Phase 7 local-runner/admin-publishing UX continuation:
 
@@ -2046,6 +2110,17 @@ still excludes missing consent and unsubscribed rows. No recipient list is sent
 to the browser and no delivery endpoint is packaged.
 
 ## Session Handoff
+
+2026-09-01 Phase 7 staging-transport handoff:
+`deploy-staging-artifact.mjs` accepts only the artifact and result produced by
+the local runner, rechecks SHA-256 before and after OpenSSH transfer, retains a
+private full-document-root rollback and runs bounded HTTPS smoke checks. It is
+strictly staging-only and its external variables/command are documented in
+`deploy/staging/README.md`. The code and tests pass, but it has not been run
+against cPanel. Next configure the operator's SSH agent and the documented
+`KALITE_FILO_STAGING_*` values, perform one controlled live staging deployment,
+confirm rollback retention, then submit the produced result from the Publishing
+Center. Do not enable production or delete the retained rollback yet.
 
 2026-09-01 Phase 7 local-runner/UI handoff: `run-staging-publish.mjs` composes
 the reviewed materializer and application adapters. Without `--apply` it only
