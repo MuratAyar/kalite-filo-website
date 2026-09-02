@@ -144,6 +144,7 @@ export function ArticleListView({
     () =>
       articles.filter(
         (article) =>
+          drafts.find((draft) => draft.id === article.id)?.locales.tr.status !== "draft" &&
           (!category || article.categoryId === category) &&
           (!translation ||
             (translation === "complete"
@@ -153,8 +154,12 @@ export function ArticleListView({
             .toLocaleLowerCase("tr")
             .includes(query.toLocaleLowerCase("tr")),
       ),
-    [articles, query, category, translation],
+    [articles, drafts, query, category, translation],
   );
+  const draftArticles = useMemo(() => {
+    const publishedIds = new Set(articles.map((article) => article.id));
+    return drafts.filter((draft) => !publishedIds.has(draft.id) || draft.locales.tr.status === "draft");
+  }, [articles, drafts]);
   async function openDraft(draft: Draft) {
     setDirty(false);
     setEditing(draft);
@@ -350,9 +355,9 @@ export function ArticleListView({
           </button>
         ) : null}
       </div>
-      {draftOnly && drafts.length ? (
+      {draftOnly && draftArticles.length ? (
         <div className="mt-6 grid gap-5 lg:grid-cols-2">
-          {drafts.map((draft) => {
+          {draftArticles.map((draft) => {
             const published = articles.find((article) => article.id === draft.id);
             return <button className="group grid w-full overflow-hidden rounded-card border border-border-subtle bg-surface-card text-left transition hover:border-corporate-blue hover:shadow-md sm:grid-cols-[12rem_1fr]" key={draft.id} onClick={() => void openDraft(draft)} type="button">
               <div className="aspect-video bg-surface-muted sm:aspect-auto">{published?.coverImage ? <img alt={published.coverImage.alt} className="size-full object-cover" src={published.coverImage.src}/> : <span className="grid size-full min-h-36 place-items-center text-sm text-text-secondary">Kapak görseli yok</span>}</div>
@@ -360,7 +365,7 @@ export function ArticleListView({
             </button>;
           })}
         </div>
-      ) : draftOnly ? <p className="mt-6 rounded-card border border-border-subtle bg-surface-card p-6 text-text-secondary">Henüz kaydedilmiş private draft blog bulunmuyor.</p> : null}
+      ) : draftOnly ? <p className="mt-6 rounded-card border border-border-subtle bg-surface-card p-6 text-text-secondary">Henüz yayınlanmamış veya yayından alınmış draft blog bulunmuyor.</p> : null}
       {!draftOnly ? <div className="mt-6 grid gap-3 rounded-card border border-border-subtle bg-surface-card p-4 md:grid-cols-3">
         <input
           className={controlClass}

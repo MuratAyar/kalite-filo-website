@@ -3509,3 +3509,20 @@ and `categoryFeatured` public metadata. New PHP runtime files are included in
 the cPanel release allowlist. Local Node/PHP tests, PHP syntax checks, lint,
 strict TypeScript checks and the clean 140-page static export all pass. The
 remaining step is deployment to staging and authenticated browser smoke testing.
+
+2026-09-03 entity-level publishing/editorial correction: unpublished vehicle
+and article aggregates now render their entity diffs vertically and expose a
+separate confirmed trash action per entity. The backend verifies both the
+aggregate fingerprint and entity identity, serializes against staging publish
+creation, and restores/removes only that entity from the successful staging
+baseline; aggregate-only stores keep their aggregate action. Article publish
+diffs now merge the frozen public article sources with private drafts, report
+field-level TR/EN metadata/body changes, and classify a published article moved
+to Draft as `Yayın durumu: published -> unpublished` rather than created.
+Published-list edits whose TR status remains ready no longer appear in Draft
+Bloglar. New articles and published articles explicitly moved to Draft do.
+Vehicle tabs use frozen public-source identity with the same rule: new records
+remain in Draft Araçlar until staged, while public records move between tabs by
+their publication status. Article materialization now removes a public TR/EN
+registry record when its Turkish draft status is Draft. The previously imported
+ready TCO article therefore remains visible only under Yayındaki Bloglar.

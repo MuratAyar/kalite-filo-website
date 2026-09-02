@@ -151,7 +151,7 @@ function kalite_filo_admin_vehicle_change_details(array $before, array $after): 
         $record = $new ?? $old ?? [];
         $entity = trim((string) ($record['make'] ?? '') . ' ' . (string) ($record['model'] ?? ''));
         $entity = $entity !== '' ? $entity : $id;
-        if ($old === null || $new === null) { $details[] = ['entity'=>$entity,'action'=>$old === null ? 'created' : 'removed','fields'=>[]]; continue; }
+        if ($old === null || $new === null) { $details[] = ['entityId'=>$id,'entity'=>$entity,'action'=>$old === null ? 'created' : 'removed','fields'=>[]]; continue; }
         $changed = [];
         foreach ($fields as $key => $label) if (($old[$key] ?? null) !== ($new[$key] ?? null)) $changed[] = ['label'=>$label,'before'=>kalite_filo_admin_diff_value($old[$key] ?? null),'after'=>kalite_filo_admin_diff_value($new[$key] ?? null)];
         $oldImage = array_map(static fn(array $media): mixed => $media['id'] ?? null, is_array($old['galleryMedia'] ?? null) ? $old['galleryMedia'] : (is_array($old['draftMedia'] ?? null) ? [$old['draftMedia']] : []));
@@ -159,10 +159,32 @@ function kalite_filo_admin_vehicle_change_details(array $before, array $after): 
         if ($oldImage === []) $oldImage = $old['coverImage']['src'] ?? null;
         if ($newImage === []) $newImage = $new['coverImage']['src'] ?? null;
         if ($oldImage !== $newImage) $changed[] = ['label'=>'Görsel','before'=>kalite_filo_admin_diff_value($oldImage),'after'=>kalite_filo_admin_diff_value($newImage)];
-        if ($changed !== []) $details[] = ['entity'=>$entity,'action'=>'updated','fields'=>array_slice($changed, 0, 20)];
+        if ($changed !== []) $details[] = ['entityId'=>$id,'entity'=>$entity,'action'=>'updated','fields'=>array_slice($changed, 0, 20)];
         if (count($details) >= 50) break;
     }
     return $details;
+}
+
+/** @return array<string,array<string,mixed>> */
+function kalite_filo_admin_effective_publish_articles(array $snapshot,array $fallbackSources=[]):array
+{
+    $sources=is_array($snapshot['articleSources']??null)?$snapshot['articleSources']:$fallbackSources;$result=[];
+    foreach($sources as $source){if(!is_array($source)||!is_string($source['id']??null))continue;$import=is_array($source['importDraft']??null)?$source['importDraft']:[];$result[$source['id']]=['id'=>$source['id'],'categoryId'=>$source['categoryId']??($import['categoryId']??null),'featured'=>(bool)($source['featured']??false),'coverMediaId'=>null,'publicationStatus'=>'published','locales'=>$import['locales']??[]];}
+    foreach(is_array($snapshot['articles']??null)?$snapshot['articles']:[] as $draft){if(!is_array($draft)||!is_string($draft['id']??null))continue;$draft['publicationStatus']=($draft['locales']['tr']['status']??null)==='ready'?'published':'unpublished';$result[$draft['id']]=$draft;}
+    return $result;
+}
+
+/** @return list<array<string,mixed>> */
+function kalite_filo_admin_article_change_details(array $before,array $after):array
+{
+    $fallback=is_array($after['articleSources']??null)?$after['articleSources']:(is_array($before['articleSources']??null)?$before['articleSources']:[]);
+    $old=kalite_filo_admin_effective_publish_articles($before,$fallback);$new=kalite_filo_admin_effective_publish_articles($after,$fallback);$details=[];
+    $fields=['categoryId'=>'Kategori','featured'=>'Ana öne çıkan','coverMediaId'=>'Kapak görseli','publicationStatus'=>'Yayın durumu'];$localeFields=['status'=>'Durum','title'=>'Başlık','slug'=>'Slug','excerpt'=>'Özet','coverAlt'=>'Kapak alternatif metni','publishedAt'=>'Yayın tarihi','readingMinutes'=>'Okuma süresi','seoTitle'=>'SEO başlığı','metaDescription'=>'Meta açıklaması','markdown'=>'İçerik gövdesi'];
+    foreach(array_unique(array_merge(array_keys($old),array_keys($new)))as$id){$a=$old[$id]??null;$b=$new[$id]??null;if($a===$b)continue;$record=$b??$a??[];$entity=(string)($record['locales']['tr']['title']??$id);if($a===null||$b===null){$details[]=['entityId'=>$id,'entity'=>$entity,'action'=>$a===null?'created':'removed','fields'=>[]];continue;}$changed=[];
+        foreach($fields as$key=>$label)if(($a[$key]??null)!==($b[$key]??null))$changed[]=['label'=>$label,'before'=>kalite_filo_admin_diff_value($a[$key]??null),'after'=>kalite_filo_admin_diff_value($b[$key]??null)];
+        foreach(['tr'=>'TR','en'=>'EN']as$locale=>$prefix)foreach($localeFields as$key=>$label)if(($a['locales'][$locale][$key]??null)!==($b['locales'][$locale][$key]??null))$changed[]=['label'=>$prefix.' '.$label,'before'=>$key==='markdown'?'Eski metin':kalite_filo_admin_diff_value($a['locales'][$locale][$key]??null),'after'=>$key==='markdown'?'Güncellendi':kalite_filo_admin_diff_value($b['locales'][$locale][$key]??null)];
+        if($changed!==[])$details[]=['entityId'=>$id,'entity'=>$entity,'action'=>'updated','fields'=>array_slice($changed,0,24)];if(count($details)>=50)break;
+    }return$details;
 }
 
 /** @return list<array<string,mixed>> */
@@ -178,13 +200,7 @@ function kalite_filo_admin_publish_change_details(string $type, array $before, a
         $old=$before['featuredArticles']??null;$new=$after['featuredArticles']??null;
         return $old===$new?[]:[['entity'=>'Filo Rehberi öne çıkan seçimleri','action'=>'reordered','fields'=>[['label'=>'Seçimler','before'=>kalite_filo_admin_diff_value($old),'after'=>kalite_filo_admin_diff_value($new)]]]];
     }
-    if ($type === 'articles') {
-        $old = kalite_filo_admin_index_publish_entities(is_array($before['articles'] ?? null) ? $before['articles'] : []);
-        $new = kalite_filo_admin_index_publish_entities(is_array($after['articles'] ?? null) ? $after['articles'] : []);
-        $details=[];
-        foreach(array_unique(array_merge(array_keys($old),array_keys($new))) as $id){$a=$old[$id]??null;$b=$new[$id]??null;if($a===$b)continue;$entity=(string)($b['locales']['tr']['title']??$a['locales']['tr']['title']??$id);$details[]=['entity'=>$entity,'action'=>$a===null?'created':($b===null?'removed':'updated'),'fields'=>$a!==null&&$b!==null?[['label'=>'İçerik ve metadata','before'=>'Önceki sürüm','after'=>'Güncellendi']]:[]];if(count($details)>=50)break;}
-        return $details;
-    }
+    if ($type === 'articles') return kalite_filo_admin_article_change_details($before,$after);
     if ($type === 'vehicle_taxonomy') return ($before['taxonomy'] ?? null) === ($after['taxonomy'] ?? null) ? [] : [['entity'=>'Araç etiketleri','action'=>'updated','fields'=>[['label'=>'Etiket listeleri','before'=>'Önceki sürüm','after'=>'Güncellendi']]]];
     if ($type === 'media') return ($before['media'] ?? null) === ($after['media'] ?? null) ? [] : [['entity'=>'Medya kütüphanesi','action'=>'updated','fields'=>[['label'=>'Medya kayıtları','before'=>'Önceki sürüm','after'=>'Güncellendi']]]];
     return [];
@@ -472,7 +488,8 @@ function kalite_filo_admin_validate_staging_publish_payload(array $payload): arr
 function kalite_filo_admin_staging_publish_payload(): array
 {
     $vehicles=kalite_filo_admin_vehicle_records();
-    return ['formatVersion'=>1,'vehicles'=>$vehicles,'articles'=>kalite_filo_admin_article_drafts(),'media'=>kalite_filo_admin_media_records(),'featuredVehicleIds'=>kalite_filo_admin_publish_featured_ids($vehicles),'featuredArticles'=>kalite_filo_admin_featured_articles_selection(),'taxonomy'=>kalite_filo_admin_taxonomy()];
+    $content=kalite_filo_admin_content_snapshot();$articleSources=is_array($content['articles']['records']??null)?$content['articles']['records']:[];
+    return ['formatVersion'=>1,'vehicles'=>$vehicles,'articles'=>kalite_filo_admin_article_drafts(),'articleSources'=>$articleSources,'media'=>kalite_filo_admin_media_records(),'featuredVehicleIds'=>kalite_filo_admin_publish_featured_ids($vehicles),'featuredArticles'=>kalite_filo_admin_featured_articles_selection(),'taxonomy'=>kalite_filo_admin_taxonomy()];
 }
 
 /** @return array<string,mixed> */

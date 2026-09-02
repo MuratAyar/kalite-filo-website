@@ -5,7 +5,7 @@ import { FormEvent, useCallback, useEffect, useMemo, useState } from "react";
 import { TagGroups, vehicleTagLabels } from "./tag-manager";
 
 type Media = { id: string; alt: string; creator: string; sourcePage: string; licenseName: string; licenseUrl: string };
-type Vehicle = Record<string, unknown> & { id: string; make: string; model: string; trim: string; categoryLabel: string; segmentLabel: string; fuelLabel: string; transmissionLabel: string; modelYearLabel: string; slug: string; summary: string; publicationStatus: string; priceAmountMinor?: number | null; coverImage?: { src: string; alt: string } | null; draftMedia?: Media | null; galleryMedia?: Media[] };
+type Vehicle = Record<string, unknown> & { id: string; make: string; model: string; trim: string; categoryLabel: string; segmentLabel: string; fuelLabel: string; transmissionLabel: string; modelYearLabel: string; slug: string; summary: string; publicationStatus: string; isPublishedSource?: boolean; priceAmountMinor?: number | null; coverImage?: { src: string; alt: string } | null; draftMedia?: Media | null; galleryMedia?: Media[] };
 type VehicleRevision = { id: string; timestamp: string; action: string; actorId: string | null; changedFields: string[]; priceAmountMinor: number | null };
 const fieldClass = "mt-1 min-h-11 w-full rounded-control border border-border-control px-3";
 
@@ -51,7 +51,7 @@ export function VehicleManager({ csrfToken, draftOnly }: { csrfToken: string; dr
   // Initial network synchronization intentionally populates this client-only admin view.
   // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => { void load(); }, []);
-  const shown = useMemo(() => items.filter((vehicle) => (draftOnly ? vehicle.publicationStatus !== "published" : vehicle.publicationStatus === "published") && (!make || vehicle.make === make) && (!segment || vehicle.segmentLabel === segment) && `${vehicle.make} ${vehicle.model} ${vehicle.trim}`.toLocaleLowerCase("tr").includes(query.toLocaleLowerCase("tr"))).sort((left, right) => left.make.localeCompare(right.make, "tr", { sensitivity: "base" }) || left.model.localeCompare(right.model, "tr", { sensitivity: "base" }) || left.trim.localeCompare(right.trim, "tr", { sensitivity: "base" })), [items, draftOnly, make, segment, query]);
+  const shown = useMemo(() => items.filter((vehicle) => (draftOnly ? !vehicle.isPublishedSource || vehicle.publicationStatus !== "published" : vehicle.isPublishedSource && vehicle.publicationStatus === "published") && (!make || vehicle.make === make) && (!segment || vehicle.segmentLabel === segment) && `${vehicle.make} ${vehicle.model} ${vehicle.trim}`.toLocaleLowerCase("tr").includes(query.toLocaleLowerCase("tr"))).sort((left, right) => left.make.localeCompare(right.make, "tr", { sensitivity: "base" }) || left.model.localeCompare(right.model, "tr", { sensitivity: "base" }) || left.trim.localeCompare(right.trim, "tr", { sensitivity: "base" })), [items, draftOnly, make, segment, query]);
   const grouped = useMemo(() => {
     const groups = new Map<string, Vehicle[]>();
     for (const vehicle of shown) groups.set(vehicle.make, [...(groups.get(vehicle.make) ?? []), vehicle]);

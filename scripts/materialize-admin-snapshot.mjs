@@ -45,11 +45,11 @@ function articleFrontmatter(article,locale,content){
 }
 export function createArticleMaterialization(request){
   const snapshot=validatePublishRequest(request);if(!Array.isArray(snapshot.articles)||!Array.isArray(snapshot.media))fail("unsupported article snapshot");
-  const availableMedia=new Map();for(const media of snapshot.media){if(!media||typeof media!=="object"||typeof media.id!=="string"||availableMedia.has(media.id))fail("invalid or duplicate central media identity");availableMedia.set(media.id,media);}const ids=new Set(),slugs={tr:new Set(),en:new Set()},records=[],files=[];
+  const availableMedia=new Map();for(const media of snapshot.media){if(!media||typeof media!=="object"||typeof media.id!=="string"||availableMedia.has(media.id))fail("invalid or duplicate central media identity");availableMedia.set(media.id,media);}const ids=new Set(),slugs={tr:new Set(),en:new Set()},records=[],unpublishedIds=[],files=[];
   for(const article of [...snapshot.articles].sort((left,right)=>String(left?.id).localeCompare(String(right?.id),"en"))){
     if(!article||typeof article!=="object"||!/^[a-z0-9][a-z0-9_-]{1,63}$/.test(text(article.id))||ids.has(article.id)||!articleCategories.has(article.categoryId)||!article.locales||typeof article.locales!=="object")fail("invalid or duplicate article identity");ids.add(article.id);const englishCategoryId=articleCategories.get(article.categoryId);
     if(article.coverMediaId!==null&&article.coverMediaId!==undefined&&!availableMedia.has(article.coverMediaId))fail(`article ${article.id} cover media is unavailable`);const cover=article.coverMediaId!==null&&article.coverMediaId!==undefined?normalizeLibraryMedia(availableMedia.get(article.coverMediaId)):null;
-    if(article.locales.tr?.status!=="ready")continue;
+    if(article.locales.tr?.status!=="ready"){if(article.locales.tr?.status==="draft")unpublishedIds.push(article.id);else fail(`article ${article.id} has an invalid Turkish state`);continue;}
     const tr=normalizeArticleLocale(article.locales.tr,"tr");if(slugs.tr.has(tr.slug))fail("duplicate Turkish article slug");slugs.tr.add(tr.slug);
     const locales={tr:{...tr,categoryId:article.categoryId,routePath:`/filo-rehberi/${article.categoryId}/${tr.slug}/`,contentPath:`src/content/filo-rehberi/${tr.slug}.md`},en:null};files.push({path:locales.tr.contentPath,content:articleFrontmatter(article,"tr",tr)});
     if(article.locales.en!==null&&article.locales.en!==undefined){
@@ -58,7 +58,7 @@ export function createArticleMaterialization(request){
     }
     records.push({id:article.id,categoryId:article.categoryId,featured:article.featured===true,coverMediaId:article.coverMediaId??null,cover,revision:Number.isSafeInteger(article.revision)?article.revision:null,locales});
   }
-  files.sort((left,right)=>left.path.localeCompare(right.path,"en"));return{manifest:{schemaVersion:1,records,featuredArticles:snapshot.featuredArticles??null},files};
+  files.sort((left,right)=>left.path.localeCompare(right.path,"en"));return{manifest:{schemaVersion:1,records,unpublishedIds,featuredArticles:snapshot.featuredArticles??null},files};
 }
 
 function uniqueRegistry(records,identityField,label){
@@ -69,6 +69,7 @@ function registryCover(record,locale,existing){return record.cover?{src:record.c
 export function createArticleRegistryMaterialization(articleMaterialization,turkishSource=[],englishSource=[]){
   if(!articleMaterialization?.manifest||!Array.isArray(articleMaterialization.manifest.records))fail("invalid article materialization");uniqueRegistry(turkishSource,"id","Turkish article registry");uniqueRegistry(englishSource,"sourceArticleId","English article registry");
   const turkish=new Map(turkishSource.map((record)=>[record.id,record])),english=new Map(englishSource.map((record)=>[record.sourceArticleId,record]));
+  for(const id of Array.isArray(articleMaterialization.manifest.unpublishedIds)?articleMaterialization.manifest.unpublishedIds:[]){if(!text(id))fail("invalid unpublished article identity");turkish.delete(id);english.delete(id);}
   for(const record of articleMaterialization.manifest.records){const tr=record.locales.tr,existing=turkish.get(record.id);turkish.set(record.id,{id:record.id,slug:tr.slug,title:tr.title,excerpt:tr.excerpt,categoryId:record.categoryId,tagIds:Array.isArray(existing?.tagIds)?existing.tagIds:[],publishedAt:tr.publishedAt,readingMinutes:tr.readingMinutes,featured:record.featured,coverAlt:tr.coverAlt,coverImage:registryCover(record,tr,existing),contentKey:tr.slug,seo:{title:tr.seoTitle,description:tr.metaDescription}});if(record.locales.en){const en=record.locales.en,existingEnglish=english.get(record.id);english.set(record.id,{sourceArticleId:record.id,slug:en.slug,title:en.title,excerpt:en.excerpt,categoryId:en.categoryId,publishedAt:en.publishedAt,readingMinutes:en.readingMinutes,featured:record.featured,coverAlt:en.coverAlt,coverImage:registryCover(record,en,existingEnglish),contentKey:`${en.slug}-en`,seo:{title:en.seoTitle,description:en.metaDescription}});}}
   const selection=articleMaterialization.manifest.featuredArticles;const mainId=text(selection?.mainArticleId),categoryIds=selection?.categoryArticleIds&&typeof selection.categoryArticleIds==="object"?selection.categoryArticleIds:{};
   if(mainId){if(!turkish.has(mainId))fail("main featured article is unavailable");for(const [id,record] of turkish)turkish.set(id,{...record,featured:id===mainId});for(const [id,record] of english)english.set(id,{...record,featured:id===mainId});}

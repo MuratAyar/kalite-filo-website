@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 
 type ChangeField = { label: string; before: string; after: string };
-type ChangeDetail = { entity: string; action: "created" | "updated" | "removed" | "reordered"; fields: ChangeField[] };
+type ChangeDetail = { entityId?: string; entity: string; action: "created" | "updated" | "removed" | "reordered"; fields: ChangeField[] };
 type Change = { id: string; type: string; label: string; updatedAt: string | null; details?: ChangeDetail[] };
 type Automation = { enabled: boolean; ready: boolean; provider: "github_actions"; missing: string[] };
 type PublishAutomation = { status?: string; runUrl?: string | null; updatedAt?: string | null };
@@ -45,9 +45,9 @@ function requestStatus(request: PublishRequest) {
     : statusLabels[request.status] ?? request.status;
 }
 
-function ChangeDetails({ change, emptyText }: { change: Change; emptyText: string }) {
-  return change.details && change.details.length > 0 ? <ul className="mt-3 grid gap-3 md:grid-cols-2">{change.details.map((detail, detailIndex) => <li className="rounded-control border bg-surface-card p-3" key={`${change.id}-${detailIndex}`}>
-    <div className="flex flex-wrap items-center justify-between gap-2"><strong>{detail.entity}</strong><span className="rounded-full bg-corporate-blue/10 px-2 py-1 text-xs font-semibold text-corporate-blue">{actionLabels[detail.action]}</span></div>
+function ChangeDetails({ change, emptyText, onRevert, revertingId }: { change: Change; emptyText: string; onRevert?: (detail: ChangeDetail) => void; revertingId?: string }) {
+  return change.details && change.details.length > 0 ? <ul className="mt-3 grid gap-3">{change.details.map((detail, detailIndex) => <li className="rounded-control border bg-surface-card p-3" key={`${change.id}-${detail.entityId ?? detailIndex}`}>
+    <div className="flex flex-wrap items-center justify-between gap-2"><strong>{detail.entity}</strong><div className="flex items-center gap-2"><span className="rounded-full bg-corporate-blue/10 px-2 py-1 text-xs font-semibold text-corporate-blue">{actionLabels[detail.action]}</span>{onRevert && detail.entityId ? <button aria-label={`${detail.entity} değişikliklerini geri al`} className="grid size-9 place-items-center rounded-control border border-error/35 text-error transition hover:bg-error-surface disabled:opacity-50" disabled={Boolean(revertingId)} onClick={() => onRevert(detail)} title="Bu kaydın draft değişikliklerini geri al" type="button"><svg aria-hidden="true" fill="none" height="17" viewBox="0 0 24 24" width="17"><path d="M4 7h16M9 7V4h6v3m-8 0 1 13h8l1-13M10 11v5m4-5v5" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"/></svg></button> : null}</div></div>
     {detail.fields.length > 0 ? <dl className="mt-3 space-y-2">{detail.fields.map((field, fieldIndex) => <div className="grid gap-1 border-t pt-2 text-xs sm:grid-cols-[8rem_1fr]" key={`${field.label}-${fieldIndex}`}><dt className="font-semibold text-text-secondary">{field.label}</dt><dd className="flex min-w-0 flex-wrap items-center gap-2"><span className="break-all text-text-secondary line-through">{field.before}</span><span aria-hidden="true">→</span><strong className="break-all text-text-primary">{field.after}</strong></dd></div>)}</dl> : null}
   </li>)}</ul> : <p className="mt-3 text-xs text-text-secondary">{emptyText}</p>;
 }
@@ -146,14 +146,15 @@ export function PublishingCenter({ csrfToken, canRequest, canClearHistory }: { c
     finally { setHistoryAction(""); }
   }
 
-  async function revertChange(change: Change) {
-    if (!window.confirm(`"${change.label}" için draft değişikliklerini geri almak istediğinize emin misiniz? Bu işlem henüz staging'e alınmayan değişiklikleri kaldıracaktır.`)) return;
-    setRevertingId(change.id); setError(""); setNotice("");
+  async function revertChange(change: Change, detail?: ChangeDetail) {
+    const target=detail?.entity ?? change.label;
+    if (!window.confirm(`"${target}" için draft değişikliklerini geri almak istediğinize emin misiniz? Bu işlem henüz staging'e alınmayan değişiklikleri kaldıracaktır.`)) return;
+    setRevertingId(detail?.entityId ?? change.id); setError(""); setNotice("");
     try {
-      const response=await fetch("/admin-api/publishing-change-revert.php",{method:"POST",credentials:"same-origin",headers:{"Content-Type":"application/json","X-CSRF-Token":csrfToken},body:JSON.stringify({type:change.type,changeId:change.id,confirmation:"DRAFT DEĞİŞİKLİKLERİNİ GERİ AL"})});
+      const response=await fetch("/admin-api/publishing-change-revert.php",{method:"POST",credentials:"same-origin",headers:{"Content-Type":"application/json","X-CSRF-Token":csrfToken},body:JSON.stringify({type:change.type,changeId:change.id,entityId:detail?.entityId,confirmation:"DRAFT DEĞİŞİKLİKLERİNİ GERİ AL"})});
       const payload=await response.json();
       if(!response.ok){if(payload?.error==="publish_in_progress")throw new Error("Yayınlama devam ederken draft geri alınamaz.");if(payload?.error==="change_changed")throw new Error("Değişiklik siz onay vermeden önce güncellendi; liste yenilendi.");if(payload?.error==="baseline_unavailable")throw new Error("Geri dönülecek başarılı staging sürümü bulunamadı.");throw new Error("Draft değişiklikleri geri alınamadı.");}
-      await load();setNotice(`${change.label} staging'deki son başarılı sürüme geri alındı.`);
+      await load();setNotice(`${target} staging'deki son başarılı sürüme geri alındı.`);
     } catch(caught){setError(caught instanceof Error?caught.message:"Draft değişiklikleri geri alınamadı.");await load();} finally{setRevertingId("");}
   }
 
@@ -216,8 +217,8 @@ export function PublishingCenter({ csrfToken, canRequest, canClearHistory }: { c
         <h3 className="text-lg font-bold">Yayınlanmamış Değişiklikler ({changes.length})</h3>
         {activeRequest ? <p className="mt-2 text-sm text-text-secondary">Devam eden snapshot’tan sonra yapılan yeni düzenlemeler burada ayrı gösterilir.</p> : null}
         {changes.length > 0 ? <ul className="mt-4 grid gap-3">{changes.map((change) => <li className="rounded-control border bg-surface-muted p-4" key={change.id}>
-          <div className="flex flex-wrap items-center justify-between gap-2"><div><p className="font-semibold">{change.label}</p><p className="text-xs text-text-secondary">{change.type}</p></div><div className="flex items-center gap-3"><time className="text-sm text-text-secondary">{change.updatedAt ? new Date(change.updatedAt).toLocaleString("tr-TR") : "—"}</time>{canRequest?<button aria-label={`${change.label} değişikliklerini geri al`} className="grid size-10 place-items-center rounded-control border border-error/35 bg-white text-error transition hover:bg-error-surface disabled:opacity-50" disabled={revertingId!==""||activeRequest!==null} onClick={()=>void revertChange(change)} title={activeRequest?"Yayınlama tamamlandıktan sonra geri alınabilir":"Draft değişikliklerini geri al"} type="button"><svg aria-hidden="true" fill="none" height="18" viewBox="0 0 24 24" width="18"><path d="M4 7h16M9 7V4h6v3m-8 0 1 13h8l1-13M10 11v5m4-5v5" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"/></svg></button>:null}</div></div>
-          <ChangeDetails change={change} emptyText="Bu değişiklik için alan bazlı ayrıntı bulunmuyor." />
+          <div className="flex flex-wrap items-center justify-between gap-2"><div><p className="font-semibold">{change.label}</p><p className="text-xs text-text-secondary">{change.type}</p></div><div className="flex items-center gap-3"><time className="text-sm text-text-secondary">{change.updatedAt ? new Date(change.updatedAt).toLocaleString("tr-TR") : "—"}</time>{canRequest && !change.details?.some((detail)=>detail.entityId)?<button aria-label={`${change.label} değişikliklerini geri al`} className="grid size-10 place-items-center rounded-control border border-error/35 bg-white text-error transition hover:bg-error-surface disabled:opacity-50" disabled={revertingId!==""||activeRequest!==null} onClick={()=>void revertChange(change)} title={activeRequest?"Yayınlama tamamlandıktan sonra geri alınabilir":"Draft değişikliklerini geri al"} type="button"><svg aria-hidden="true" fill="none" height="18" viewBox="0 0 24 24" width="18"><path d="M4 7h16M9 7V4h6v3m-8 0 1 13h8l1-13M10 11v5m4-5v5" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"/></svg></button>:null}</div></div>
+          <ChangeDetails change={change} emptyText="Bu değişiklik için alan bazlı ayrıntı bulunmuyor." onRevert={canRequest && activeRequest===null?(detail)=>void revertChange(change,detail):undefined} revertingId={revertingId} />
         </li>)}</ul> : <p className="mt-4 text-sm text-text-secondary">{activeRequest ? "Devam eden yayından sonra yapılmış yeni bir değişiklik yok." : "Staging’e aktarılmayı bekleyen değişiklik yok."}</p>}
       </section>
 
