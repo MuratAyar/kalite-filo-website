@@ -3492,3 +3492,20 @@ is explicitly blocked and the UI states that queue/test/send are unavailable.
 Next add selectors for published vehicle and article cards, validate those IDs
 against the release snapshot and freeze their public fields into preview-ready
 blocks. Do not begin SMTP delivery before allowlisted test-mail design.
+
+2026-09-03 publishing/editorial handoff: Yayına Al now exposes an Owner/Admin
+trash action for each unpublished aggregate. The confirmation-bound endpoint
+checks the opaque change identity, refuses to run while a publish snapshot is
+in flight, restores only the selected private store from the last successful
+staging snapshot, and records an audit event. Vehicle and article revision
+panels show the latest two entries by default below the save action, with a
+bounded expand/collapse control. Published article cards now use a single
+`Düzenle` action and imported edits remain visible in both published and draft
+views; draft cards use the same visual language. The article-level featured
+checkbox is removed. `Öne Çıkan Bloglar` owns one main selection and one
+selection for each canonical category through a private atomic store; the
+selection is frozen into publishing snapshots and materialized as `featured`
+and `categoryFeatured` public metadata. New PHP runtime files are included in
+the cPanel release allowlist. Local Node/PHP tests, PHP syntax checks, lint,
+strict TypeScript checks and the clean 140-page static export all pass. The
+remaining step is deployment to staging and authenticated browser smoke testing.

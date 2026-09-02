@@ -1,0 +1,7 @@
+<?php
+declare(strict_types=1);
+function kalite_filo_admin_featured_articles_path(): string{return (string)kalite_filo_admin_config()['data_root'].DIRECTORY_SEPARATOR.'drafts'.DIRECTORY_SEPARATOR.'featured-articles.json';}
+/** @return array{mainArticleId:?string,categoryArticleIds:array<string,string>} */
+function kalite_filo_admin_featured_articles_selection(): array{$path=kalite_filo_admin_featured_articles_path();if(is_file($path)){$value=json_decode((string)file_get_contents($path),true,8,JSON_THROW_ON_ERROR);if(is_array($value)&&($value['schemaVersion']??null)===1&&is_array($value['categoryArticleIds']??null))return ['mainArticleId'=>is_string($value['mainArticleId']??null)?$value['mainArticleId']:null,'categoryArticleIds'=>$value['categoryArticleIds']];}return ['mainArticleId'=>null,'categoryArticleIds'=>[]];}
+/** @param array{mainArticleId:?string,categoryArticleIds:array<string,string>} $selection */
+function kalite_filo_admin_write_featured_articles_selection(array $selection):void{$path=kalite_filo_admin_featured_articles_path();kalite_filo_admin_ensure_private_directory(dirname($path));$temporary=$path.'.tmp-'.bin2hex(random_bytes(5));$payload=['schemaVersion'=>1,...$selection,'updatedAt'=>gmdate('c'),'updatedBy'=>$_SESSION['identity']['id']??null];if(file_put_contents($temporary,json_encode($payload,JSON_THROW_ON_ERROR|JSON_PRETTY_PRINT|JSON_UNESCAPED_UNICODE),LOCK_EX)===false||!rename($temporary,$path)){@unlink($temporary);throw new RuntimeException('Featured article store could not be replaced.');}@chmod($path,0600);}

@@ -63,6 +63,7 @@ export function PublishingCenter({ csrfToken, canRequest, canClearHistory }: { c
   const [notice, setNotice] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [historyAction, setHistoryAction] = useState("");
+  const [revertingId, setRevertingId] = useState("");
   const [currentRequestId, setCurrentRequestId] = useState<string | null>(null);
   const [historyAvailable, setHistoryAvailable] = useState(true);
   const [validation, setValidation] = useState<{ valid: boolean; blockers: ValidationMessage[]; warnings: ValidationMessage[] }>({ valid: false, blockers: [], warnings: [] });
@@ -145,6 +146,17 @@ export function PublishingCenter({ csrfToken, canRequest, canClearHistory }: { c
     finally { setHistoryAction(""); }
   }
 
+  async function revertChange(change: Change) {
+    if (!window.confirm(`"${change.label}" için draft değişikliklerini geri almak istediğinize emin misiniz? Bu işlem henüz staging'e alınmayan değişiklikleri kaldıracaktır.`)) return;
+    setRevertingId(change.id); setError(""); setNotice("");
+    try {
+      const response=await fetch("/admin-api/publishing-change-revert.php",{method:"POST",credentials:"same-origin",headers:{"Content-Type":"application/json","X-CSRF-Token":csrfToken},body:JSON.stringify({type:change.type,changeId:change.id,confirmation:"DRAFT DEĞİŞİKLİKLERİNİ GERİ AL"})});
+      const payload=await response.json();
+      if(!response.ok){if(payload?.error==="publish_in_progress")throw new Error("Yayınlama devam ederken draft geri alınamaz.");if(payload?.error==="change_changed")throw new Error("Değişiklik siz onay vermeden önce güncellendi; liste yenilendi.");if(payload?.error==="baseline_unavailable")throw new Error("Geri dönülecek başarılı staging sürümü bulunamadı.");throw new Error("Draft değişiklikleri geri alınamadı.");}
+      await load();setNotice(`${change.label} staging'deki son başarılı sürüme geri alındı.`);
+    } catch(caught){setError(caught instanceof Error?caught.message:"Draft değişiklikleri geri alınamadı.");await load();} finally{setRevertingId("");}
+  }
+
   async function restoreRequest(request: PublishRequest) {
     if (!window.confirm(`${request.id} sürümü staging ortamında yeniden etkinleştirilsin mi? Mevcut staging sürümü geri dönüş için korunacaktır.`)) return;
     setHistoryAction(request.id); setError(""); setNotice("");
@@ -204,7 +216,7 @@ export function PublishingCenter({ csrfToken, canRequest, canClearHistory }: { c
         <h3 className="text-lg font-bold">Yayınlanmamış Değişiklikler ({changes.length})</h3>
         {activeRequest ? <p className="mt-2 text-sm text-text-secondary">Devam eden snapshot’tan sonra yapılan yeni düzenlemeler burada ayrı gösterilir.</p> : null}
         {changes.length > 0 ? <ul className="mt-4 grid gap-3">{changes.map((change) => <li className="rounded-control border bg-surface-muted p-4" key={change.id}>
-          <div className="flex flex-wrap items-center justify-between gap-2"><div><p className="font-semibold">{change.label}</p><p className="text-xs text-text-secondary">{change.type}</p></div><time className="text-sm text-text-secondary">{change.updatedAt ? new Date(change.updatedAt).toLocaleString("tr-TR") : "—"}</time></div>
+          <div className="flex flex-wrap items-center justify-between gap-2"><div><p className="font-semibold">{change.label}</p><p className="text-xs text-text-secondary">{change.type}</p></div><div className="flex items-center gap-3"><time className="text-sm text-text-secondary">{change.updatedAt ? new Date(change.updatedAt).toLocaleString("tr-TR") : "—"}</time>{canRequest?<button aria-label={`${change.label} değişikliklerini geri al`} className="grid size-10 place-items-center rounded-control border border-error/35 bg-white text-error transition hover:bg-error-surface disabled:opacity-50" disabled={revertingId!==""||activeRequest!==null} onClick={()=>void revertChange(change)} title={activeRequest?"Yayınlama tamamlandıktan sonra geri alınabilir":"Draft değişikliklerini geri al"} type="button"><svg aria-hidden="true" fill="none" height="18" viewBox="0 0 24 24" width="18"><path d="M4 7h16M9 7V4h6v3m-8 0 1 13h8l1-13M10 11v5m4-5v5" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"/></svg></button>:null}</div></div>
           <ChangeDetails change={change} emptyText="Bu değişiklik için alan bazlı ayrıntı bulunmuyor." />
         </li>)}</ul> : <p className="mt-4 text-sm text-text-secondary">{activeRequest ? "Devam eden yayından sonra yapılmış yeni bir değişiklik yok." : "Staging’e aktarılmayı bekleyen değişiklik yok."}</p>}
       </section>

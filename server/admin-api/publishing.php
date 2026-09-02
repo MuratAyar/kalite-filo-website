@@ -6,6 +6,7 @@ require_once __DIR__ . '/vehicle-store.php';
 require_once __DIR__ . '/article-store.php';
 require_once __DIR__ . '/media-store.php';
 require_once __DIR__ . '/taxonomy-store.php';
+require_once __DIR__ . '/featured-article-store.php';
 require_once __DIR__ . '/publishing-store.php';
 require_once __DIR__ . '/publishing-automation.php';
 

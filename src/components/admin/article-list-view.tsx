@@ -100,6 +100,7 @@ export function ArticleListView({
   const [previewing, setPreviewing] = useState(false);
   const [importingId, setImportingId] = useState<string | null>(null);
   const [revisions, setRevisions] = useState<Revision[]>([]);
+  const [showAllRevisions, setShowAllRevisions] = useState(false);
   const [dirty, setDirty] = useState(false);
   const formRef = useRef<HTMLFormElement>(null);
   async function load() {
@@ -162,6 +163,7 @@ export function ArticleListView({
     setIncludeEnglish(draft.locales.en !== null);
     setPreviewHtml("");
     setRevisions([]);
+    setShowAllRevisions(false);
     try {
       const response = await fetch(
         `/admin-api/article-revisions.php?id=${encodeURIComponent(draft.id)}`,
@@ -198,7 +200,7 @@ export function ArticleListView({
     const selectedCover = String(form.get("coverMediaId") ?? "");
     const body = {
       categoryId: String(form.get("categoryId") ?? ""),
-      featured: form.get("featured") === "on",
+      featured: editing?.featured ?? false,
       coverMediaId: selectedCover || null,
       locales: {
         tr: localePayload(form, "tr"),
@@ -263,13 +265,7 @@ export function ArticleListView({
     }
   }
   async function importPublished(article: Article) {
-    if (
-      !canEdit ||
-      !window.confirm(
-        `“${article.title}” içeriği düzenlenebilir private draft'a aktarılsın mı?`,
-      )
-    )
-      return;
+    if (!canEdit) return;
     setImportingId(article.id);
     setError("");
     try {
@@ -355,24 +351,15 @@ export function ArticleListView({
         ) : null}
       </div>
       {draftOnly && drafts.length ? (
-        <section className="mt-6 rounded-card border border-accent-orange/30 bg-accent-orange/5 p-5">
-          <h3 className="font-bold">Private draft’lar ({drafts.length})</h3>
-          <div className="mt-3 grid gap-3 sm:grid-cols-2">
-            {drafts.map((draft) => (
-              <button
-                className="rounded-control border bg-white p-4 text-left"
-                key={draft.id}
-                onClick={() => void openDraft(draft)}
-              >
-                <strong>{draft.locales.tr.title}</strong>
-                <span className="mt-1 block text-sm text-text-secondary">
-                  Revizyon {draft.revision} ·{" "}
-                  {draft.locales.en ? "TR + EN" : "Yalnızca TR"}
-                </span>
-              </button>
-            ))}
-          </div>
-        </section>
+        <div className="mt-6 grid gap-5 lg:grid-cols-2">
+          {drafts.map((draft) => {
+            const published = articles.find((article) => article.id === draft.id);
+            return <button className="group grid w-full overflow-hidden rounded-card border border-border-subtle bg-surface-card text-left transition hover:border-corporate-blue hover:shadow-md sm:grid-cols-[12rem_1fr]" key={draft.id} onClick={() => void openDraft(draft)} type="button">
+              <div className="aspect-video bg-surface-muted sm:aspect-auto">{published?.coverImage ? <img alt={published.coverImage.alt} className="size-full object-cover" src={published.coverImage.src}/> : <span className="grid size-full min-h-36 place-items-center text-sm text-text-secondary">Kapak görseli yok</span>}</div>
+              <div className="p-5"><div className="flex flex-wrap items-center gap-2"><span className="rounded-pill bg-surface-muted px-3 py-1 text-xs font-semibold">{categoryLabels[draft.categoryId] ?? draft.categoryId}</span><span className="rounded-pill bg-accent-orange/15 px-3 py-1 text-xs font-semibold text-orange-dark">Draft</span>{published ? <span className="rounded-pill bg-success/10 px-3 py-1 text-xs font-semibold text-success">Yayında da mevcut</span> : null}</div><h3 className="mt-3 text-lg font-bold">{draft.locales.tr.title}</h3><p className="mt-2 line-clamp-2 text-sm text-text-secondary">{draft.locales.tr.excerpt}</p><div className="mt-4 flex items-end justify-between gap-3 text-xs text-text-secondary"><span>Revizyon {draft.revision} · {draft.locales.en ? "TR + EN" : "Yalnızca TR"}</span><span className="rounded-control border border-corporate-blue px-3 py-2 font-semibold text-corporate-blue group-hover:bg-corporate-blue group-hover:text-white">Düzenle</span></div></div>
+            </button>;
+          })}
+        </div>
       ) : draftOnly ? <p className="mt-6 rounded-card border border-border-subtle bg-surface-card p-6 text-text-secondary">Henüz kaydedilmiş private draft blog bulunmuyor.</p> : null}
       {!draftOnly ? <div className="mt-6 grid gap-3 rounded-card border border-border-subtle bg-surface-card p-4 md:grid-cols-3">
         <input
@@ -424,7 +411,7 @@ export function ArticleListView({
               >
                 {canEdit ? (
                   <button
-                    aria-label={`${article.title} içeriğini ${existingDraft ? "düzenle" : "private draft'a aktar"}`}
+                    aria-label={`${article.title} içeriğini düzenle`}
                     className="absolute inset-0 z-10 rounded-card focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-corporate-blue disabled:cursor-wait"
                     disabled={importingId === article.id}
                     onClick={() =>
@@ -473,11 +460,7 @@ export function ArticleListView({
                     </span>
                     {canEdit ? (
                       <span className="ml-auto rounded-control border border-corporate-blue px-3 py-2 font-semibold text-corporate-blue group-hover:bg-corporate-blue group-hover:text-white">
-                        {existingDraft
-                          ? "Draft’ı Düzenle"
-                          : importingId === article.id
-                            ? "Aktarılıyor…"
-                            : "Private Draft’a Aktar"}
+                        {importingId === article.id ? "Hazırlanıyor…" : "Düzenle"}
                       </span>
                     ) : null}
                   </div>
@@ -532,14 +515,6 @@ export function ArticleListView({
                     </option>
                   ))}
                 </select>
-              </label>
-              <label className="flex items-center gap-2 self-end pb-3">
-                <input
-                  defaultChecked={formDraft.featured}
-                  name="featured"
-                  type="checkbox"
-                />
-                Öne çıkan içerik adayı
               </label>
               <label className="sm:col-span-2">
                 Kapak görseli
@@ -740,7 +715,7 @@ export function ArticleListView({
                 <h4 className="font-bold">Değişiklik geçmişi</h4>
                 {revisions.length ? (
                   <ul className="mt-3 space-y-2">
-                    {revisions.map((revision) => (
+                    {(showAllRevisions ? revisions : revisions.slice(0, 2)).map((revision) => (
                       <li
                         className="rounded-control bg-surface-muted p-3 text-sm"
                         key={revision.id}
@@ -758,6 +733,7 @@ export function ArticleListView({
                     Henüz geçmiş kaydı yok.
                   </p>
                 )}
+                {revisions.length > 2 ? <button className="mt-3 text-sm font-semibold text-corporate-blue hover:underline" onClick={() => setShowAllRevisions((value) => !value)} type="button">{showAllRevisions ? "Daha Az Göster" : `Daha Fazla Göster (${revisions.length - 2})`}</button> : null}
               </section>
             ) : null}
           </form>

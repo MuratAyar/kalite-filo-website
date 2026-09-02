@@ -60,6 +60,7 @@ export const articles: readonly Article[] = Object.freeze(
     publishedAt: asIsoDate(record.publishedAt),
     readingMinutes: record.readingMinutes,
     featured: record.featured,
+    categoryFeatured: (record as { categoryFeatured?: boolean }).categoryFeatured === true,
     coverImage: record.coverImage
       ? {
           src: asLocalAssetPath(record.coverImage.src),

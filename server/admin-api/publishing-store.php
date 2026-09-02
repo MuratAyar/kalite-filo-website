@@ -1,5 +1,6 @@
 <?php
 declare(strict_types=1);
+require_once __DIR__.'/featured-article-store.php';
 
 function kalite_filo_admin_publish_root(): string
 {
@@ -173,6 +174,10 @@ function kalite_filo_admin_publish_change_details(string $type, array $before, a
         $new = is_array($after['featuredVehicleIds'] ?? null) ? $after['featuredVehicleIds'] : [];
         return $old === $new ? [] : [['entity'=>'Ana sayfa araç sıralaması','action'=>'reordered','fields'=>[['label'=>'Sıralama','before'=>kalite_filo_admin_diff_value($old),'after'=>kalite_filo_admin_diff_value($new)]]]];
     }
+    if ($type === 'featured_articles') {
+        $old=$before['featuredArticles']??null;$new=$after['featuredArticles']??null;
+        return $old===$new?[]:[['entity'=>'Filo Rehberi öne çıkan seçimleri','action'=>'reordered','fields'=>[['label'=>'Seçimler','before'=>kalite_filo_admin_diff_value($old),'after'=>kalite_filo_admin_diff_value($new)]]]];
+    }
     if ($type === 'articles') {
         $old = kalite_filo_admin_index_publish_entities(is_array($before['articles'] ?? null) ? $before['articles'] : []);
         $new = kalite_filo_admin_index_publish_entities(is_array($after['articles'] ?? null) ? $after['articles'] : []);
@@ -247,6 +252,7 @@ function kalite_filo_admin_unpublished_changes(): array
         ['type' => 'vehicles', 'label' => 'Araç taslakları', 'path' => kalite_filo_admin_vehicle_store_path()],
         ['type' => 'articles', 'label' => 'Filo Rehberi taslakları', 'path' => kalite_filo_admin_article_store_path()],
         ['type' => 'featured_vehicles', 'label' => 'Öne çıkan araç sıralaması', 'path' => $root . DIRECTORY_SEPARATOR . 'drafts' . DIRECTORY_SEPARATOR . 'featured-vehicles.json'],
+        ['type' => 'featured_articles', 'label' => 'Öne çıkan blog seçimleri', 'path' => $root . DIRECTORY_SEPARATOR . 'drafts' . DIRECTORY_SEPARATOR . 'featured-articles.json'],
         ['type' => 'vehicle_taxonomy', 'label' => 'Araç etiketleri', 'path' => $root . DIRECTORY_SEPARATOR . 'drafts' . DIRECTORY_SEPARATOR . 'vehicle-taxonomy.json'],
         ['type' => 'media', 'label' => 'Medya kütüphanesi', 'path' => kalite_filo_admin_media_catalog_path()],
     ];
@@ -466,7 +472,7 @@ function kalite_filo_admin_validate_staging_publish_payload(array $payload): arr
 function kalite_filo_admin_staging_publish_payload(): array
 {
     $vehicles=kalite_filo_admin_vehicle_records();
-    return ['formatVersion'=>1,'vehicles'=>$vehicles,'articles'=>kalite_filo_admin_article_drafts(),'media'=>kalite_filo_admin_media_records(),'featuredVehicleIds'=>kalite_filo_admin_publish_featured_ids($vehicles),'taxonomy'=>kalite_filo_admin_taxonomy()];
+    return ['formatVersion'=>1,'vehicles'=>$vehicles,'articles'=>kalite_filo_admin_article_drafts(),'media'=>kalite_filo_admin_media_records(),'featuredVehicleIds'=>kalite_filo_admin_publish_featured_ids($vehicles),'featuredArticles'=>kalite_filo_admin_featured_articles_selection(),'taxonomy'=>kalite_filo_admin_taxonomy()];
 }
 
 /** @return array<string,mixed> */

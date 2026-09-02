@@ -4,6 +4,7 @@ import { FormEvent, useEffect, useState } from "react";
 import { VehicleManager } from "./vehicle-manager";
 import { TagManager } from "./tag-manager";
 import { FeaturedVehiclesManager } from "./featured-vehicles-manager";
+import { FeaturedArticlesManager } from "./featured-articles-manager";
 import { AuditLogView } from "./audit-log-view";
 import { ArticleListView } from "./article-list-view";
 import { MediaLibraryView } from "./media-library-view";
@@ -226,6 +227,7 @@ export function AdminApp() {
     | "audit"
     | "articles"
     | "draftArticles"
+    | "featuredArticles"
     | "media"
     | "subscribers"
     | "iys"
@@ -580,7 +582,7 @@ export function AdminApp() {
           ) : null}
           <button
             aria-expanded={articlesOpen}
-            className={`flex min-h-11 w-full items-center rounded-control px-4 text-left text-label font-semibold text-text-inverse hover:bg-white/10 ${view === "articles" || view === "draftArticles" ? "bg-white/10" : ""}`}
+            className={`flex min-h-11 w-full items-center rounded-control px-4 text-left text-label font-semibold text-text-inverse hover:bg-white/10 ${view === "articles" || view === "draftArticles" || view === "featuredArticles" ? "bg-white/10" : ""}`}
             onClick={() => setArticlesOpen((value) => !value)}
           >
             Filo Rehberi <span className="ml-auto">{articlesOpen ? "−" : "+"}</span>
@@ -589,6 +591,7 @@ export function AdminApp() {
             <div className="ml-3 border-l border-white/15 pl-2">
               <button className="flex min-h-10 w-full items-center px-3 text-sm text-text-inverse-muted hover:text-white" onClick={() => setView("articles")}>Yayındaki Bloglar</button>
               <button className="flex min-h-10 w-full items-center px-3 text-sm text-text-inverse-muted hover:text-white" onClick={() => setView("draftArticles")}>Draft Bloglar</button>
+              <button className="flex min-h-10 w-full items-center px-3 text-sm text-text-inverse-muted hover:text-white" onClick={() => setView("featuredArticles")}>Öne Çıkan Bloglar</button>
             </div>
           ) : null}
           {(["owner", "admin"].includes(session.user.role)) ? <>
@@ -720,6 +723,8 @@ export function AdminApp() {
             csrfToken={session.csrfToken}
             draftOnly={view === "draftArticles"}
           />
+        ) : view === "featuredArticles" ? (
+          <FeaturedArticlesManager csrfToken={session.csrfToken} />
         ) : view === "audit" ? (
           <AuditLogView />
         ) : view === "tags" ? (

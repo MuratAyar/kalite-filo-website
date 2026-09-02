@@ -20,6 +20,7 @@ type EnglishArticleCopy = {
 type AdminEnglishRecord = {
   sourceArticleId: string; slug: string; title: string; excerpt: string;
   categoryId: string; publishedAt: string; readingMinutes: number; featured: boolean;
+  categoryFeatured?: boolean;
   coverAlt: string;
   contentKey: string; coverImage: { src: string; alt: string; width: number; height: number } | null;
   seo: { title: string; description: string };
@@ -60,7 +61,7 @@ export const englishArticles: readonly Article[] = Object.freeze(articles.flatMa
     ...article,
     id: asEntityId(admin.slug), slug: asSlug(admin.slug), categoryId: asEntityId(admin.categoryId),
     title: admin.title, excerpt: admin.excerpt, publishedAt: asIsoDate(admin.publishedAt),
-    readingMinutes: admin.readingMinutes, featured: admin.featured,
+    readingMinutes: admin.readingMinutes, featured: admin.featured, categoryFeatured: admin.categoryFeatured === true,
     contentKey: asEntityId(admin.contentKey),
     coverImage: admin.coverImage ? Object.freeze({ src: asLocalAssetPath(admin.coverImage.src), width: admin.coverImage.width, height: admin.coverImage.height, purpose: "informative" as const, alt: admin.coverImage.alt }) : undefined,
     seo: Object.freeze(admin.seo),

@@ -67,7 +67,9 @@ export function FleetGuideListing({ articles, categories, initialCategoryId, loc
   const visibleArticles = selectedCategoryId === "all"
     ? approvedArticles
     : approvedArticles.filter((item) => item.categoryId === selectedCategoryId);
-  const featuredArticle = visibleArticles.find((item) => item.featured) ?? visibleArticles[0];
+  const featuredArticle = selectedCategoryId === "all"
+    ? visibleArticles.find((item) => item.featured) ?? visibleArticles[0]
+    : visibleArticles.find((item) => item.categoryFeatured) ?? visibleArticles[0];
   const gridArticles = visibleArticles.filter((item) => item.id !== featuredArticle?.id);
   const pageCount = Math.max(1, Math.ceil(gridArticles.length / ARTICLES_PER_PAGE));
   const visibleGridArticles = gridArticles.slice(
