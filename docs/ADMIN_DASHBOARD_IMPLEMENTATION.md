@@ -25,6 +25,14 @@ Owner-only history cleanup preserves that baseline and any active requests
 while deleting completed request records. Existing live history is not deleted
 merely by deploying code: the owner must explicitly confirm `Geçmişi Temizle`.
 
+New publish requests now retain a bounded, allowlisted entity/field diff
+against the active staging snapshot. Vehicle history identifies the vehicle
+and renders old/new values for operational fields without exposing the private
+snapshot. Existing adjacent successful records are enriched at read time when
+both snapshots are available. The active release marker is returned as
+`currentRequestId`, so its row displays `Güncel Sürüm` instead of a restore
+action.
+
 The fourth live attempt produced the definitive deployment reason
 `release_extraction_failed`. The exact failure was reproduced locally against
 the real staging artifact: GNU tar had archived the release through the `.`
@@ -1478,11 +1486,17 @@ leave private storage. Stored change summaries are deliberately excluded.
   admin selector that cannot submit an arbitrary recipient address.
 - [x] Reused the existing PHPMailer/private SMTP boundary for test delivery;
   test subjects carry the target environment and bulk SMTP remains disabled by default.
+- [x] Added bounded vehicle entity/field before-and-after details to staging
+  publish history, retained the active snapshot privately across history
+  cleanup, and kept full snapshots/Markdown out of browser responses.
+- [x] Bound the Publishing Center's current-version state to the deployed
+  release marker so the active row shows `Güncel Sürüm` without a restore action.
 
 ## Current Task
 
-Deploy and staging-smoke-test Publishing Center history details, owner-only
-history cleanup and retained-release restore. After deployment, explicitly
+Deploy and staging-smoke-test the field-level Publishing Center history
+details and active-release badge, then continue the owner-only history cleanup
+and retained-release restore. After deployment, explicitly
 clear the obsolete historical records requested by the operator, create at
 least two controlled staging versions, restore the earlier one, and confirm the
 newer admin draft returns to unpublished changes. Production remains disabled.
@@ -1558,6 +1572,9 @@ the still-required Phase 2/3 staging smoke tests before closing those phases.
 
 ## Next Tasks
 
+- [ ] Deploy the field-level history/current-release update, create one vehicle
+  edit and confirm the history shows its exact allowlisted old/new values and
+  only the active release is labelled `Güncel Sürüm`.
 - [ ] Deploy the new Publishing Center endpoints/UI through the now-working
   automatic staging flow and use `Geçmişi Temizle` to remove obsolete records.
 - [ ] Perform a controlled retained-release restore drill and verify audit,
@@ -1812,6 +1829,14 @@ src/app/robots.ts                          (update)
 ```
 
 ## Files Changed
+
+Current 2026-09-02 field-level staging history continuation:
+
+- `server/admin-api/publishing-store.php`
+- `server/admin-api/publishing.php`
+- `server/admin-api/tests/publishing-store.test.php`
+- `src/components/admin/publishing-center.tsx`
+- `docs/ADMIN_DASHBOARD_IMPLEMENTATION.md`
 
 Current 2026-09-02 staging history/restore continuation:
 
@@ -2199,6 +2224,24 @@ Current Phase 6 test-mail continuation:
 - `server/admin-api/tests/media-store.test.php`
 
 ## Validation Results
+
+2026-09-02 field-level staging history and active-release identity:
+
+- Vehicle publish changes are compared against the active private snapshot
+  using an allowlist and bounded values; article/taxonomy/media summaries do
+  not disclose full Markdown or private snapshot data.
+- Older adjacent successful requests are enriched when both frozen snapshots
+  still exist; records without a comparison source retain an explicit legacy
+  fallback message.
+- The deployed release marker supplies the browser-safe current request
+  identity; the matching successful row is labelled `Güncel Sürüm`.
+- PHP syntax checks and focused publishing-store tests passed, including
+  old/new vehicle values, baseline persistence and snapshot exclusion.
+- `npm run lint`: passed without warnings.
+- `npm run typecheck`: passed after Next.js route type generation.
+- `npm test`: passed; 88 Node tests and all project-owned PHP suites passed.
+- `npm run build:staging`: passed; all 140 static pages generated.
+- Live staging deployment and UI verification remain pending for this change.
 
 2026-09-02 staging history and retained-release restore:
 
@@ -2735,6 +2778,16 @@ still excludes missing consent and unsubscribed rows. No recipient list is sent
 to the browser and no delivery endpoint is packaged.
 
 ## Session Handoff
+
+2026-09-02 field-diff handoff: commit/push the PHP store/overview, Publishing
+Center UI and test/documentation changes, then publish them through the working
+automatic staging flow. Make one controlled vehicle edit and publish again;
+expand that request and verify the vehicle name plus exact before/after field
+values. Confirm the row whose ID matches the live release marker shows
+`Güncel Sürüm`, while an older retained successful release alone offers
+`Bu Sürüme Dön`. Then use the existing owner-confirmed history cleanup and run
+the controlled restore drill. Full Markdown and private snapshots must remain
+absent from browser responses. Production publishing remains disabled.
 
 2026-09-02 history/restore handoff: automated staging is live and successful.
 Commit/push the Publishing Center UI, new PHP endpoints, store/deployment and

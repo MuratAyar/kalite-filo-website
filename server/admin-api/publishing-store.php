@@ -11,6 +11,20 @@ function kalite_filo_admin_publish_baseline_path(): string
     return kalite_filo_admin_publish_root() . DIRECTORY_SEPARATOR . 'staging-baseline.json';
 }
 
+function kalite_filo_admin_publish_baseline_snapshot_path(): string
+{
+    return kalite_filo_admin_publish_root() . DIRECTORY_SEPARATOR . 'staging-baseline-snapshot.json';
+}
+
+/** @return array<string,mixed>|null */
+function kalite_filo_admin_publish_baseline_snapshot(): ?array
+{
+    $path = kalite_filo_admin_publish_baseline_snapshot_path();
+    if (!is_file($path) || is_link($path) || filesize($path) > 33554432) return null;
+    $value = json_decode((string) file_get_contents($path), true, 30, JSON_THROW_ON_ERROR);
+    return is_array($value) && ($value['formatVersion'] ?? null) === 1 ? $value : null;
+}
+
 /** @return array<string,string> */
 function kalite_filo_admin_publish_baseline(): array
 {
@@ -36,6 +50,110 @@ function kalite_filo_admin_write_publish_baseline(array $record): void
     $payload = ['schemaVersion' => 1, 'requestId' => $record['id'] ?? null, 'snapshotHash' => $record['snapshotHash'] ?? null, 'fingerprints' => $fingerprints, 'updatedAt' => gmdate('c')];
     if (file_put_contents($temporary, json_encode($payload, JSON_THROW_ON_ERROR | JSON_PRETTY_PRINT), LOCK_EX) === false || !rename($temporary, $path)) { @unlink($temporary); throw new RuntimeException('Staging baseline could not be written.'); }
     @chmod($path, 0600);
+    if (is_array($record['snapshot'] ?? null)) {
+        $snapshotPath = kalite_filo_admin_publish_baseline_snapshot_path();
+        $snapshotTemporary = $snapshotPath . '.tmp-' . bin2hex(random_bytes(5));
+        $encoded = json_encode($record['snapshot'], JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+        if (file_put_contents($snapshotTemporary, $encoded, LOCK_EX) === false || !rename($snapshotTemporary, $snapshotPath)) { @unlink($snapshotTemporary); throw new RuntimeException('Staging baseline snapshot could not be written.'); }
+        @chmod($snapshotPath, 0600);
+    }
+}
+
+/** @return array<string,mixed>|null */
+function kalite_filo_admin_previous_publish_snapshot(): ?array
+{
+    $baseline = kalite_filo_admin_publish_baseline_snapshot();
+    if ($baseline !== null) return $baseline;
+    foreach (kalite_filo_admin_publish_requests() as $request) {
+        if (($request['target'] ?? null) === 'staging' && ($request['status'] ?? null) === 'staging_succeeded' && is_array($request['snapshot'] ?? null)) return $request['snapshot'];
+    }
+    return null;
+}
+
+function kalite_filo_admin_diff_value(mixed $value): string
+{
+    if ($value === null || $value === '') return '—';
+    if (is_bool($value)) return $value ? 'Evet' : 'Hayır';
+    if (is_array($value)) {
+        $items = array_slice(array_values(array_filter($value, static fn (mixed $item): bool => is_scalar($item))), 0, 8);
+        $value = implode(', ', array_map(static fn (mixed $item): string => (string) $item, $items));
+    }
+    if (!is_scalar($value)) return 'Güncellendi';
+    $text = trim((string) $value);
+    return mb_strlen($text) > 120 ? mb_substr($text, 0, 117) . '…' : ($text !== '' ? $text : '—');
+}
+
+/** @param list<array<string,mixed>> $records @return array<string,array<string,mixed>> */
+function kalite_filo_admin_index_publish_entities(array $records): array
+{
+    $indexed = [];
+    foreach ($records as $record) if (is_array($record) && is_string($record['id'] ?? null) && $record['id'] !== '') $indexed[$record['id']] = $record;
+    return $indexed;
+}
+
+/** @return list<array<string,mixed>> */
+function kalite_filo_admin_vehicle_change_details(array $before, array $after): array
+{
+    $previous = kalite_filo_admin_index_publish_entities(is_array($before['vehicles'] ?? null) ? $before['vehicles'] : []);
+    $current = kalite_filo_admin_index_publish_entities(is_array($after['vehicles'] ?? null) ? $after['vehicles'] : []);
+    $fields = ['make'=>'Marka','model'=>'Model','trim'=>'Donanım','modelYearLabel'=>'Model yılı','categoryLabel'=>'Kategori','segmentLabel'=>'Segment','fuelLabel'=>'Yakıt','transmissionLabel'=>'Şanzıman','powerHp'=>'Güç (HP)','seats'=>'Koltuk','slug'=>'Slug','summary'=>'Özet','priority'=>'Öncelik','sourceStatus'=>'Kaynak durumu','publicationStatus'=>'Yayın durumu','priceAmountMinor'=>'Fiyat','priceStatus'=>'Fiyat durumu','featured'=>'Öne çıkan','featuredOrder'=>'Öne çıkan sırası'];
+    $details = [];
+    foreach (array_unique(array_merge(array_keys($previous), array_keys($current))) as $id) {
+        $old = $previous[$id] ?? null; $new = $current[$id] ?? null;
+        $record = $new ?? $old ?? [];
+        $entity = trim((string) ($record['make'] ?? '') . ' ' . (string) ($record['model'] ?? ''));
+        $entity = $entity !== '' ? $entity : $id;
+        if ($old === null || $new === null) { $details[] = ['entity'=>$entity,'action'=>$old === null ? 'created' : 'removed','fields'=>[]]; continue; }
+        $changed = [];
+        foreach ($fields as $key => $label) if (($old[$key] ?? null) !== ($new[$key] ?? null)) $changed[] = ['label'=>$label,'before'=>kalite_filo_admin_diff_value($old[$key] ?? null),'after'=>kalite_filo_admin_diff_value($new[$key] ?? null)];
+        $oldImage = $old['draftMedia']['id'] ?? $old['coverImage']['src'] ?? null;
+        $newImage = $new['draftMedia']['id'] ?? $new['coverImage']['src'] ?? null;
+        if ($oldImage !== $newImage) $changed[] = ['label'=>'Görsel','before'=>kalite_filo_admin_diff_value($oldImage),'after'=>kalite_filo_admin_diff_value($newImage)];
+        if ($changed !== []) $details[] = ['entity'=>$entity,'action'=>'updated','fields'=>array_slice($changed, 0, 20)];
+        if (count($details) >= 50) break;
+    }
+    return $details;
+}
+
+/** @return list<array<string,mixed>> */
+function kalite_filo_admin_publish_change_details(string $type, array $before, array $after): array
+{
+    if ($type === 'vehicles') return kalite_filo_admin_vehicle_change_details($before, $after);
+    if ($type === 'featured_vehicles') {
+        $old = is_array($before['featuredVehicleIds'] ?? null) ? $before['featuredVehicleIds'] : [];
+        $new = is_array($after['featuredVehicleIds'] ?? null) ? $after['featuredVehicleIds'] : [];
+        return $old === $new ? [] : [['entity'=>'Ana sayfa araç sıralaması','action'=>'reordered','fields'=>[['label'=>'Sıralama','before'=>kalite_filo_admin_diff_value($old),'after'=>kalite_filo_admin_diff_value($new)]]]];
+    }
+    if ($type === 'articles') {
+        $old = kalite_filo_admin_index_publish_entities(is_array($before['articles'] ?? null) ? $before['articles'] : []);
+        $new = kalite_filo_admin_index_publish_entities(is_array($after['articles'] ?? null) ? $after['articles'] : []);
+        $details=[];
+        foreach(array_unique(array_merge(array_keys($old),array_keys($new))) as $id){$a=$old[$id]??null;$b=$new[$id]??null;if($a===$b)continue;$entity=(string)($b['locales']['tr']['title']??$a['locales']['tr']['title']??$id);$details[]=['entity'=>$entity,'action'=>$a===null?'created':($b===null?'removed':'updated'),'fields'=>$a!==null&&$b!==null?[['label'=>'İçerik ve metadata','before'=>'Önceki sürüm','after'=>'Güncellendi']]:[]];if(count($details)>=50)break;}
+        return $details;
+    }
+    if ($type === 'vehicle_taxonomy') return ($before['taxonomy'] ?? null) === ($after['taxonomy'] ?? null) ? [] : [['entity'=>'Araç etiketleri','action'=>'updated','fields'=>[['label'=>'Etiket listeleri','before'=>'Önceki sürüm','after'=>'Güncellendi']]]];
+    if ($type === 'media') return ($before['media'] ?? null) === ($after['media'] ?? null) ? [] : [['entity'=>'Medya kütüphanesi','action'=>'updated','fields'=>[['label'=>'Medya kayıtları','before'=>'Önceki sürüm','after'=>'Güncellendi']]]];
+    return [];
+}
+
+/** @param list<array<string,mixed>> $requests @return list<array<string,mixed>> */
+function kalite_filo_admin_publish_requests_with_details(array $requests): array
+{
+    foreach ($requests as $index => &$request) {
+        if (!is_array($request['snapshot'] ?? null)) continue;
+        $previous = null;
+        for ($candidate = $index + 1, $count = count($requests); $candidate < $count; $candidate++) {
+            if (($requests[$candidate]['status'] ?? null) === 'staging_succeeded' && is_array($requests[$candidate]['snapshot'] ?? null)) { $previous = $requests[$candidate]['snapshot']; break; }
+        }
+        if ($previous === null) continue;
+        foreach (is_array($request['changes'] ?? null) ? $request['changes'] : [] as &$change) {
+            if (!is_array($change) || is_array($change['details'] ?? null)) continue;
+            $change['details'] = kalite_filo_admin_publish_change_details((string) ($change['type'] ?? ''), $previous, $request['snapshot']);
+        }
+        unset($change);
+    }
+    unset($request);
+    return $requests;
 }
 
 /** @return resource */
@@ -273,6 +391,9 @@ function kalite_filo_admin_create_staging_publish_request(): array
     $payload=kalite_filo_admin_staging_publish_payload();
     $validation=kalite_filo_admin_validate_staging_publish_payload($payload);
     if(!$validation['valid'])throw new InvalidArgumentException('Publish validation failed.');
+    $previousSnapshot = kalite_filo_admin_previous_publish_snapshot();
+    if ($previousSnapshot !== null) foreach ($changes as &$change) $change['details'] = kalite_filo_admin_publish_change_details((string) $change['type'], $previousSnapshot, $payload);
+    unset($change);
     $encodedPayload = json_encode($payload, JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
     $snapshotHash=hash('sha256',$encodedPayload);
     foreach(kalite_filo_admin_publish_requests() as $existing)if(($existing['target']??null)==='staging'&&($existing['snapshotHash']??null)===$snapshotHash&&in_array($existing['status']??null,['awaiting_runner','running'],true))return $existing;
@@ -311,7 +432,15 @@ function kalite_filo_admin_create_staging_publish_request(): array
 function kalite_filo_admin_safe_publish_request(array $record): array
 {
     $safeChanges=[];
-    foreach(is_array($record['changes']??null)?$record['changes']:[] as $change)if(is_array($change))$safeChanges[]=['id'=>$change['id']??'','type'=>$change['type']??'','label'=>$change['label']??'','updatedAt'=>$change['updatedAt']??null];
+    foreach(is_array($record['changes']??null)?$record['changes']:[] as $change)if(is_array($change)){
+        $details=[];
+        foreach(array_slice(is_array($change['details']??null)?$change['details']:[],0,50) as $detail)if(is_array($detail)){
+            $fields=[];
+            foreach(array_slice(is_array($detail['fields']??null)?$detail['fields']:[],0,20) as $field)if(is_array($field))$fields[]=['label'=>kalite_filo_admin_diff_value($field['label']??''),'before'=>kalite_filo_admin_diff_value($field['before']??null),'after'=>kalite_filo_admin_diff_value($field['after']??null)];
+            $details[]=['entity'=>kalite_filo_admin_diff_value($detail['entity']??''),'action'=>in_array($detail['action']??null,['created','updated','removed','reordered'],true)?$detail['action']:'updated','fields'=>$fields];
+        }
+        $safeChanges[]=['id'=>$change['id']??'','type'=>$change['type']??'','label'=>$change['label']??'','updatedAt'=>$change['updatedAt']??null,'details'=>$details];
+    }
     return [
         'id' => $record['id'], 'target' => $record['target'], 'status' => $record['status'],
         'changeCount' => $record['changeCount'], 'changes' => $safeChanges,

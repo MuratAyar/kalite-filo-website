@@ -2,7 +2,9 @@
 
 import { useCallback, useEffect, useState } from "react";
 
-type Change = { id: string; type: string; label: string; updatedAt: string | null };
+type ChangeField = { label: string; before: string; after: string };
+type ChangeDetail = { entity: string; action: "created" | "updated" | "removed" | "reordered"; fields: ChangeField[] };
+type Change = { id: string; type: string; label: string; updatedAt: string | null; details?: ChangeDetail[] };
 type Automation = { enabled: boolean; ready: boolean; provider: "github_actions"; missing: string[] };
 type PublishAutomation = { status?: string; runUrl?: string | null; updatedAt?: string | null };
 type PublishRequest = {
@@ -30,6 +32,13 @@ const statusLabels: Record<string, string> = {
   succeeded: "Tamamlandı",
 };
 
+const actionLabels: Record<ChangeDetail["action"], string> = {
+  created: "Oluşturuldu",
+  updated: "Güncellendi",
+  removed: "Kaldırıldı",
+  reordered: "Sıralama değişti",
+};
+
 function requestStatus(request: PublishRequest) {
   return request.automation?.status
     ? statusLabels[request.automation.status] ?? request.automation.status
@@ -45,6 +54,7 @@ export function PublishingCenter({ csrfToken, canRequest, canClearHistory }: { c
   const [notice, setNotice] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [historyAction, setHistoryAction] = useState("");
+  const [currentRequestId, setCurrentRequestId] = useState<string | null>(null);
   const [validation, setValidation] = useState<{ valid: boolean; blockers: ValidationMessage[]; warnings: ValidationMessage[] }>({ valid: false, blockers: [], warnings: [] });
 
   const load = useCallback(async () => {
@@ -56,6 +66,7 @@ export function PublishingCenter({ csrfToken, canRequest, canClearHistory }: { c
       setRequests(payload.requests);
       setValidation(payload.validation);
       setAutomation(payload.automation);
+      setCurrentRequestId(typeof payload.currentRequestId === "string" ? payload.currentRequestId : null);
       setError("");
     } catch {
       setError("Yayına alma durumu yüklenemedi.");
@@ -190,10 +201,21 @@ export function PublishingCenter({ csrfToken, canRequest, canClearHistory }: { c
           <div className="flex flex-wrap gap-2">
             {request.automation?.runUrl ? <a className="inline-flex min-h-10 items-center justify-center rounded-control border border-corporate-blue px-3 font-semibold text-corporate-blue" href={request.automation.runUrl} rel="noreferrer" target="_blank">Build Detayı</a> : null}
             <a className="inline-flex min-h-10 items-center justify-center rounded-control border px-3 font-semibold" href={`/admin-api/publish-request-download.php?id=${encodeURIComponent(request.id)}`}>Snapshot</a>
-            {canRequest && request.status === "staging_succeeded" ? <button className="min-h-10 rounded-control bg-corporate-blue px-3 font-semibold text-white disabled:opacity-50" disabled={historyAction !== ""} onClick={() => void restoreRequest(request)} type="button">{historyAction === request.id ? "Geri dönülüyor..." : "Bu Sürüme Dön"}</button> : null}
+            {request.status === "staging_succeeded" && request.id === currentRequestId
+              ? <span className="inline-flex min-h-10 items-center justify-center rounded-control border border-success/30 bg-success/10 px-3 font-semibold text-success" title="Staging ortamında şu anda etkin olan sürüm">Güncel Sürüm</span>
+              : canRequest && request.status === "staging_succeeded" ? <button className="min-h-10 rounded-control bg-corporate-blue px-3 font-semibold text-white disabled:opacity-50" disabled={historyAction !== ""} onClick={() => void restoreRequest(request)} type="button">{historyAction === request.id ? "Geri dönülüyor..." : "Bu Sürüme Dön"}</button> : null}
           </div>
           {request.result?.summary ? <p className="text-xs text-text-secondary md:col-span-5">{request.result.summary}</p> : null}
-          <details className="md:col-span-5"><summary className="cursor-pointer font-semibold text-corporate-blue">Değişiklik detayları ({request.changes.length})</summary>{request.changes.length > 0 ? <ul className="mt-3 grid gap-2 md:grid-cols-2">{request.changes.map((change) => <li className="rounded-control border bg-surface-muted p-3" key={change.id}><span className="block font-semibold">{change.label}</span><span className="text-xs text-text-secondary">{change.type}{change.updatedAt ? ` · ${new Date(change.updatedAt).toLocaleString("tr-TR")}` : ""}</span></li>)}</ul> : <p className="mt-2 text-sm text-text-secondary">Bu kayıtta değişiklik detayı bulunmuyor.</p>}</details>
+          <details className="md:col-span-5">
+            <summary className="cursor-pointer font-semibold text-corporate-blue">Değişiklik detayları ({request.changes.length})</summary>
+            {request.changes.length > 0 ? <ul className="mt-3 grid gap-3">{request.changes.map((change) => <li className="rounded-control border bg-surface-muted p-4" key={change.id}>
+              <div className="flex flex-wrap items-center justify-between gap-2"><span className="font-semibold">{change.label}</span><span className="text-xs text-text-secondary">{change.updatedAt ? new Date(change.updatedAt).toLocaleString("tr-TR") : change.type}</span></div>
+              {change.details && change.details.length > 0 ? <ul className="mt-3 grid gap-3 md:grid-cols-2">{change.details.map((detail, detailIndex) => <li className="rounded-control border bg-surface-card p-3" key={`${change.id}-${detailIndex}`}>
+                <div className="flex flex-wrap items-center justify-between gap-2"><strong>{detail.entity}</strong><span className="rounded-full bg-corporate-blue/10 px-2 py-1 text-xs font-semibold text-corporate-blue">{actionLabels[detail.action]}</span></div>
+                {detail.fields.length > 0 ? <dl className="mt-3 space-y-2">{detail.fields.map((field, fieldIndex) => <div className="grid gap-1 border-t pt-2 text-xs sm:grid-cols-[8rem_1fr]" key={`${field.label}-${fieldIndex}`}><dt className="font-semibold text-text-secondary">{field.label}</dt><dd className="flex min-w-0 flex-wrap items-center gap-2"><span className="break-all text-text-secondary line-through">{field.before}</span><span aria-hidden="true">→</span><strong className="break-all text-text-primary">{field.after}</strong></dd></div>)}</dl> : null}
+              </li>)}</ul> : <p className="mt-3 text-xs text-text-secondary">Bu eski kayıtta alan bazlı değişiklik bilgisi bulunmuyor.</p>}
+            </li>)}</ul> : <p className="mt-2 text-sm text-text-secondary">Bu kayıtta değişiklik detayı bulunmuyor.</p>}
+          </details>
         </li>)}</ul> : <p className="mt-4 text-sm text-text-secondary">Henüz staging yayını yok.</p>}
       </section>
     </>}
