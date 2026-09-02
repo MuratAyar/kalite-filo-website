@@ -8,6 +8,17 @@ the status and handoff sections before ending.
 
 ## Current Status
 
+The fourth live attempt produced the definitive deployment reason
+`release_extraction_failed`. The exact failure was reproduced locally against
+the real staging artifact: GNU tar had archived the release through the `.`
+root operand, producing a literal dot entry, and PHP `PharData::extractTo()`
+fails that archive with `Cannot extract ".", internal error`. Artifact creation
+now passes the sorted top-level release entries to tar instead of `.`, retaining
+USTAR, manifest and checksum guarantees. The corrected 61 MB-class artifact was
+successfully extracted by local PHP and its required public/admin files were
+verified. Only runner/repository code changed for this root fix; after push, no
+additional cPanel bootstrap is required.
+
 The third live attempt failed while claiming its frozen request because the
 staging request endpoint returned a response that could not be parsed as JSON.
 The previous runner reported only `malformed JSON`, and claim failure left the
@@ -1132,6 +1143,11 @@ leave private storage. Stored change summaries are deliberately excluded.
 
 ## Completed Tasks
 
+- [x] Reproduced `release_extraction_failed` with the real staging USTAR and
+  identified the incompatible literal `.` root archive entry.
+- [x] Changed staging artifact packaging to sorted top-level entries and proved
+  the resulting archive extracts successfully through PHP `PharData`.
+- [x] Added a regression test prohibiting the dot root operand.
 - [x] Added bounded malformed-response diagnostics without echoing potentially
   sensitive response bodies into GitHub Actions logs.
 - [x] Added authenticated early runner failure reporting so claim/input errors
@@ -1462,6 +1478,11 @@ returns malformed data, the next Actions log will identify its safe response
 class; Admin Dashboard will also move the request to `failed` instead of
 remaining at `GitHub Actions sırasında`.
 
+The extraction root cause is now fixed. Push the archive packaging change to
+`main` and create a new staging publish attempt. The cPanel endpoints already
+support this corrected artifact format; do not upload another bootstrap ZIP
+solely for the tar fix.
+
 The workflow context validation blocker is resolved locally. The immediate
 operator action is now to commit/push the workflow and automation code, verify
 the GitHub Actions workflow is visible, and install the generated bootstrap ZIP
@@ -1516,6 +1537,8 @@ the still-required Phase 2/3 staging smoke tests before closing those phases.
 
 ## Next Tasks
 
+- [ ] Push the dot-root-free archive fix to `main`, retry `Staging Oluştur`, and
+  verify activation, release marker and HTTPS smoke complete successfully.
 - [ ] Push and bootstrap the malformed-response diagnostics plus
   `publish-runner-fail.php`, then retry after the current queued attempt becomes
   stale (20 minutes from its last automation update).
@@ -1762,6 +1785,12 @@ src/app/robots.ts                          (update)
 ```
 
 ## Files Changed
+
+Current 2026-09-02 Phar extraction root-cause fix:
+
+- `scripts/run-staging-publish.mjs`
+- `scripts/run-staging-publish.test.mjs`
+- `docs/ADMIN_DASHBOARD_IMPLEMENTATION.md`
 
 Current 2026-09-02 claim-failure continuation:
 
@@ -2131,6 +2160,20 @@ Current Phase 6 test-mail continuation:
 - `server/admin-api/tests/media-store.test.php`
 
 ## Validation Results
+
+2026-09-02 Phar extraction root-cause correction:
+
+- The prior real USTAR reproduced PHP fatal extraction error `Cannot extract
+  ".", internal error` from its literal dot root entry.
+- A corrected 61,693,952-byte USTAR was generated from sorted top-level release
+  entries; PHP `PharData` extracted it successfully, producing 1,702 files and
+  the required `index.html` and `admin-api/session.php` files.
+- Added a regression test that prohibits `.` in archive operands.
+- `npm run lint`: passed without warnings after removing the isolated generated
+  extraction fixture.
+- `npm run typecheck`: passed after Next.js route type generation.
+- `npm test`: passed; 88 Node tests and all project-owned PHP suites passed.
+- `npm run build:staging`: passed; all 140 static pages generated.
 
 2026-09-02 malformed claim/failure-state continuation:
 
@@ -2636,6 +2679,15 @@ still excludes missing consent and unsubscribed rows. No recipient list is sent
 to the browser and no delivery endpoint is packaged.
 
 ## Session Handoff
+
+2026-09-02 extraction-fix handoff: `release_extraction_failed` was a code-level
+archive compatibility defect, not corrupt chunks, disk space or an Actions
+retry issue. `run-staging-publish.mjs` now archives sorted release-root entries
+instead of the Phar-incompatible `.` entry. Commit/push this runner change and
+start a fresh Admin Dashboard staging publication; do not re-run an old Actions
+run because it remains bound to its old commit. No cPanel bootstrap is needed
+for this specific fix. Verify deployment, marker, smoke and unpublished-change
+clearance before closing Phase 7.
 
 2026-09-02 malformed-claim handoff: push the workflow, runner-client,
 failure-reporter, release-assembly and new `publish-runner-fail.php` changes to
