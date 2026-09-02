@@ -80,10 +80,13 @@ jobs:
           --release-result "$RUNNER_TEMP/kalite-filo/runner-result.json"
           --artifact "$RUNNER_TEMP/kalite-filo/staging-release.tar"
 
-      - name: Report a build failure to Admin Dashboard
-        if: ${{ failure() && steps.claim.outcome == 'success' && steps.build.outcome == 'failure' }}
+      - name: Report a runner failure to Admin Dashboard
+        if: ${{ failure() && steps.deploy.outcome != 'failure' }}
+        continue-on-error: true
         env:
           KALITE_FILO_STAGING_RUNNER_TOKEN: ${{ secrets.KALITE_FILO_STAGING_RUNNER_TOKEN }}
         run: >-
           node scripts/report-staging-publish-failure.mjs
           --result "$RUNNER_TEMP/kalite-filo/runner-result.json"
+          --request-id "${{ inputs.request_id }}"
+          --snapshot-hash "${{ inputs.snapshot_hash }}"

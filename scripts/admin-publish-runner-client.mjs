@@ -38,7 +38,14 @@ export async function runnerJson(pathname, options = {}, fetcher = fetch) {
   if (text.length > 36_000_000) throw new Error(`Runner API ${pathname} returned an oversized response.`);
   let payload;
   try { payload = text === "" ? {} : JSON.parse(text); }
-  catch { throw new Error(`Runner API ${pathname} returned malformed JSON.`); }
+  catch {
+    const contentType = response.headers.get("content-type")?.split(";", 1)[0]?.trim().toLowerCase() || "missing";
+    const trimmed = text.trimStart();
+    const bodyKind = text.length === 0 ? "empty"
+      : /^<!doctype html|^<html/i.test(trimmed) ? "html"
+        : /^<\?php/i.test(trimmed) ? "php_source" : "non_json";
+    throw new Error(`Runner API ${pathname} returned malformed JSON (HTTP ${response.status}; type=${contentType}; bytes=${Buffer.byteLength(text)}; body=${bodyKind}).`);
+  }
   if (!response.ok) {
     const reason = typeof payload?.reason === "string" && /^[a-z0-9_]{3,64}$/.test(payload.reason)
       ? `; reason=${payload.reason}`

@@ -120,6 +120,7 @@ function createFixture(name) {
     "publish-runner-deploy.php",
     "publish-runner-rollback.php",
     "publish-runner-complete.php",
+    "publish-runner-fail.php",
   ]) {
     writeFileSync(path.join(root, "server", "admin-api", file), "fixture");
   }

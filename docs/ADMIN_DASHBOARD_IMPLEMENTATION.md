@@ -8,6 +8,17 @@ the status and handoff sections before ending.
 
 ## Current Status
 
+The third live attempt failed while claiming its frozen request because the
+staging request endpoint returned a response that could not be parsed as JSON.
+The previous runner reported only `malformed JSON`, and claim failure left the
+request visually queued because terminal reporting existed only after a
+successful claim/build. Runner diagnostics now report only safe response
+metadata (HTTP status, MIME type, byte count and empty/HTML/PHP-source/non-JSON
+classification), never response contents. A machine-authenticated early-failure
+endpoint now terminally records claim/input failures, and the workflow invokes
+it for pre-deployment failures. This update requires one new manual staging
+bootstrap; an already-finished workflow cannot retroactively close its record.
+
 The second live automation attempt passed checkout, dependency installation,
 snapshot claim, materialization, validation and the full static release build.
 It failed only when the staging PHP deployment endpoint returned a generic HTTP
@@ -1121,6 +1132,11 @@ leave private storage. Stored change summaries are deliberately excluded.
 
 ## Completed Tasks
 
+- [x] Added bounded malformed-response diagnostics without echoing potentially
+  sensitive response bodies into GitHub Actions logs.
+- [x] Added authenticated early runner failure reporting so claim/input errors
+  no longer leave publication records indefinitely shown as queued/running.
+- [x] Added the early-failure PHP endpoint to release assembly and tests.
 - [x] Proved the automatic runner through release build and isolated the second
   live failure to the PHP artifact activation boundary.
 - [x] Added safe deploy-stage failure codes to PHP and surfaced them in GitHub
@@ -1440,6 +1456,12 @@ bootstrap release so the PHP endpoint can emit its bounded failure reason, then
 retry the retained unpublished change. Use the returned reason code (or a
 successful activation) to complete the hosting proof.
 
+The immediate retry must include the malformed-response/early-failure update in
+both GitHub `main` and the staging PHP bootstrap. If the request endpoint still
+returns malformed data, the next Actions log will identify its safe response
+class; Admin Dashboard will also move the request to `failed` instead of
+remaining at `GitHub Actions sırasında`.
+
 The workflow context validation blocker is resolved locally. The immediate
 operator action is now to commit/push the workflow and automation code, verify
 the GitHub Actions workflow is visible, and install the generated bootstrap ZIP
@@ -1494,6 +1516,11 @@ the still-required Phase 2/3 staging smoke tests before closing those phases.
 
 ## Next Tasks
 
+- [ ] Push and bootstrap the malformed-response diagnostics plus
+  `publish-runner-fail.php`, then retry after the current queued attempt becomes
+  stale (20 minutes from its last automation update).
+- [ ] Use the new HTTP/type/bytes/body classification to correct the actual
+  request-response fault if it recurs.
 - [ ] Push the safe deployment diagnostics and Actions v5 update to `main`,
   rebuild the staging bootstrap ZIP, and install it once on cPanel staging.
 - [ ] Retry staging publish and capture the exact bounded `reason=...` value if
@@ -1735,6 +1762,17 @@ src/app/robots.ts                          (update)
 ```
 
 ## Files Changed
+
+Current 2026-09-02 claim-failure continuation:
+
+- `.github/workflows/admin-staging-publish.yml`
+- `scripts/admin-publish-runner-client.mjs`
+- `scripts/admin-publish-runner-client.test.mjs`
+- `scripts/report-staging-publish-failure.mjs`
+- `scripts/assemble-cpanel-release.mjs`
+- `scripts/assemble-cpanel-release.test.mjs`
+- `server/admin-api/publish-runner-fail.php` (new)
+- `docs/ADMIN_DASHBOARD_IMPLEMENTATION.md`
 
 Current 2026-09-02 deployment-diagnostic continuation:
 
@@ -2093,6 +2131,20 @@ Current Phase 6 test-mail continuation:
 - `server/admin-api/tests/media-store.test.php`
 
 ## Validation Results
+
+2026-09-02 malformed claim/failure-state continuation:
+
+- The third live workflow received malformed JSON from the frozen-request PHP
+  endpoint and exposed the missing early terminal-state transition.
+- Runner errors now include bounded HTTP/MIME/size/body-class metadata without
+  logging response content.
+- Added a machine-authenticated, request/snapshot/run-bound early failure
+  endpoint and release assembly coverage.
+- PHP syntax checks passed for all new/changed deployment endpoints.
+- `npm run lint`: passed without warnings.
+- `npm run typecheck`: passed after Next.js route type generation.
+- `npm test`: passed; 87 Node tests and all project-owned PHP suites passed.
+- `npm run build:staging`: passed; all 140 static pages generated.
 
 2026-09-02 deployment HTTP 503 diagnostic continuation:
 
@@ -2584,6 +2636,16 @@ still excludes missing consent and unsubscribed rows. No recipient list is sent
 to the browser and no delivery endpoint is packaged.
 
 ## Session Handoff
+
+2026-09-02 malformed-claim handoff: push the workflow, runner-client,
+failure-reporter, release-assembly and new `publish-runner-fail.php` changes to
+`main`. Generate and manually extract one fresh staging bootstrap ZIP because
+the new failure endpoint must exist on cPanel before it can be called. The
+currently displayed request cannot be retroactively completed by its finished
+workflow; after 20 minutes it is eligible for the existing conservative stale
+re-dispatch. Retry from Publishing Center. A repeated parse failure will now
+show safe HTTP/type/bytes/body metadata, and the early-failure endpoint will
+mark the request failed rather than leaving it in progress.
 
 2026-09-02 deploy-503 handoff: the Node 20 annotation did not fail the job; the
 workflow has nevertheless moved to checkout/setup-node v5 to remove it. The
