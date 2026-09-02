@@ -39,7 +39,12 @@ export async function runnerJson(pathname, options = {}, fetcher = fetch) {
   let payload;
   try { payload = text === "" ? {} : JSON.parse(text); }
   catch { throw new Error(`Runner API ${pathname} returned malformed JSON.`); }
-  if (!response.ok) throw new Error(`Runner API ${pathname} failed with HTTP ${response.status} (${payload?.error ?? "unknown"}).`);
+  if (!response.ok) {
+    const reason = typeof payload?.reason === "string" && /^[a-z0-9_]{3,64}$/.test(payload.reason)
+      ? `; reason=${payload.reason}`
+      : "";
+    throw new Error(`Runner API ${pathname} failed with HTTP ${response.status} (${payload?.error ?? "unknown"}${reason}).`);
+  }
   return payload;
 }
 

@@ -1,6 +1,35 @@
 <?php
 declare(strict_types=1);
 
+function kalite_filo_admin_deployment_failure_reason(Throwable $exception): string
+{
+    $messages = [];
+    for ($current = $exception; $current !== null; $current = $current->getPrevious()) {
+        $messages[] = strtolower($current->getMessage());
+    }
+    $message = implode(' | ', $messages);
+    $groups = [
+        'artifact_upload_unavailable' => ['upload metadata', 'upload is incomplete', 'chunk could not be read'],
+        'artifact_assembly_failed' => ['assembly could not start', 'chunk could not be assembled', 'artifact could not be finalized'],
+        'artifact_validation_failed' => ['artifact checksum', 'tar artifact'],
+        'phar_unavailable' => ['phardata is unavailable'],
+        'release_extraction_failed' => ['release extraction', 'phardata'],
+        'release_validation_failed' => ['extracted release', 'release manifest', 'release marker'],
+        'document_root_invalid' => ['canonical staging document root'],
+        'deployment_storage_failed' => ['private admin storage', 'incoming release could not be created'],
+        'deployment_filesystem_mismatch' => ['same filesystem'],
+        'rollback_retention_failed' => ['current staging release could not be retained'],
+        'release_activation_failed' => ['new staging release could not be activated'],
+        'deployment_state_failed' => ['deployment state could not be written'],
+    ];
+    foreach ($groups as $reason => $needles) {
+        foreach ($needles as $needle) {
+            if (str_contains($message, $needle)) return $reason;
+        }
+    }
+    return 'deployment_runtime_failed';
+}
+
 /** @return array<string,mixed> */
 function kalite_filo_admin_runner_upload_metadata(string $root): array
 {

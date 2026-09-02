@@ -16,6 +16,10 @@ test("requires bounded machine credentials and emits no query-string secret", ()
 test("rejects unsuccessful and malformed runner API responses", async () => {
   await assert.rejects(() => runnerJson("/test", {}, async () => new Response("not-json", { status: 200 })), /malformed/);
   await assert.rejects(() => runnerJson("/test", {}, async () => new Response('{"error":"denied"}', { status: 401 })), /HTTP 401/);
+  await assert.rejects(
+    () => runnerJson("/deploy", {}, async () => new Response('{"error":"deployment_failed","reason":"release_extraction_failed"}', { status: 503 })),
+    /reason=release_extraction_failed/,
+  );
 });
 
 test("selects only snapshot-bound private media without duplicates", () => {

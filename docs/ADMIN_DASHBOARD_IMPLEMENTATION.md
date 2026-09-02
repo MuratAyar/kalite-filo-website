@@ -8,6 +8,16 @@ the status and handoff sections before ending.
 
 ## Current Status
 
+The second live automation attempt passed checkout, dependency installation,
+snapshot claim, materialization, validation and the full static release build.
+It failed only when the staging PHP deployment endpoint returned a generic HTTP
+503 after artifact upload. The Node 20 annotation was unrelated; the workflow
+now uses the official Node-24-based `actions/checkout@v5` and
+`actions/setup-node@v5`. Deployment failures now return a bounded non-secret
+reason code (assembly, archive, extraction, manifest, filesystem, activation or
+state) and the runner includes that code in Actions output. These updated PHP
+diagnostics require one manual staging bootstrap before the next attempt.
+
 The first live AD-004 dispatch successfully proved browser-to-PHP-to-GitHub
 queueing and status reporting, but the hosted runner failed before build at
 `npm run typecheck`: a clean checkout had not generated Next.js global route
@@ -1111,6 +1121,11 @@ leave private storage. Stored change summaries are deliberately excluded.
 
 ## Completed Tasks
 
+- [x] Proved the automatic runner through release build and isolated the second
+  live failure to the PHP artifact activation boundary.
+- [x] Added safe deploy-stage failure codes to PHP and surfaced them in GitHub
+  Actions without exposing server paths, exception text or secrets.
+- [x] Updated checkout/setup-node actions to their Node-24-based v5 releases.
 - [x] Fixed clean GitHub runner typechecking by generating Next.js route types
   with `next typegen` before strict `tsc` validation.
 - [x] Proved the live admin-to-GitHub dispatch, queued/in-progress/failed status
@@ -1419,10 +1434,11 @@ and enable `publishing_automation` in the private staging `config.php`. Then use
 chunk upload, atomic activation, live marker, HTTPS smoke, terminal status and
 retained rollback. Production remains disabled.
 
-The bootstrap and dispatch path are now live. Push the clean-runner typecheck
-fix to `main`, retry the retained unpublished change, and prove build, upload,
-activation and smoke success. No new cPanel bootstrap ZIP is required for this
-repository-only runner correction.
+The bootstrap, dispatch and clean build paths are live. Push the deploy
+diagnostics and Actions v5 update, create and install one updated staging
+bootstrap release so the PHP endpoint can emit its bounded failure reason, then
+retry the retained unpublished change. Use the returned reason code (or a
+successful activation) to complete the hosting proof.
 
 The workflow context validation blocker is resolved locally. The immediate
 operator action is now to commit/push the workflow and automation code, verify
@@ -1478,6 +1494,10 @@ the still-required Phase 2/3 staging smoke tests before closing those phases.
 
 ## Next Tasks
 
+- [ ] Push the safe deployment diagnostics and Actions v5 update to `main`,
+  rebuild the staging bootstrap ZIP, and install it once on cPanel staging.
+- [ ] Retry staging publish and capture the exact bounded `reason=...` value if
+  activation still fails; do not infer a filesystem/Phar cause from HTTP 503.
 - [ ] Push the `next typegen` typecheck correction to `main` and retry the
   failed staging publication from the authenticated Publishing Center.
 - [ ] Confirm the retry reaches `staging_succeeded`, that the expected content
@@ -1715,6 +1735,16 @@ src/app/robots.ts                          (update)
 ```
 
 ## Files Changed
+
+Current 2026-09-02 deployment-diagnostic continuation:
+
+- `.github/workflows/admin-staging-publish.yml`
+- `scripts/admin-publish-runner-client.mjs`
+- `scripts/admin-publish-runner-client.test.mjs`
+- `server/admin-api/publish-runner-deploy.php`
+- `server/admin-api/publishing-deployment.php`
+- `server/admin-api/tests/publishing-deployment.test.php`
+- `docs/ADMIN_DASHBOARD_IMPLEMENTATION.md`
 
 Current 2026-09-02 clean-runner typecheck correction:
 
@@ -2063,6 +2093,19 @@ Current Phase 6 test-mail continuation:
 - `server/admin-api/tests/media-store.test.php`
 
 ## Validation Results
+
+2026-09-02 deployment HTTP 503 diagnostic continuation:
+
+- The second live attempt passed checkout, dependencies, claim and complete
+  release build; only `publish-runner-deploy.php` returned HTTP 503.
+- Added allowlisted failure-reason classification and nested extraction error
+  handling tests; raw exception messages and server paths remain private.
+- Focused Node runner tests: passed; 4 tests.
+- Focused PHP deployment tests and `php -l`: passed.
+- `npm run lint`: passed without warnings.
+- `npm run typecheck`: passed after Next.js route type generation.
+- `npm test`: passed; 87 Node tests and all project-owned PHP suites passed.
+- `npm run build:staging`: passed; all 140 static pages generated.
 
 2026-09-02 first live automation failure correction:
 
@@ -2541,6 +2584,16 @@ still excludes missing consent and unsubscribed rows. No recipient list is sent
 to the browser and no delivery endpoint is packaged.
 
 ## Session Handoff
+
+2026-09-02 deploy-503 handoff: the Node 20 annotation did not fail the job; the
+workflow has nevertheless moved to checkout/setup-node v5 to remove it. The
+actual failure is inside the staging PHP deployment boundary, whose currently
+deployed version hides every runtime cause behind `service_unavailable`. Push
+the new workflow/client/PHP diagnostic changes, assemble a fresh staging
+release, and manually extract that bootstrap once so the server gains the new
+endpoint. Retry from Admin Dashboard. If it still fails, Actions will report a
+bounded `reason=...` code that identifies the next concrete fix. Do not change
+permissions or hosting configuration speculatively before that result.
 
 2026-09-02 clean-runner failure handoff: the automation configuration and
 dispatch bridge are working. The failed run was caused by `tsc` executing in a

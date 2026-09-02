@@ -50,5 +50,13 @@ try {
     } catch (RuntimeException $exception) {
         deployment_assert($exception->getMessage() !== 'Traversal path must fail.', 'Traversal path must fail.');
     }
+    deployment_assert(
+        kalite_filo_admin_deployment_failure_reason(new RuntimeException('Release extraction or validation failed.', 0, new RuntimeException('phar error'))) === 'release_extraction_failed',
+        'Nested extraction failures must receive a safe diagnostic code.'
+    );
+    deployment_assert(
+        kalite_filo_admin_deployment_failure_reason(new RuntimeException('New staging release could not be activated.')) === 'release_activation_failed',
+        'Activation failures must receive a safe diagnostic code.'
+    );
     fwrite(STDOUT, "Admin publishing deployment validation tests passed.\n");
 } finally { deployment_remove($root); }

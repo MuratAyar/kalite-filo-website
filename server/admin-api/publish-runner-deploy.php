@@ -44,6 +44,7 @@ try {
 } catch (InvalidArgumentException) {
     kalite_filo_admin_json(['error' => 'validation_failed'], 422);
 } catch (Throwable $exception) {
-    error_log('Publish runner deployment failed [' . get_class($exception) . '].');
-    kalite_filo_admin_json(['error' => 'service_unavailable'], 503);
+    $reason = kalite_filo_admin_deployment_failure_reason($exception);
+    error_log('Publish runner deployment failed [' . get_class($exception) . '; reason=' . $reason . '].');
+    kalite_filo_admin_json(['error' => 'deployment_failed', 'reason' => $reason], 503);
 }
