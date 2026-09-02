@@ -8,6 +8,16 @@ the status and handoff sections before ending.
 
 ## Current Status
 
+The 2026-09-02 form-card interaction refinement is complete locally. The
+text-heavy `Kartı Genişlet` control has been removed from both form views; the
+whole non-interactive card surface now toggles its conversation detail with a
+hover lift/border/shadow affordance, while a compact labelled chevron preserves
+keyboard and screen-reader access. Opening `Yanıt Oluştur` expands the card and
+smooth-scrolls the mounted subject/message composer into view. Collapsing that
+card also closes and resets the reply UI label. Quote metadata uses three
+columns at wide breakpoints, and the customer `Not` is omitted from the compact
+card and shown only as the full initial message in the expanded conversation.
+
 The 2026-09-02 publishing/form conversation pass is complete locally.
 Publishing overview changes now carry the same bounded entity/field details as
 history. Once a staging request is dispatched, its frozen fingerprint set is

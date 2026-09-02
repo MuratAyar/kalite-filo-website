@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useCallback, useEffect, useState } from "react";
+import { FormEvent, useCallback, useEffect, useRef, useState } from "react";
 
 type FormKind = "quote" | "contact";
 type FormStatus = "new" | "in_progress" | "replied" | "closed";
@@ -84,6 +84,7 @@ export function FormSubmissionsView({ kind, csrfToken }: { kind: FormKind; csrfT
   const [expandedId, setExpandedId] = useState("");
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
+  const replyComposerRef = useRef<HTMLFormElement>(null);
 
   const load = useCallback(async () => {
     setLoading(true); setError("");
@@ -102,6 +103,30 @@ export function FormSubmissionsView({ kind, csrfToken }: { kind: FormKind; csrfT
   }, [kind, query, status, type]);
 
   useEffect(() => { const timer = window.setTimeout(() => void load(), 250); return () => window.clearTimeout(timer); }, [load]);
+  useEffect(() => {
+    if (!replyId) return;
+    const frame = window.requestAnimationFrame(() => replyComposerRef.current?.scrollIntoView({ behavior: "smooth", block: "center" }));
+    return () => window.cancelAnimationFrame(frame);
+  }, [replyId]);
+
+  function toggleCard(id: string) {
+    if (expandedId === id) {
+      setExpandedId("");
+      if (replyId === id) setReplyId("");
+      return;
+    }
+    if (replyId) setReplyId("");
+    setExpandedId(id);
+  }
+
+  function toggleReply(id: string) {
+    if (replyId === id) {
+      setReplyId("");
+      return;
+    }
+    setExpandedId(id);
+    setReplyId(id);
+  }
 
   async function changeStatus(id: string, nextStatus: FormStatus) {
     setBusyId(id); setError("");
@@ -138,14 +163,14 @@ export function FormSubmissionsView({ kind, csrfToken }: { kind: FormKind; csrfT
       const cart = Array.isArray(record.details.cartItems) ? record.details.cartItems : [];
       const expanded = expandedId === record.id;
       const initialMessage = typeof record.details.message === "string" ? record.details.message : typeof record.details.note === "string" ? record.details.note : "";
-      return <article className={`cursor-pointer overflow-hidden rounded-card border bg-surface-card shadow-sm transition ${expanded ? "border-corporate-blue shadow-md" : "border-border-subtle"}`} key={record.id} onClick={(event) => { if (!(event.target as HTMLElement).closest("button,a,input,select,textarea,label,form")) setExpandedId((current) => current === record.id ? "" : record.id); }}>
-        <div className="grid gap-5 border-l-4 border-accent-orange p-5 lg:grid-cols-[minmax(210px,0.8fr)_minmax(300px,1.6fr)_minmax(220px,0.8fr)]">
-          <div><div className="flex flex-wrap gap-2"><span className="rounded-pill bg-brand-navy px-3 py-1 text-xs font-bold text-white">{typeLabels[record.formType]}</span><span className="rounded-pill bg-orange-light px-3 py-1 text-xs font-bold text-brand-navy">{statusLabels[record.status]}</span></div><h3 className="mt-4 text-lg font-bold">{record.name}</h3><p className="mt-1 text-sm text-text-secondary">{record.referenceNumber ?? record.id}</p><p className="mt-3 text-sm"><a className="text-corporate-blue underline" href={`mailto:${record.email}`}>{record.email}</a>{record.phone ? <><br /><a href={`tel:${record.phone.replace(/\s/g, "")}`}>{record.phone}</a></> : null}</p><time className="mt-3 block text-xs text-text-secondary">{new Intl.DateTimeFormat("tr-TR", { dateStyle: "medium", timeStyle: "short" }).format(new Date(record.createdAt))}</time></div>
-          <dl className="grid content-start gap-x-5 gap-y-3 sm:grid-cols-2">{Object.entries(record.details).map(([key, value]) => { const shown = displayValue(key, value); return shown ? <div className={key === "message" || key === "note" ? "sm:col-span-2" : ""} key={key}><dt className="text-xs font-bold uppercase tracking-wide text-text-secondary">{detailLabels[key] ?? key}</dt><dd className="mt-1 whitespace-pre-wrap text-sm">{key === "message" || key === "note" ? truncateMessage(shown) : shown}</dd></div> : null; })}{cart.slice(0, expanded ? cart.length : 2).map((item, index) => <div className="rounded-control bg-page p-3 text-sm sm:col-span-2" key={index}><dt className="font-bold">Sepet aracı {index + 1}</dt><dd className="mt-1 whitespace-pre-wrap font-sans text-text-secondary">{item && typeof item === "object" ? Object.values(item).join(" · ") : String(item)}</dd></div>)}</dl>
-          <div><label className="text-xs font-bold uppercase tracking-wide text-text-secondary">Durum<select className="mt-2 min-h-11 w-full rounded-control border border-border-control px-3 text-sm font-normal" disabled={busyId === record.id} onChange={(event) => void changeStatus(record.id, event.target.value as FormStatus)} value={record.status}>{Object.entries(statusLabels).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label><button className="mt-4 min-h-11 w-full rounded-control bg-accent-orange px-4 font-bold text-on-accent disabled:opacity-50" disabled={busyId === record.id} onClick={() => { setExpandedId(record.id); setReplyId((current) => current === record.id ? "" : record.id); }} type="button">{replyId === record.id ? "Yanıtı Kapat" : "Yanıt Oluştur"}</button><button aria-expanded={expanded} className="mt-2 min-h-10 w-full rounded-control border border-border-control px-3 text-sm font-semibold text-corporate-blue" onClick={() => setExpandedId((current) => current === record.id ? "" : record.id)} type="button">{expanded ? "Detayları Gizle" : "Kartı Genişlet"}</button><p className="mt-3 text-xs text-text-secondary">{record.replyHistory.length ? `${record.replyHistory.length} yanıt gönderildi` : "Henüz yanıt gönderilmedi"}</p></div>
+      return <article className={`cursor-pointer overflow-hidden rounded-card border bg-surface-card shadow-sm transition-[transform,border-color,box-shadow] duration-200 hover:-translate-y-0.5 hover:border-corporate-blue/50 hover:shadow-lg motion-reduce:transform-none ${expanded ? "border-corporate-blue shadow-md" : "border-border-subtle"}`} key={record.id} onClick={(event) => { if (!(event.target as HTMLElement).closest("button,a,input,select,textarea,label,form")) toggleCard(record.id); }}>
+        <div className="grid gap-5 border-l-4 border-accent-orange p-5 lg:grid-cols-[minmax(210px,0.75fr)_minmax(420px,2fr)_minmax(220px,0.75fr)]">
+          <div><div className="flex items-start justify-between gap-3"><div className="flex flex-wrap gap-2"><span className="rounded-pill bg-brand-navy px-3 py-1 text-xs font-bold text-white">{typeLabels[record.formType]}</span><span className="rounded-pill bg-orange-light px-3 py-1 text-xs font-bold text-brand-navy">{statusLabels[record.status]}</span></div><button aria-expanded={expanded} aria-label={expanded ? "Form detaylarını kapat" : "Form detaylarını göster"} className={`grid size-9 shrink-0 place-items-center rounded-full text-corporate-blue transition hover:bg-corporate-blue/10 ${expanded ? "rotate-180" : ""}`} onClick={() => toggleCard(record.id)} type="button"><span aria-hidden="true">⌄</span></button></div><h3 className="mt-4 text-lg font-bold">{record.name}</h3><p className="mt-1 text-sm text-text-secondary">{record.referenceNumber ?? record.id}</p><p className="mt-3 text-sm"><a className="text-corporate-blue underline" href={`mailto:${record.email}`}>{record.email}</a>{record.phone ? <><br /><a href={`tel:${record.phone.replace(/\s/g, "")}`}>{record.phone}</a></> : null}</p><time className="mt-3 block text-xs text-text-secondary">{new Intl.DateTimeFormat("tr-TR", { dateStyle: "medium", timeStyle: "short" }).format(new Date(record.createdAt))}</time></div>
+          <dl className="grid content-start gap-x-5 gap-y-3 sm:grid-cols-2 xl:grid-cols-3">{Object.entries(record.details).map(([key, value]) => { if (key === "note") return null; const shown = displayValue(key, value); return shown ? <div className={key === "message" ? "sm:col-span-2 xl:col-span-3" : ""} key={key}><dt className="text-xs font-bold uppercase tracking-wide text-text-secondary">{detailLabels[key] ?? key}</dt><dd className="mt-1 whitespace-pre-wrap text-sm">{key === "message" ? truncateMessage(shown) : shown}</dd></div> : null; })}{cart.slice(0, expanded ? cart.length : 2).map((item, index) => <div className="rounded-control bg-page p-3 text-sm sm:col-span-2 xl:col-span-3" key={index}><dt className="font-bold">Sepet aracı {index + 1}</dt><dd className="mt-1 whitespace-pre-wrap font-sans text-text-secondary">{item && typeof item === "object" ? Object.values(item).join(" · ") : String(item)}</dd></div>)}</dl>
+          <div><label className="text-xs font-bold uppercase tracking-wide text-text-secondary">Durum<select className="mt-2 min-h-11 w-full rounded-control border border-border-control px-3 text-sm font-normal" disabled={busyId === record.id} onChange={(event) => void changeStatus(record.id, event.target.value as FormStatus)} value={record.status}>{Object.entries(statusLabels).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label><button className="mt-4 min-h-11 w-full rounded-control bg-accent-orange px-4 font-bold text-on-accent disabled:opacity-50" disabled={busyId === record.id} onClick={() => toggleReply(record.id)} type="button">{replyId === record.id ? "Yanıtı Kapat" : "Yanıt Oluştur"}</button><p className="mt-3 text-xs text-text-secondary">{record.replyHistory.length ? `${record.replyHistory.length} yanıt gönderildi` : "Henüz yanıt gönderilmedi"}</p></div>
         </div>
         {expanded ? <section className="border-t border-border-subtle bg-page p-5" aria-label="Mesaj geçmişi"><div className="flex items-center justify-between gap-3"><div><p className="text-xs font-bold uppercase tracking-wide text-corporate-blue">Konuşma Geçmişi</p><h4 className="mt-1 text-lg font-bold">Kullanıcı ve admin mesajları</h4></div><span className="rounded-pill bg-surface-card px-3 py-1 text-xs font-semibold">{record.replyHistory.length + 1} ileti</span></div><ol className="mt-5 space-y-4"><li className="mr-auto max-w-3xl rounded-card border border-border-subtle bg-surface-card p-4"><div className="flex flex-wrap items-center justify-between gap-2"><strong>{record.name}</strong><time className="text-xs text-text-secondary">{new Intl.DateTimeFormat("tr-TR", { dateStyle: "medium", timeStyle: "short" }).format(new Date(record.createdAt))}</time></div><p className="mt-3 whitespace-pre-wrap text-sm leading-6">{initialMessage || "Kullanıcı ayrıca bir mesaj iletmedi."}</p></li>{record.replyHistory.map((reply) => <li className="ml-auto max-w-3xl rounded-card border border-corporate-blue/20 bg-corporate-blue/5 p-4" key={reply.id}><div className="flex flex-wrap items-center justify-between gap-2"><div><strong>Kalite Filo Admin</strong><p className="mt-0.5 text-xs font-semibold text-corporate-blue">{reply.subject}</p></div><time className="text-xs text-text-secondary">{new Intl.DateTimeFormat("tr-TR", { dateStyle: "medium", timeStyle: "short" }).format(new Date(reply.sentAt))}</time></div><p className="mt-3 whitespace-pre-wrap text-sm leading-6">{reply.message}</p></li>)}</ol></section> : null}
-        {replyId === record.id ? <form className="grid gap-4 border-t border-border-subtle bg-page p-5" onSubmit={(event) => void sendReply(event, record.id)}><label className="text-sm font-semibold">Konu<input className="mt-2 min-h-11 w-full rounded-control border border-border-control px-3 font-normal" defaultValue={`${record.referenceNumber ? `${record.referenceNumber} - ` : ""}Talebiniz hakkında`} maxLength={180} name="subject" required /></label><label className="text-sm font-semibold">Mesaj<textarea className="mt-2 min-h-36 w-full rounded-control border border-border-control p-3 font-normal" maxLength={5000} name="message" required /></label><div className="flex justify-end"><button className="min-h-11 rounded-control bg-brand-navy px-6 font-bold text-white disabled:opacity-50" disabled={busyId === record.id}>Yanıtı Gönder</button></div></form> : null}
+        {replyId === record.id && expanded ? <form className="grid scroll-mt-6 gap-4 border-t border-border-subtle bg-page p-5" onSubmit={(event) => void sendReply(event, record.id)} ref={replyComposerRef}><label className="text-sm font-semibold">Konu<input className="mt-2 min-h-11 w-full rounded-control border border-border-control px-3 font-normal" defaultValue={`${record.referenceNumber ? `${record.referenceNumber} - ` : ""}Talebiniz hakkında`} maxLength={180} name="subject" required /></label><label className="text-sm font-semibold">Mesaj<textarea className="mt-2 min-h-36 w-full rounded-control border border-border-control p-3 font-normal" maxLength={5000} name="message" required /></label><div className="flex justify-end"><button className="min-h-11 rounded-control bg-brand-navy px-6 font-bold text-white disabled:opacity-50" disabled={busyId === record.id}>Yanıtı Gönder</button></div></form> : null}
       </article>;
     })}</div>}
   </section>;
