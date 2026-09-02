@@ -21,7 +21,14 @@ function kalite_filo_admin_publish_baseline_snapshot(): ?array
 {
     $path = kalite_filo_admin_publish_baseline_snapshot_path();
     if (!is_file($path) || is_link($path) || filesize($path) > 33554432) return null;
-    $value = json_decode((string) file_get_contents($path), true, 30, JSON_THROW_ON_ERROR);
+    try {
+        $raw = file_get_contents($path);
+        if (!is_string($raw)) return null;
+        $value = json_decode($raw, true, 30, JSON_THROW_ON_ERROR);
+    } catch (JsonException $exception) {
+        error_log('Publishing baseline snapshot is unreadable [' . basename($path) . '].');
+        return null;
+    }
     return is_array($value) && ($value['formatVersion'] ?? null) === 1 ? $value : null;
 }
 
@@ -30,7 +37,14 @@ function kalite_filo_admin_publish_baseline(): array
 {
     $path = kalite_filo_admin_publish_baseline_path();
     if (!is_file($path) || is_link($path) || filesize($path) > 1048576) return [];
-    $value = json_decode((string) file_get_contents($path), true, 6, JSON_THROW_ON_ERROR);
+    try {
+        $raw = file_get_contents($path);
+        if (!is_string($raw)) return [];
+        $value = json_decode($raw, true, 6, JSON_THROW_ON_ERROR);
+    } catch (JsonException $exception) {
+        error_log('Publishing baseline is unreadable [' . basename($path) . '].');
+        return [];
+    }
     if (!is_array($value) || ($value['schemaVersion'] ?? null) !== 1 || !is_array($value['fingerprints'] ?? null)) return [];
     $result = [];
     foreach ($value['fingerprints'] as $type => $fingerprint) {
@@ -44,7 +58,14 @@ function kalite_filo_admin_publish_baseline_record(): array
 {
     $path = kalite_filo_admin_publish_baseline_path();
     if (!is_file($path) || is_link($path) || filesize($path) > 1048576) return [];
-    $value = json_decode((string) file_get_contents($path), true, 12, JSON_THROW_ON_ERROR);
+    try {
+        $raw = file_get_contents($path);
+        if (!is_string($raw)) return [];
+        $value = json_decode($raw, true, 12, JSON_THROW_ON_ERROR);
+    } catch (JsonException $exception) {
+        error_log('Publishing baseline record is unreadable [' . basename($path) . '].');
+        return [];
+    }
     return is_array($value) && ($value['schemaVersion'] ?? null) === 1 ? $value : [];
 }
 
@@ -52,9 +73,14 @@ function kalite_filo_admin_current_publish_request_id(): ?string
 {
     $markerPath = dirname(__DIR__) . DIRECTORY_SEPARATOR . 'kalite-filo-release.json';
     if (is_file($markerPath) && !is_link($markerPath) && filesize($markerPath) <= 4096) {
-        $marker = json_decode((string) file_get_contents($markerPath), true, 8, JSON_THROW_ON_ERROR);
-        $candidate = $marker['requestId'] ?? null;
-        if (is_string($candidate) && preg_match('/^publish-\d{8}-\d{6}-[a-f0-9]{12}$/', $candidate) === 1) return $candidate;
+        try {
+            $raw = file_get_contents($markerPath);
+            $marker = is_string($raw) ? json_decode($raw, true, 8, JSON_THROW_ON_ERROR) : null;
+            $candidate = is_array($marker) ? ($marker['requestId'] ?? null) : null;
+            if (is_string($candidate) && preg_match('/^publish-\d{8}-\d{6}-[a-f0-9]{12}$/', $candidate) === 1) return $candidate;
+        } catch (JsonException $exception) {
+            error_log('Active release marker is unreadable. Falling back to the private baseline.');
+        }
     }
     $candidate = kalite_filo_admin_publish_baseline_record()['requestId'] ?? null;
     return is_string($candidate) && preg_match('/^publish-\d{8}-\d{6}-[a-f0-9]{12}$/', $candidate) === 1 ? $candidate : null;
@@ -261,7 +287,12 @@ function kalite_filo_admin_publish_requests(): array
     foreach (array_slice($files, 0, 100) as $path) {
         $raw = file_get_contents($path);
         if (!is_string($raw) || strlen($raw) > 33554432) continue;
-        $record = json_decode($raw, true, 30, JSON_THROW_ON_ERROR);
+        try {
+            $record = json_decode($raw, true, 30, JSON_THROW_ON_ERROR);
+        } catch (JsonException $exception) {
+            error_log('Publish request record is unreadable [' . basename($path) . '].');
+            continue;
+        }
         if (is_array($record) && ($record['schemaVersion'] ?? null) === 1) $records[] = $record;
     }
     return $records;

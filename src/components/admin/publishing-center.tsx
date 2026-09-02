@@ -55,6 +55,7 @@ export function PublishingCenter({ csrfToken, canRequest, canClearHistory }: { c
   const [submitting, setSubmitting] = useState(false);
   const [historyAction, setHistoryAction] = useState("");
   const [currentRequestId, setCurrentRequestId] = useState<string | null>(null);
+  const [historyAvailable, setHistoryAvailable] = useState(true);
   const [validation, setValidation] = useState<{ valid: boolean; blockers: ValidationMessage[]; warnings: ValidationMessage[] }>({ valid: false, blockers: [], warnings: [] });
 
   const load = useCallback(async () => {
@@ -67,6 +68,7 @@ export function PublishingCenter({ csrfToken, canRequest, canClearHistory }: { c
       setValidation(payload.validation);
       setAutomation(payload.automation);
       setCurrentRequestId(typeof payload.currentRequestId === "string" ? payload.currentRequestId : null);
+      setHistoryAvailable(payload.historyAvailable !== false);
       setError("");
     } catch {
       setError("Yayına alma durumu yüklenemedi.");
@@ -193,6 +195,7 @@ export function PublishingCenter({ csrfToken, canRequest, canClearHistory }: { c
 
       <section className="mt-6 rounded-card border bg-surface-card p-5">
         <div className="flex flex-wrap items-center justify-between gap-3"><div><h3 className="text-lg font-bold">Staging Geçmişi</h3><p className="mt-1 text-sm text-text-secondary">Yayın ayrıntılarını inceleyin veya saklanan başarılı bir staging sürümüne geri dönün.</p></div>{canClearHistory && requests.length > 0 ? <button className="min-h-10 rounded-control border border-error/40 px-3 text-sm font-semibold text-error disabled:opacity-50" disabled={historyAction !== ""} onClick={() => void clearHistory()} type="button">{historyAction === "clear" ? "Siliniyor..." : "Geçmişi Temizle"}</button> : null}</div>
+        {!historyAvailable ? <p className="mt-4 rounded-control border border-accent-orange/30 bg-accent-orange/10 p-3 text-sm">Yayın geçmişindeki hasarlı bir kayıt atlandı. Yeni staging oluşturma kontrolleri kullanılabilir durumda.</p> : null}
         {requests.length > 0 ? <ul className="mt-4 divide-y">{requests.map((request) => <li className="grid items-center gap-2 py-3 text-sm md:grid-cols-[minmax(0,2fr)_1fr_1fr_1fr_auto]" key={request.id}>
           <div className="min-w-0"><strong className="block truncate">{request.id}</strong><span className="block truncate text-xs text-text-secondary" title={request.snapshotHash}>{request.snapshotHash.slice(0, 12)}…</span></div>
           <span className="font-semibold">{requestStatus(request)}</span>

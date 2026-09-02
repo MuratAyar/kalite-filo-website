@@ -8,6 +8,19 @@ the status and handoff sections before ending.
 
 ## Current Status
 
+The 2026-09-02 Publishing Center recovery pass fixes the live
+`Yayına alma durumu yüklenemedi` regression. The overview previously allowed a
+single truncated/invalid request, baseline snapshot or active-release marker
+JSON file to throw through the complete `publishing.php` response. History
+readers now skip and safely log only the damaged record, baseline/marker reads
+fall back without exposing file contents, and the overview isolates history
+rendering so validation, unpublished changes and staging creation remain
+available. A bounded in-page warning is shown only if the complete history
+subsection must degrade. Regression coverage includes malformed request and
+baseline files. The unauthenticated live endpoints were also checked: staging
+serves JSON correctly and reports PHP 8.1.34; authenticated private state
+cannot be inspected without the operator session.
+
 The 2026-09-02 admin forms pass is complete locally. Successful public contact
 and quote deliveries now create a versioned private record outside the document
 root; a storage failure is logged independently and cannot suppress the
