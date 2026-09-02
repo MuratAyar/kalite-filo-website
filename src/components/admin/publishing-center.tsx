@@ -14,6 +14,7 @@ type PublishRequest = {
   completedAt: string | null;
   result: { outcome: string; summary: string | null } | null;
   automation: PublishAutomation | null;
+  changes: Change[];
 };
 type ValidationMessage = { code: string; message: string };
 
@@ -35,7 +36,7 @@ function requestStatus(request: PublishRequest) {
     : statusLabels[request.status] ?? request.status;
 }
 
-export function PublishingCenter({ csrfToken, canRequest }: { csrfToken: string; canRequest: boolean }) {
+export function PublishingCenter({ csrfToken, canRequest, canClearHistory }: { csrfToken: string; canRequest: boolean; canClearHistory: boolean }) {
   const [changes, setChanges] = useState<Change[]>([]);
   const [requests, setRequests] = useState<PublishRequest[]>([]);
   const [automation, setAutomation] = useState<Automation>({ enabled: false, ready: false, provider: "github_actions", missing: [] });
@@ -43,6 +44,7 @@ export function PublishingCenter({ csrfToken, canRequest }: { csrfToken: string;
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [historyAction, setHistoryAction] = useState("");
   const [validation, setValidation] = useState<{ valid: boolean; blockers: ValidationMessage[]; warnings: ValidationMessage[] }>({ valid: false, blockers: [], warnings: [] });
 
   const load = useCallback(async () => {
@@ -106,6 +108,35 @@ export function PublishingCenter({ csrfToken, canRequest }: { csrfToken: string;
     }
   }
 
+  async function clearHistory() {
+    if (!window.confirm("Tamamlanmış staging geçmişi silinsin mi? Aktif işlemler ve son başarılı yayın baseline’ı korunacaktır.")) return;
+    setHistoryAction("clear"); setError(""); setNotice("");
+    try {
+      const response = await fetch("/admin-api/publishing-history.php", { method: "DELETE", credentials: "same-origin", headers: { "Content-Type": "application/json", "X-CSRF-Token": csrfToken }, body: JSON.stringify({ confirmation: "GEÇMİŞİ SİL" }) });
+      const payload = await response.json();
+      if (!response.ok) throw new Error("Staging geçmişi silinemedi.");
+      await load();
+      setNotice(`${payload.deleted ?? 0} tamamlanmış staging kaydı silindi.${payload.preservedActive ? ` ${payload.preservedActive} aktif işlem korundu.` : ""}`);
+    } catch (caught) { setError(caught instanceof Error ? caught.message : "Staging geçmişi silinemedi."); }
+    finally { setHistoryAction(""); }
+  }
+
+  async function restoreRequest(request: PublishRequest) {
+    if (!window.confirm(`${request.id} sürümü staging ortamında yeniden etkinleştirilsin mi? Mevcut staging sürümü geri dönüş için korunacaktır.`)) return;
+    setHistoryAction(request.id); setError(""); setNotice("");
+    try {
+      const response = await fetch("/admin-api/publish-restore.php", { method: "POST", credentials: "same-origin", headers: { "Content-Type": "application/json", "X-CSRF-Token": csrfToken }, body: JSON.stringify({ requestId: request.id, confirmation: "STAGING GERİ AL" }) });
+      const payload = await response.json();
+      if (!response.ok) {
+        if (payload?.error === "release_unavailable") throw new Error("Bu staging sürümünün saklanan release dosyası artık mevcut değil.");
+        throw new Error("Seçilen staging sürümüne geri dönülemedi.");
+      }
+      await load();
+      setNotice(payload.alreadyActive ? "Bu staging sürümü zaten etkin." : "Seçilen staging sürümü yeniden etkinleştirildi.");
+    } catch (caught) { setError(caught instanceof Error ? caught.message : "Seçilen staging sürümüne geri dönülemedi."); }
+    finally { setHistoryAction(""); }
+  }
+
   const actionUnavailable = submitting || loading || changes.length > 0 && (!validation.valid || !automation.ready);
 
   return <section className="mt-8">
@@ -150,7 +181,7 @@ export function PublishingCenter({ csrfToken, canRequest }: { csrfToken: string;
       </section>
 
       <section className="mt-6 rounded-card border bg-surface-card p-5">
-        <h3 className="text-lg font-bold">Staging Geçmişi</h3>
+        <div className="flex flex-wrap items-center justify-between gap-3"><div><h3 className="text-lg font-bold">Staging Geçmişi</h3><p className="mt-1 text-sm text-text-secondary">Yayın ayrıntılarını inceleyin veya saklanan başarılı bir staging sürümüne geri dönün.</p></div>{canClearHistory && requests.length > 0 ? <button className="min-h-10 rounded-control border border-error/40 px-3 text-sm font-semibold text-error disabled:opacity-50" disabled={historyAction !== ""} onClick={() => void clearHistory()} type="button">{historyAction === "clear" ? "Siliniyor..." : "Geçmişi Temizle"}</button> : null}</div>
         {requests.length > 0 ? <ul className="mt-4 divide-y">{requests.map((request) => <li className="grid items-center gap-2 py-3 text-sm md:grid-cols-[minmax(0,2fr)_1fr_1fr_1fr_auto]" key={request.id}>
           <div className="min-w-0"><strong className="block truncate">{request.id}</strong><span className="block truncate text-xs text-text-secondary" title={request.snapshotHash}>{request.snapshotHash.slice(0, 12)}…</span></div>
           <span className="font-semibold">{requestStatus(request)}</span>
@@ -159,8 +190,10 @@ export function PublishingCenter({ csrfToken, canRequest }: { csrfToken: string;
           <div className="flex flex-wrap gap-2">
             {request.automation?.runUrl ? <a className="inline-flex min-h-10 items-center justify-center rounded-control border border-corporate-blue px-3 font-semibold text-corporate-blue" href={request.automation.runUrl} rel="noreferrer" target="_blank">Build Detayı</a> : null}
             <a className="inline-flex min-h-10 items-center justify-center rounded-control border px-3 font-semibold" href={`/admin-api/publish-request-download.php?id=${encodeURIComponent(request.id)}`}>Snapshot</a>
+            {canRequest && request.status === "staging_succeeded" ? <button className="min-h-10 rounded-control bg-corporate-blue px-3 font-semibold text-white disabled:opacity-50" disabled={historyAction !== ""} onClick={() => void restoreRequest(request)} type="button">{historyAction === request.id ? "Geri dönülüyor..." : "Bu Sürüme Dön"}</button> : null}
           </div>
           {request.result?.summary ? <p className="text-xs text-text-secondary md:col-span-5">{request.result.summary}</p> : null}
+          <details className="md:col-span-5"><summary className="cursor-pointer font-semibold text-corporate-blue">Değişiklik detayları ({request.changes.length})</summary>{request.changes.length > 0 ? <ul className="mt-3 grid gap-2 md:grid-cols-2">{request.changes.map((change) => <li className="rounded-control border bg-surface-muted p-3" key={change.id}><span className="block font-semibold">{change.label}</span><span className="text-xs text-text-secondary">{change.type}{change.updatedAt ? ` · ${new Date(change.updatedAt).toLocaleString("tr-TR")}` : ""}</span></li>)}</ul> : <p className="mt-2 text-sm text-text-secondary">Bu kayıtta değişiklik detayı bulunmuyor.</p>}</details>
         </li>)}</ul> : <p className="mt-4 text-sm text-text-secondary">Henüz staging yayını yok.</p>}
       </section>
     </>}

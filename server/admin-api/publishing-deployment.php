@@ -276,3 +276,43 @@ function kalite_filo_admin_rollback_staging_release(array $record, string $artif
     }
     return $releaseId;
 }
+
+/** @return array{requestId:string,previousReleaseId:string,alreadyActive:bool} */
+function kalite_filo_admin_restore_retained_staging_release(array $record): array
+{
+    $requestId = (string) ($record['id'] ?? '');
+    if (($record['status'] ?? null) !== 'staging_succeeded' || preg_match('/^publish-\d{8}-\d{6}-[a-f0-9]{12}$/', $requestId) !== 1) throw new InvalidArgumentException('Only a successful staging release can be restored.');
+    $documentRoot = realpath(dirname(__DIR__));
+    if (!is_string($documentRoot) || basename($documentRoot) !== 'staging.kalitefilo.com.tr' || is_link($documentRoot) || kalite_filo_admin_config()['environment'] !== 'staging') throw new RuntimeException('Canonical staging document root is invalid.');
+    $currentMarkerPath = $documentRoot . DIRECTORY_SEPARATOR . 'kalite-filo-release.json';
+    $currentMarker = is_file($currentMarkerPath) ? json_decode((string) file_get_contents($currentMarkerPath), true, 8, JSON_THROW_ON_ERROR) : [];
+    if (($currentMarker['requestId'] ?? null) === $requestId) return ['requestId' => $requestId, 'previousReleaseId' => $requestId, 'alreadyActive' => true];
+
+    $deployRoot = kalite_filo_admin_publish_deploy_root();
+    $rollbackRoot = $deployRoot . DIRECTORY_SEPARATOR . 'rollbacks'; kalite_filo_admin_ensure_private_directory($rollbackRoot);
+    $target = null;
+    foreach (scandir($rollbackRoot) ?: [] as $entry) {
+        if ($entry === '.' || $entry === '..') continue;
+        $candidate = $rollbackRoot . DIRECTORY_SEPARATOR . $entry;
+        $markerPath = $candidate . DIRECTORY_SEPARATOR . 'kalite-filo-release.json';
+        if (!is_dir($candidate) || is_link($candidate) || !is_file($markerPath) || is_link($markerPath) || filesize($markerPath) > 4096) continue;
+        try { $marker = json_decode((string) file_get_contents($markerPath), true, 8, JSON_THROW_ON_ERROR); } catch (Throwable) { continue; }
+        if (($marker['requestId'] ?? null) === $requestId && ($marker['snapshotHash'] ?? null) === ($record['snapshotHash'] ?? null) && is_file($candidate . DIRECTORY_SEPARATOR . 'admin-api' . DIRECTORY_SEPARATOR . 'publish-restore.php')) { $target = $candidate; break; }
+    }
+    if (!is_string($target)) throw new OutOfBoundsException('The retained staging release is unavailable.');
+    $documentStat = stat($documentRoot); $targetStat = stat($target);
+    if (!is_array($documentStat) || !is_array($targetStat) || ($documentStat['dev'] ?? null) !== ($targetStat['dev'] ?? null)) throw new RuntimeException('Deployment paths are not on the same filesystem.');
+    $previousId = is_string($currentMarker['requestId'] ?? null) ? $currentMarker['requestId'] : 'unknown';
+    $retainedCurrent = $rollbackRoot . DIRECTORY_SEPARATOR . 'admin-restore-' . gmdate('YmdHis') . '-' . bin2hex(random_bytes(4));
+    $movedCurrent = false;
+    try {
+        if (!rename($documentRoot, $retainedCurrent)) throw new RuntimeException('Current staging release could not be retained.');
+        $movedCurrent = true;
+        if (!rename($target, $documentRoot)) throw new RuntimeException('Retained staging release could not be activated.');
+        @chmod($documentRoot, 0755);
+    } catch (Throwable $exception) {
+        if ($movedCurrent && !file_exists($documentRoot) && is_dir($retainedCurrent)) @rename($retainedCurrent, $documentRoot);
+        throw $exception;
+    }
+    return ['requestId' => $requestId, 'previousReleaseId' => $previousId, 'alreadyActive' => false];
+}

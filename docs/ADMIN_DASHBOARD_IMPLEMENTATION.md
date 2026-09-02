@@ -8,6 +8,23 @@ the status and handoff sections before ending.
 
 ## Current Status
 
+Live staging automation is now confirmed successful end to end by the operator:
+admin change detection, GitHub dispatch, frozen snapshot claim, validation,
+static build, chunk upload, PHP extraction, atomic activation, HTTPS smoke and
+terminal success reporting all complete without recurring File Manager or
+cPanel Terminal work. Phase 7's normal staging publication path is therefore
+operational; the remaining Phase 7 item is a deliberate rollback/retention
+drill rather than basic deployment enablement.
+
+The Publishing Center now exposes each request's safe change summary in an
+expandable detail panel. Successful retained releases can be atomically
+reactivated through an authenticated, CSRF-protected staging-only action; the
+current release is retained in turn, and the selected request's fingerprints
+become the staging baseline so newer drafts correctly reappear as unpublished.
+Owner-only history cleanup preserves that baseline and any active requests
+while deleting completed request records. Existing live history is not deleted
+merely by deploying code: the owner must explicitly confirm `Geçmişi Temizle`.
+
 The fourth live attempt produced the definitive deployment reason
 `release_extraction_failed`. The exact failure was reproduced locally against
 the real staging artifact: GNU tar had archived the release through the `.`
@@ -1143,6 +1160,12 @@ leave private storage. Stored change summaries are deliberately excluded.
 
 ## Completed Tasks
 
+- [x] Completed the first end-to-end live automatic staging publication.
+- [x] Added expandable per-publication change details to Staging History.
+- [x] Added authenticated staging-only atomic restore to a retained successful
+  release, with confirmation, audit log and fingerprint-baseline update.
+- [x] Added owner-only terminal history cleanup that preserves active requests
+  and the latest successful publication baseline.
 - [x] Reproduced `release_extraction_failed` with the real staging USTAR and
   identified the incompatible literal `.` root archive entry.
 - [x] Changed staging artifact packaging to sorted top-level entries and proved
@@ -1458,13 +1481,11 @@ leave private storage. Stored change summaries are deliberately excluded.
 
 ## Current Task
 
-Bootstrap and prove AD-004 on live staging. Commit/push the workflow to the
-default branch, create the GitHub `staging` environment runner secret, install
-this updated staging release once through the existing manual ZIP procedure,
-and enable `publishing_automation` in the private staging `config.php`. Then use
-`Staging Oluştur` for a controlled synthetic change and verify dispatch, build,
-chunk upload, atomic activation, live marker, HTTPS smoke, terminal status and
-retained rollback. Production remains disabled.
+Deploy and staging-smoke-test Publishing Center history details, owner-only
+history cleanup and retained-release restore. After deployment, explicitly
+clear the obsolete historical records requested by the operator, create at
+least two controlled staging versions, restore the earlier one, and confirm the
+newer admin draft returns to unpublished changes. Production remains disabled.
 
 The bootstrap, dispatch and clean build paths are live. Push the deploy
 diagnostics and Actions v5 update, create and install one updated staging
@@ -1537,31 +1558,37 @@ the still-required Phase 2/3 staging smoke tests before closing those phases.
 
 ## Next Tasks
 
-- [ ] Push the dot-root-free archive fix to `main`, retry `Staging Oluştur`, and
+- [ ] Deploy the new Publishing Center endpoints/UI through the now-working
+  automatic staging flow and use `Geçmişi Temizle` to remove obsolete records.
+- [ ] Perform a controlled retained-release restore drill and verify audit,
+  baseline, current-site content and recovery of the displaced release.
+- [ ] Define retention limits/cleanup for orphaned upload, incoming and rollback
+  directories before closing Phase 7 completely.
+- [x] Push the dot-root-free archive fix to `main`, retry `Staging Oluştur`, and
   verify activation, release marker and HTTPS smoke complete successfully.
-- [ ] Push and bootstrap the malformed-response diagnostics plus
+- [x] Push and bootstrap the malformed-response diagnostics plus
   `publish-runner-fail.php`, then retry after the current queued attempt becomes
   stale (20 minutes from its last automation update).
-- [ ] Use the new HTTP/type/bytes/body classification to correct the actual
+- [x] Use the new HTTP/type/bytes/body classification to correct the actual
   request-response fault if it recurs.
-- [ ] Push the safe deployment diagnostics and Actions v5 update to `main`,
+- [x] Push the safe deployment diagnostics and Actions v5 update to `main`,
   rebuild the staging bootstrap ZIP, and install it once on cPanel staging.
-- [ ] Retry staging publish and capture the exact bounded `reason=...` value if
+- [x] Retry staging publish and capture the exact bounded `reason=...` value if
   activation still fails; do not infer a filesystem/Phar cause from HTTP 503.
-- [ ] Push the `next typegen` typecheck correction to `main` and retry the
+- [x] Push the `next typegen` typecheck correction to `main` and retry the
   failed staging publication from the authenticated Publishing Center.
-- [ ] Confirm the retry reaches `staging_succeeded`, that the expected content
+- [x] Confirm the retry reaches `staging_succeeded`, that the expected content
   is live, and that the published fingerprint clears the unpublished changes.
 - [x] Remove the invalid job-level `${{ runner.temp }}` expressions from the
   staging workflow and use `$RUNNER_TEMP` during runner shell execution.
-- [ ] Push `.github/workflows/admin-staging-publish.yml` to the repository's
+- [x] Push `.github/workflows/admin-staging-publish.yml` to the repository's
   default branch and create the GitHub `staging` environment.
-- [ ] Generate a new 64-character hexadecimal staging runner token; store only
+- [x] Generate a new 64-character hexadecimal staging runner token; store only
   the raw value as GitHub secret `KALITE_FILO_STAGING_RUNNER_TOKEN` and only its
   SHA-256 hash in private cPanel `config.php`.
-- [ ] Create a fine-grained GitHub token limited to this repository with Actions
+- [x] Create a fine-grained GitHub token limited to this repository with Actions
   write permission and store it only as private cPanel `github_token`.
-- [ ] Perform the one-time manual staging release bootstrap, enable automation,
+- [x] Perform the one-time manual staging release bootstrap, enable automation,
   confirm `publishing.php` reports `automation.ready: true`, and run the first
   one-click staging publish.
 - [ ] Prove failed-smoke rollback or a controlled rollback drill and define
@@ -1785,6 +1812,18 @@ src/app/robots.ts                          (update)
 ```
 
 ## Files Changed
+
+Current 2026-09-02 staging history/restore continuation:
+
+- `src/components/admin/publishing-center.tsx`
+- `server/admin-api/publishing-store.php`
+- `server/admin-api/publishing-deployment.php`
+- `server/admin-api/publishing-history.php` (new)
+- `server/admin-api/publish-restore.php` (new)
+- `server/admin-api/tests/publishing-store.test.php`
+- `scripts/assemble-cpanel-release.mjs`
+- `scripts/assemble-cpanel-release.test.mjs`
+- `docs/ADMIN_DASHBOARD_IMPLEMENTATION.md`
 
 Current 2026-09-02 Phar extraction root-cause fix:
 
@@ -2160,6 +2199,23 @@ Current Phase 6 test-mail continuation:
 - `server/admin-api/tests/media-store.test.php`
 
 ## Validation Results
+
+2026-09-02 staging history and retained-release restore:
+
+- Operator confirmed the automatic staging workflow completes successfully end
+  to end on live staging.
+- Added owner-confirmed terminal history cleanup with active-run preservation
+  and a separate successful fingerprint baseline.
+- Added expandable safe change details and an authenticated/CSRF-protected
+  staging-only retained-release restore action with atomic current-release
+  retention and audit logging.
+- PHP syntax and focused publishing-store/release-assembly tests passed.
+- `npm run lint`: passed without warnings.
+- `npm run typecheck`: passed after Next.js route type generation.
+- `npm test`: passed; 88 Node tests and all project-owned PHP suites passed.
+- `npm run build:staging`: passed; all 140 static pages generated.
+- Live history deletion and restore were not executed from this local session;
+  both require explicit owner confirmation after deployment.
 
 2026-09-02 Phar extraction root-cause correction:
 
@@ -2679,6 +2735,18 @@ still excludes missing consent and unsubscribed rows. No recipient list is sent
 to the browser and no delivery endpoint is packaged.
 
 ## Session Handoff
+
+2026-09-02 history/restore handoff: automated staging is live and successful.
+Commit/push the Publishing Center UI, new PHP endpoints, store/deployment and
+release assembly changes. Because new PHP endpoints are not yet present on the
+currently deployed release, install them using one automatic staging publish
+whose artifact contains this commit; if the current static UI cannot call them
+until that publish, trigger through the existing working Publishing Center.
+After success, use `Geçmişi Temizle` once to remove obsolete terminal request
+records while preserving the baseline. Then create two controlled versions and
+use `Bu Sürüme Dön` on the earlier successful record. Confirm site content,
+audit log, unpublished-change recalculation and recovery copy retention. Do not
+enable production publishing yet.
 
 2026-09-02 extraction-fix handoff: `release_extraction_failed` was a code-level
 archive compatibility defect, not corrupt chunks, disk space or an Actions

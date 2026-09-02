@@ -666,7 +666,7 @@ export function AdminApp() {
           </p>
         ) : null}
         {view === "publishing" ? (
-          <PublishingCenter canRequest={["owner", "admin"].includes(session.user.role)} csrfToken={session.csrfToken} />
+          <PublishingCenter canClearHistory={session.user.role === "owner"} canRequest={["owner", "admin"].includes(session.user.role)} csrfToken={session.csrfToken} />
         ) : view === "campaigns" ? (
           <CampaignManager
             canEdit={["owner", "admin", "marketing"].includes(

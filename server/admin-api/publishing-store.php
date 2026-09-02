@@ -6,6 +6,38 @@ function kalite_filo_admin_publish_root(): string
     return (string) kalite_filo_admin_config()['data_root'] . DIRECTORY_SEPARATOR . 'publish';
 }
 
+function kalite_filo_admin_publish_baseline_path(): string
+{
+    return kalite_filo_admin_publish_root() . DIRECTORY_SEPARATOR . 'staging-baseline.json';
+}
+
+/** @return array<string,string> */
+function kalite_filo_admin_publish_baseline(): array
+{
+    $path = kalite_filo_admin_publish_baseline_path();
+    if (!is_file($path) || is_link($path) || filesize($path) > 16384) return [];
+    $value = json_decode((string) file_get_contents($path), true, 6, JSON_THROW_ON_ERROR);
+    if (!is_array($value) || ($value['schemaVersion'] ?? null) !== 1 || !is_array($value['fingerprints'] ?? null)) return [];
+    $result = [];
+    foreach ($value['fingerprints'] as $type => $fingerprint) {
+        if (is_string($type) && preg_match('/^[a-z_]{3,40}$/', $type) === 1 && is_string($fingerprint) && preg_match('/^[a-f0-9]{64}$/', $fingerprint) === 1) $result[$type] = $fingerprint;
+    }
+    return $result;
+}
+
+function kalite_filo_admin_write_publish_baseline(array $record): void
+{
+    $fingerprints = [];
+    foreach (is_array($record['changes'] ?? null) ? $record['changes'] : [] as $change) {
+        if (is_array($change) && is_string($change['type'] ?? null) && is_string($change['fingerprint'] ?? null) && preg_match('/^[a-f0-9]{64}$/', $change['fingerprint']) === 1) $fingerprints[$change['type']] = $change['fingerprint'];
+    }
+    $root = kalite_filo_admin_publish_root(); kalite_filo_admin_ensure_private_directory($root);
+    $path = kalite_filo_admin_publish_baseline_path(); $temporary = $path . '.tmp-' . bin2hex(random_bytes(5));
+    $payload = ['schemaVersion' => 1, 'requestId' => $record['id'] ?? null, 'snapshotHash' => $record['snapshotHash'] ?? null, 'fingerprints' => $fingerprints, 'updatedAt' => gmdate('c')];
+    if (file_put_contents($temporary, json_encode($payload, JSON_THROW_ON_ERROR | JSON_PRETTY_PRINT), LOCK_EX) === false || !rename($temporary, $path)) { @unlink($temporary); throw new RuntimeException('Staging baseline could not be written.'); }
+    @chmod($path, 0600);
+}
+
 /** @return resource */
 function kalite_filo_admin_lock_publish_store()
 {
@@ -51,7 +83,7 @@ function kalite_filo_admin_unpublished_changes(): array
         ['type' => 'vehicle_taxonomy', 'label' => 'Araç etiketleri', 'path' => $root . DIRECTORY_SEPARATOR . 'drafts' . DIRECTORY_SEPARATOR . 'vehicle-taxonomy.json'],
         ['type' => 'media', 'label' => 'Medya kütüphanesi', 'path' => kalite_filo_admin_media_catalog_path()],
     ];
-    $publishedFingerprints = [];
+    $publishedFingerprints = kalite_filo_admin_publish_baseline();
     foreach (kalite_filo_admin_publish_requests() as $publishedRequest) {
         if (($publishedRequest['target'] ?? null) !== 'staging' || ($publishedRequest['status'] ?? null) !== 'staging_succeeded') continue;
         foreach (is_array($publishedRequest['changes'] ?? null) ? $publishedRequest['changes'] : [] as $change) {
@@ -188,7 +220,26 @@ function kalite_filo_admin_transition_publish_request(string $id, string $snapsh
         $record['automation']['updatedAt'] = $record['completedAt'];
     }
     kalite_filo_admin_replace_publish_request($record);
+    if ($terminalStatus === 'staging_succeeded') kalite_filo_admin_write_publish_baseline($record);
     return $record;
+}
+
+/** @return array{deleted:int,preservedActive:int} */
+function kalite_filo_admin_clear_publish_history(): array
+{
+    $requests = kalite_filo_admin_publish_requests();
+    foreach ($requests as $record) {
+        if (($record['status'] ?? null) === 'staging_succeeded') { kalite_filo_admin_write_publish_baseline($record); break; }
+    }
+    $deleted = 0; $preservedActive = 0;
+    $directory = kalite_filo_admin_publish_root() . DIRECTORY_SEPARATOR . 'requests';
+    foreach ($requests as $record) {
+        if (in_array($record['status'] ?? null, ['awaiting_runner', 'running'], true)) { $preservedActive++; continue; }
+        $id = (string) ($record['id'] ?? '');
+        $path = $directory . DIRECTORY_SEPARATOR . $id . '.json';
+        if (preg_match('/^publish-\d{8}-\d{6}-[a-f0-9]{12}$/', $id) === 1 && is_file($path) && !is_link($path) && unlink($path)) $deleted++;
+    }
+    return ['deleted' => $deleted, 'preservedActive' => $preservedActive];
 }
 
 /** @return array{valid:bool,blockers:list<array{code:string,message:string}>,warnings:list<array{code:string,message:string}>} */
