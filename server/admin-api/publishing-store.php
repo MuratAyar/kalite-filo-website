@@ -29,7 +29,7 @@ function kalite_filo_admin_publish_baseline_snapshot(): ?array
 function kalite_filo_admin_publish_baseline(): array
 {
     $path = kalite_filo_admin_publish_baseline_path();
-    if (!is_file($path) || is_link($path) || filesize($path) > 16384) return [];
+    if (!is_file($path) || is_link($path) || filesize($path) > 1048576) return [];
     $value = json_decode((string) file_get_contents($path), true, 6, JSON_THROW_ON_ERROR);
     if (!is_array($value) || ($value['schemaVersion'] ?? null) !== 1 || !is_array($value['fingerprints'] ?? null)) return [];
     $result = [];
@@ -37,6 +37,27 @@ function kalite_filo_admin_publish_baseline(): array
         if (is_string($type) && preg_match('/^[a-z_]{3,40}$/', $type) === 1 && is_string($fingerprint) && preg_match('/^[a-f0-9]{64}$/', $fingerprint) === 1) $result[$type] = $fingerprint;
     }
     return $result;
+}
+
+/** @return array<string,mixed> */
+function kalite_filo_admin_publish_baseline_record(): array
+{
+    $path = kalite_filo_admin_publish_baseline_path();
+    if (!is_file($path) || is_link($path) || filesize($path) > 1048576) return [];
+    $value = json_decode((string) file_get_contents($path), true, 12, JSON_THROW_ON_ERROR);
+    return is_array($value) && ($value['schemaVersion'] ?? null) === 1 ? $value : [];
+}
+
+function kalite_filo_admin_current_publish_request_id(): ?string
+{
+    $markerPath = dirname(__DIR__) . DIRECTORY_SEPARATOR . 'kalite-filo-release.json';
+    if (is_file($markerPath) && !is_link($markerPath) && filesize($markerPath) <= 4096) {
+        $marker = json_decode((string) file_get_contents($markerPath), true, 8, JSON_THROW_ON_ERROR);
+        $candidate = $marker['requestId'] ?? null;
+        if (is_string($candidate) && preg_match('/^publish-\d{8}-\d{6}-[a-f0-9]{12}$/', $candidate) === 1) return $candidate;
+    }
+    $candidate = kalite_filo_admin_publish_baseline_record()['requestId'] ?? null;
+    return is_string($candidate) && preg_match('/^publish-\d{8}-\d{6}-[a-f0-9]{12}$/', $candidate) === 1 ? $candidate : null;
 }
 
 function kalite_filo_admin_write_publish_baseline(array $record): void
@@ -47,7 +68,7 @@ function kalite_filo_admin_write_publish_baseline(array $record): void
     }
     $root = kalite_filo_admin_publish_root(); kalite_filo_admin_ensure_private_directory($root);
     $path = kalite_filo_admin_publish_baseline_path(); $temporary = $path . '.tmp-' . bin2hex(random_bytes(5));
-    $payload = ['schemaVersion' => 1, 'requestId' => $record['id'] ?? null, 'snapshotHash' => $record['snapshotHash'] ?? null, 'fingerprints' => $fingerprints, 'updatedAt' => gmdate('c')];
+    $payload = ['schemaVersion' => 1, 'requestId' => $record['id'] ?? null, 'snapshotHash' => $record['snapshotHash'] ?? null, 'fingerprints' => $fingerprints, 'history' => kalite_filo_admin_safe_publish_request($record), 'updatedAt' => gmdate('c')];
     if (file_put_contents($temporary, json_encode($payload, JSON_THROW_ON_ERROR | JSON_PRETTY_PRINT), LOCK_EX) === false || !rename($temporary, $path)) { @unlink($temporary); throw new RuntimeException('Staging baseline could not be written.'); }
     @chmod($path, 0600);
     if (is_array($record['snapshot'] ?? null)) {
@@ -342,22 +363,45 @@ function kalite_filo_admin_transition_publish_request(string $id, string $snapsh
     return $record;
 }
 
-/** @return array{deleted:int,preservedActive:int} */
+function kalite_filo_admin_publish_request_is_stale(array $record, ?int $now = null): bool
+{
+    $status = (string) ($record['status'] ?? '');
+    if (!in_array($status, ['awaiting_runner', 'running'], true)) return false;
+    $automation = is_array($record['automation'] ?? null) ? $record['automation'] : [];
+    $timestamp = $automation['updatedAt'] ?? $record['startedAt'] ?? $record['requestedAt'] ?? null;
+    if (!is_string($timestamp)) return true;
+    $updatedAt = strtotime($timestamp);
+    if ($updatedAt === false) return true;
+    $threshold = $status === 'running' ? 45 * 60 : 20 * 60;
+    return ($now ?? time()) - $updatedAt >= $threshold;
+}
+
+/** @return array{deleted:int,deletedStale:int,preservedActive:int,preservedCurrent:int} */
 function kalite_filo_admin_clear_publish_history(): array
 {
     $requests = kalite_filo_admin_publish_requests();
-    foreach ($requests as $record) {
-        if (($record['status'] ?? null) === 'staging_succeeded') { kalite_filo_admin_write_publish_baseline($record); break; }
-    }
-    $deleted = 0; $preservedActive = 0;
+    $currentRequestId = kalite_filo_admin_current_publish_request_id();
+    foreach ($requests as $record) if (($record['id'] ?? null) === $currentRequestId && ($record['status'] ?? null) === 'staging_succeeded') { kalite_filo_admin_write_publish_baseline($record); break; }
+    $deleted = 0; $deletedStale = 0; $preservedActive = 0; $preservedCurrent = 0;
     $directory = kalite_filo_admin_publish_root() . DIRECTORY_SEPARATOR . 'requests';
     foreach ($requests as $record) {
-        if (in_array($record['status'] ?? null, ['awaiting_runner', 'running'], true)) { $preservedActive++; continue; }
         $id = (string) ($record['id'] ?? '');
+        if ($id === $currentRequestId) { $preservedCurrent++; continue; }
+        if (in_array($record['status'] ?? null, ['awaiting_runner', 'running'], true) && !kalite_filo_admin_publish_request_is_stale($record)) { $preservedActive++; continue; }
         $path = $directory . DIRECTORY_SEPARATOR . $id . '.json';
-        if (preg_match('/^publish-\d{8}-\d{6}-[a-f0-9]{12}$/', $id) === 1 && is_file($path) && !is_link($path) && unlink($path)) $deleted++;
+        if (preg_match('/^publish-\d{8}-\d{6}-[a-f0-9]{12}$/', $id) === 1 && is_file($path) && !is_link($path) && unlink($path)) { $deleted++; if (in_array($record['status'] ?? null, ['awaiting_runner', 'running'], true)) $deletedStale++; }
     }
-    return ['deleted' => $deleted, 'preservedActive' => $preservedActive];
+    return ['deleted' => $deleted, 'deletedStale' => $deletedStale, 'preservedActive' => $preservedActive, 'preservedCurrent' => $preservedCurrent];
+}
+
+/** @return array<string,mixed>|null */
+function kalite_filo_admin_current_publish_history_fallback(): ?array
+{
+    $baseline = kalite_filo_admin_publish_baseline_record();
+    $currentRequestId = kalite_filo_admin_current_publish_request_id();
+    if ($currentRequestId === null || ($baseline['requestId'] ?? null) !== $currentRequestId) return null;
+    if (is_array($baseline['history'] ?? null)) return $baseline['history'];
+    return ['id'=>$currentRequestId,'target'=>'staging','status'=>'staging_succeeded','changeCount'=>0,'changes'=>[],'snapshotHash'=>(string)($baseline['snapshotHash']??''),'requestedAt'=>(string)($baseline['updatedAt']??gmdate('c')),'requestedBy'=>null,'startedAt'=>null,'completedAt'=>(string)($baseline['updatedAt']??gmdate('c')),'result'=>null,'automation'=>null];
 }
 
 /** @return array{valid:bool,blockers:list<array{code:string,message:string}>,warnings:list<array{code:string,message:string}>} */
@@ -442,11 +486,11 @@ function kalite_filo_admin_safe_publish_request(array $record): array
         $safeChanges[]=['id'=>$change['id']??'','type'=>$change['type']??'','label'=>$change['label']??'','updatedAt'=>$change['updatedAt']??null,'details'=>$details];
     }
     return [
-        'id' => $record['id'], 'target' => $record['target'], 'status' => $record['status'],
-        'changeCount' => $record['changeCount'], 'changes' => $safeChanges,
-        'snapshotHash' => $record['snapshotHash'], 'requestedAt' => $record['requestedAt'],
-        'requestedBy' => $record['requestedBy'], 'startedAt' => $record['startedAt'],
-        'completedAt' => $record['completedAt'], 'result' => $record['result'],
+        'id' => $record['id'] ?? '', 'target' => $record['target'] ?? 'staging', 'status' => $record['status'] ?? 'staging_succeeded',
+        'changeCount' => $record['changeCount'] ?? count($safeChanges), 'changes' => $safeChanges,
+        'snapshotHash' => $record['snapshotHash'] ?? '', 'requestedAt' => $record['requestedAt'] ?? gmdate('c'),
+        'requestedBy' => $record['requestedBy'] ?? null, 'startedAt' => $record['startedAt'] ?? null,
+        'completedAt' => $record['completedAt'] ?? null, 'result' => $record['result'] ?? null,
         'automation' => is_array($record['automation'] ?? null) ? $record['automation'] : null,
     ];
 }

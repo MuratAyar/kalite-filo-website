@@ -120,14 +120,14 @@ export function PublishingCenter({ csrfToken, canRequest, canClearHistory }: { c
   }
 
   async function clearHistory() {
-    if (!window.confirm("Tamamlanmış staging geçmişi silinsin mi? Aktif işlemler ve son başarılı yayın baseline’ı korunacaktır.")) return;
+    if (!window.confirm("Eski staging geçmişi ve süresi dolmuş yarım işlemler silinsin mi? Güncel sürüm ve yakın tarihli aktif işlemler korunacaktır.")) return;
     setHistoryAction("clear"); setError(""); setNotice("");
     try {
       const response = await fetch("/admin-api/publishing-history.php", { method: "DELETE", credentials: "same-origin", headers: { "Content-Type": "application/json", "X-CSRF-Token": csrfToken }, body: JSON.stringify({ confirmation: "GEÇMİŞİ SİL" }) });
       const payload = await response.json();
       if (!response.ok) throw new Error("Staging geçmişi silinemedi.");
       await load();
-      setNotice(`${payload.deleted ?? 0} tamamlanmış staging kaydı silindi.${payload.preservedActive ? ` ${payload.preservedActive} aktif işlem korundu.` : ""}`);
+      setNotice(`${payload.deleted ?? 0} geçmiş kaydı silindi.${payload.deletedStale ? ` Bunların ${payload.deletedStale} adedi süresi dolmuş yarım işlemdi.` : ""}${payload.preservedCurrent ? " Güncel sürüm korundu." : ""}${payload.preservedActive ? ` ${payload.preservedActive} yakın tarihli aktif işlem korundu.` : ""}`);
     } catch (caught) { setError(caught instanceof Error ? caught.message : "Staging geçmişi silinemedi."); }
     finally { setHistoryAction(""); }
   }

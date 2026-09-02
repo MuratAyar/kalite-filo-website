@@ -33,6 +33,13 @@ both snapshots are available. The active release marker is returned as
 `currentRequestId`, so its row displays `Güncel Sürüm` instead of a restore
 action.
 
+History cleanup now preserves the request identified by the active staging
+release marker and keeps it visible as `Güncel Sürüm`. It removes orphaned
+`awaiting_runner`/queued records after 20 minutes and orphaned running records
+after 45 minutes, while retaining genuinely recent work. If an older cleanup
+already removed the active request file, the overview reconstructs a bounded
+current-version row from the private baseline without exposing its snapshot.
+
 The fourth live attempt produced the definitive deployment reason
 `release_extraction_failed`. The exact failure was reproduced locally against
 the real staging artifact: GNU tar had archived the release through the `.`
@@ -1491,12 +1498,15 @@ leave private storage. Stored change summaries are deliberately excluded.
   cleanup, and kept full snapshots/Markdown out of browser responses.
 - [x] Bound the Publishing Center's current-version state to the deployed
   release marker so the active row shows `Güncel Sürüm` without a restore action.
+- [x] Corrected staging history cleanup to preserve the active release, remove
+  stale orphaned queued/running records, retain recent work and reconstruct an
+  already-deleted current row from the private baseline.
 
 ## Current Task
 
-Deploy and staging-smoke-test the field-level Publishing Center history
-details and active-release badge, then continue the owner-only history cleanup
-and retained-release restore. After deployment, explicitly
+Deploy and staging-smoke-test the field-level Publishing Center history,
+active-release preservation and stale-run cleanup, then continue the retained-
+release restore. After deployment, explicitly
 clear the obsolete historical records requested by the operator, create at
 least two controlled staging versions, restore the earlier one, and confirm the
 newer admin draft returns to unpublished changes. Production remains disabled.
@@ -1572,6 +1582,9 @@ the still-required Phase 2/3 staging smoke tests before closing those phases.
 
 ## Next Tasks
 
+- [ ] Deploy the active-history cleanup correction; click `Geçmişi Temizle`
+  and confirm the current release remains visible while the two reported stale
+  2026-09-01/02 queued records are removed.
 - [ ] Deploy the field-level history/current-release update, create one vehicle
   edit and confirm the history shows its exact allowlisted old/new values and
   only the active release is labelled `Güncel Sürüm`.
@@ -1829,6 +1842,14 @@ src/app/robots.ts                          (update)
 ```
 
 ## Files Changed
+
+Current 2026-09-02 active-history cleanup correction:
+
+- `server/admin-api/publishing-store.php`
+- `server/admin-api/publishing.php`
+- `server/admin-api/tests/publishing-store.test.php`
+- `src/components/admin/publishing-center.tsx`
+- `docs/ADMIN_DASHBOARD_IMPLEMENTATION.md`
 
 Current 2026-09-02 field-level staging history continuation:
 
@@ -2224,6 +2245,21 @@ Current Phase 6 test-mail continuation:
 - `server/admin-api/tests/media-store.test.php`
 
 ## Validation Results
+
+2026-09-02 active-history cleanup correction:
+
+- Cleanup preserves the marker/baseline-bound current successful release and
+  retains genuinely recent queued/running work.
+- Orphaned `awaiting_runner`/queued records expire after 20 minutes and running
+  records after 45 minutes; the operator-reported records are beyond these
+  thresholds and will be removed by the next cleanup after deployment.
+- A bounded baseline fallback keeps an already-deleted active release visible;
+  no frozen snapshot or source fingerprint is exposed to the browser.
+- Focused PHP tests cover current/recent preservation and deletion of stale
+  queued and running records.
+- `npm run lint`, `npm run typecheck`, `npm test`, `npm run build:staging`,
+  `npm run verify:output` and `git diff --check` passed; 88 Node tests and all
+  project-owned PHP suites passed, and 140 static pages were generated.
 
 2026-09-02 field-level staging history and active-release identity:
 
@@ -2778,6 +2814,23 @@ still excludes missing consent and unsubscribed rows. No recipient list is sent
 to the browser and no delivery endpoint is packaged.
 
 ## Session Handoff
+
+2026-09-02 active-history cleanup handoff: publish this correction through the
+working automatic staging flow, then click `Geçmişi Temizle`. Confirm
+`publish-20260902-145734-b51ea93308a2` and
+`publish-20260901-164544-528ad1a43fe9` disappear, while the release matching
+`kalite-filo-release.json` remains visible as `Güncel Sürüm`. A genuinely new
+run inside its 20/45-minute threshold must remain protected. Continue with the
+controlled retained-release restore drill; production remains disabled.
+
+2026-09-02 backlog-audit handoff: reviewed every unchecked implementation and
+Next Tasks checkbox. The remaining work is grouped into live staging
+verification for Phases 1-7, Phase 7 restore/retention closure, the
+workflow-dependent IYS correction/import boundary, staging campaign dry-run,
+and the not-yet-started Phase 8-10 production/inbox/settings/final-audit work.
+Older manual ZIP/File Manager deployment checks are historical or superseded
+where the document already records a successful AD-004 automatic publication;
+do not revive them as the normal deployment path.
 
 2026-09-02 field-diff handoff: commit/push the PHP store/overview, Publishing
 Center UI and test/documentation changes, then publish them through the working
