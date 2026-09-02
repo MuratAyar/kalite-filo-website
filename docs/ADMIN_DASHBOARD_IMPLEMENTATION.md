@@ -8,6 +8,25 @@ the status and handoff sections before ending.
 
 ## Current Status
 
+The 2026-09-02 publishing/form conversation pass is complete locally.
+Publishing overview changes now carry the same bounded entity/field details as
+history. Once a staging request is dispatched, its frozen fingerprint set is
+shown under `Aşağıdaki Değişiklikler Canlıya Alınıyor...`; edits made while the
+runner is active remain separately visible under `Yayınlanmamış Değişiklikler`
+when their current fingerprints differ from the frozen request. A second
+concurrent snapshot cannot be created while the first is dispatching, queued,
+running or deploying. Dispatch failures return their changes to the ordinary
+unpublished list.
+
+Form cards now use a bounded 220-character initial-message preview ending in
+`(...)`, while an explicit accessible expand control and non-interactive card
+click expose the full user message and the complete retained admin reply
+history as a conversation timeline. Reply composition remains a separate
+authorized action. Customer confirmation and admin-reply HTML emails declare a
+light-only colour scheme and repeat critical canvas/card/navy colours through
+inline styles and `bgcolor` fallbacks. Admin replies embed the canonical Kalite
+Filo logo as a CID attachment, avoiding dependence on remote image loading.
+
 The 2026-09-02 Publishing Center recovery pass fixes the live
 `Yayına alma durumu yüklenemedi` regression. The overview previously allowed a
 single truncated/invalid request, baseline snapshot or active-release marker

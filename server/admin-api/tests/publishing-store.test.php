@@ -18,3 +18,7 @@ try {
     publish_assert(($safe['changes'][0]['details'][0]['fields'][0]['after']??null)==='Tam Hybrid'&&!array_key_exists('snapshot',$safe),'The browser-safe history may expose bounded diffs but never the private snapshot.');
 } finally { publish_remove($root); }
 fwrite(STDOUT,"Admin publishing change detail tests passed.\n");
+
+publish_assert(kalite_filo_admin_publish_request_is_in_flight(['status'=>'awaiting_runner','automation'=>['status'=>'queued']]),'A queued staging snapshot must be classified as in flight.');
+publish_assert(kalite_filo_admin_publish_request_is_in_flight(['status'=>'running','automation'=>['status'=>'deploying']]),'A deploying staging snapshot must be classified as in flight.');
+publish_assert(!kalite_filo_admin_publish_request_is_in_flight(['status'=>'awaiting_runner','automation'=>['status'=>'dispatch_failed']]),'A failed dispatch must return its changes to the unpublished list.');

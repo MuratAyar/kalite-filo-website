@@ -409,6 +409,15 @@ function kalite_filo_admin_publish_request_is_stale(array $record, ?int $now = n
     return ($now ?? time()) - $updatedAt >= $threshold;
 }
 
+function kalite_filo_admin_publish_request_is_in_flight(array $record): bool
+{
+    if (!in_array($record['status'] ?? null, ['awaiting_runner', 'running'], true)) return false;
+    $automation = is_array($record['automation'] ?? null) ? $record['automation'] : [];
+    $automationStatus = $automation['status'] ?? null;
+    return $automationStatus === null
+        || in_array($automationStatus, ['dispatching', 'queued', 'running', 'deploying'], true);
+}
+
 /** @return array{deleted:int,deletedStale:int,preservedActive:int,preservedCurrent:int} */
 function kalite_filo_admin_clear_publish_history(): array
 {
@@ -473,7 +482,11 @@ function kalite_filo_admin_create_staging_publish_request(): array
     unset($change);
     $encodedPayload = json_encode($payload, JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
     $snapshotHash=hash('sha256',$encodedPayload);
-    foreach(kalite_filo_admin_publish_requests() as $existing)if(($existing['target']??null)==='staging'&&($existing['snapshotHash']??null)===$snapshotHash&&in_array($existing['status']??null,['awaiting_runner','running'],true))return $existing;
+    foreach (kalite_filo_admin_publish_requests() as $existing) {
+        if (($existing['target'] ?? null) !== 'staging') continue;
+        if (($existing['snapshotHash'] ?? null) === $snapshotHash && in_array($existing['status'] ?? null, ['awaiting_runner', 'running'], true)) return $existing;
+        if (kalite_filo_admin_publish_request_is_in_flight($existing)) return $existing;
+    }
     $now = gmdate('c');
     $record = [
         'schemaVersion' => 1,

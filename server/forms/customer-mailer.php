@@ -8,6 +8,12 @@ function kalite_filo_customer_mail_escape(string $value): string
     return htmlspecialchars($value, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
 }
 
+function kalite_filo_customer_mail_light_head(): string
+{
+    return '<head><meta charset="UTF-8"><meta name="color-scheme" content="light only"><meta name="supported-color-schemes" content="light only">'
+        . '<style>:root{color-scheme:only light!important;supported-color-schemes:light only!important}body,.kf-mail-canvas{background-color:#f2f4f7!important;color:#182136!important}.kf-mail-card{background-color:#ffffff!important;color:#182136!important}.kf-mail-navy{background-color:#182136!important;color:#ffffff!important}</style></head>';
+}
+
 function kalite_filo_customer_mail_origin(): string
 {
     $allowed = [
@@ -178,10 +184,10 @@ function kalite_filo_send_customer_confirmation(
     $privacyUrl = $origin . ($english ? '/en/privacy-notice/' : '/aydinlatma-metni/');
     $unsubscribeUrl = 'mailto:contact@kalitefilo.com.tr?subject=' . rawurlencode($english ? 'Unsubscribe from commercial emails' : 'Ticari elektronik ileti aboneliğinden çıkış');
 
-    $html = '<!doctype html><html lang="' . $locale . '"><body style="margin:0;padding:0;background:#f2f4f7;font-family:Arial,Helvetica,sans-serif;color:#182136">'
-        . '<table role="presentation" style="width:100%;border-collapse:collapse"><tr><td style="padding:24px 12px">'
-        . '<table role="presentation" style="width:100%;max-width:680px;margin:0 auto;border-collapse:collapse;background:#ffffff;border:1px solid #d8dee9">'
-        . '<tr><td style="padding:22px;background:#182136;text-align:center"><table role="presentation" style="margin:0 auto;border-collapse:separate;border-spacing:0"><tr><td style="padding:12px 22px;border-bottom:3px solid #ffb343;border-radius:10px;background:#ffffff;text-align:center">'
+    $html = '<!doctype html><html lang="' . $locale . '">' . kalite_filo_customer_mail_light_head() . '<body class="kf-mail-canvas" bgcolor="#f2f4f7" style="margin:0;padding:0;background:#f2f4f7!important;font-family:Arial,Helvetica,sans-serif;color:#182136!important">'
+        . '<table class="kf-mail-canvas" bgcolor="#f2f4f7" role="presentation" style="width:100%;border-collapse:collapse;background:#f2f4f7!important"><tr><td style="padding:24px 12px">'
+        . '<table class="kf-mail-card" bgcolor="#ffffff" role="presentation" style="width:100%;max-width:680px;margin:0 auto;border-collapse:collapse;background:#ffffff!important;color:#182136!important;border:1px solid #d8dee9">'
+        . '<tr><td class="kf-mail-navy" bgcolor="#182136" style="padding:22px;background:#182136!important;color:#ffffff!important;text-align:center"><table role="presentation" style="margin:0 auto;border-collapse:separate;border-spacing:0"><tr><td bgcolor="#ffffff" style="padding:12px 22px;border-bottom:3px solid #ffb343;border-radius:10px;background:#ffffff!important;text-align:center">'
         . '<a href="' . $homeUrl . '" style="display:inline-block;text-decoration:none"><img alt="Kalite Filo" src="cid:kf-brand-logo" width="210" style="display:block;width:210px;max-width:100%;height:auto;margin:0 auto;border:0"></a>'
         . '</td></tr></table></td></tr>'
         . '<tr><td style="padding:32px 28px"><p style="margin:0 0 12px;color:#014499;font-size:14px;font-weight:700">' . kalite_filo_customer_mail_escape($english ? 'WELCOME' : 'HOŞ GELDİNİZ') . '</p>'
@@ -218,7 +224,7 @@ function kalite_filo_send_customer_confirmation(
             . ($english ? 'To stop receiving commercial emails, ' : 'Ticari elektronik ileti aboneliğinizi sonlandırmak için ')
             . '<a href="' . $unsubscribeUrl . '" style="color:#014499">' . ($english ? 'send us an unsubscribe request' : 'çıkış talebinizi iletin') . '</a>.</p>';
     }
-    $html .= '</td></tr><tr><td style="padding:20px 28px;background:#182136;color:#b8c2d6;font-size:12px;line-height:1.6">'
+    $html .= '</td></tr><tr><td class="kf-mail-navy" bgcolor="#182136" style="padding:20px 28px;background:#182136!important;color:#b8c2d6!important;font-size:12px;line-height:1.6">'
         . ($english ? 'This message was sent automatically by Kalite Filo. Please do not reply.' : 'Bu ileti Kalite Filo tarafından otomatik gönderilmiştir. Lütfen bu e-postayı yanıtlamayın.')
         . '</td></tr></table></td></tr></table></body></html>';
 

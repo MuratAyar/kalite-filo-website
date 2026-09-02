@@ -8,6 +8,9 @@ function assert_customer_mail(bool $condition, string $message): void
     if (!$condition) throw new RuntimeException($message);
 }
 
+$lightHead = kalite_filo_customer_mail_light_head();
+assert_customer_mail(str_contains($lightHead, 'color-scheme" content="light only') && str_contains($lightHead, 'background-color:#ffffff!important'), 'Customer email must explicitly retain its light colour scheme.');
+
 $_SERVER['HTTP_ORIGIN'] = 'https://staging.kalitefilo.com.tr';
 unset($_SERVER['HTTP_REFERER']);
 assert_customer_mail(

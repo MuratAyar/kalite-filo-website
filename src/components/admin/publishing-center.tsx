@@ -45,9 +45,18 @@ function requestStatus(request: PublishRequest) {
     : statusLabels[request.status] ?? request.status;
 }
 
+function ChangeDetails({ change, emptyText }: { change: Change; emptyText: string }) {
+  return change.details && change.details.length > 0 ? <ul className="mt-3 grid gap-3 md:grid-cols-2">{change.details.map((detail, detailIndex) => <li className="rounded-control border bg-surface-card p-3" key={`${change.id}-${detailIndex}`}>
+    <div className="flex flex-wrap items-center justify-between gap-2"><strong>{detail.entity}</strong><span className="rounded-full bg-corporate-blue/10 px-2 py-1 text-xs font-semibold text-corporate-blue">{actionLabels[detail.action]}</span></div>
+    {detail.fields.length > 0 ? <dl className="mt-3 space-y-2">{detail.fields.map((field, fieldIndex) => <div className="grid gap-1 border-t pt-2 text-xs sm:grid-cols-[8rem_1fr]" key={`${field.label}-${fieldIndex}`}><dt className="font-semibold text-text-secondary">{field.label}</dt><dd className="flex min-w-0 flex-wrap items-center gap-2"><span className="break-all text-text-secondary line-through">{field.before}</span><span aria-hidden="true">→</span><strong className="break-all text-text-primary">{field.after}</strong></dd></div>)}</dl> : null}
+  </li>)}</ul> : <p className="mt-3 text-xs text-text-secondary">{emptyText}</p>;
+}
+
 export function PublishingCenter({ csrfToken, canRequest, canClearHistory }: { csrfToken: string; canRequest: boolean; canClearHistory: boolean }) {
   const [changes, setChanges] = useState<Change[]>([]);
   const [requests, setRequests] = useState<PublishRequest[]>([]);
+  const [publishingChanges, setPublishingChanges] = useState<Change[]>([]);
+  const [activeRequest, setActiveRequest] = useState<PublishRequest | null>(null);
   const [automation, setAutomation] = useState<Automation>({ enabled: false, ready: false, provider: "github_actions", missing: [] });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -65,6 +74,8 @@ export function PublishingCenter({ csrfToken, canRequest, canClearHistory }: { c
       if (!response.ok || !Array.isArray(payload.changes) || !Array.isArray(payload.requests) || typeof payload.validation !== "object" || typeof payload.automation !== "object") throw new Error();
       setChanges(payload.changes);
       setRequests(payload.requests);
+      setPublishingChanges(Array.isArray(payload.publishingChanges) ? payload.publishingChanges : []);
+      setActiveRequest(payload.activeRequest && typeof payload.activeRequest === "object" ? payload.activeRequest : null);
       setValidation(payload.validation);
       setAutomation(payload.automation);
       setCurrentRequestId(typeof payload.currentRequestId === "string" ? payload.currentRequestId : null);
@@ -150,7 +161,7 @@ export function PublishingCenter({ csrfToken, canRequest, canClearHistory }: { c
     finally { setHistoryAction(""); }
   }
 
-  const actionUnavailable = submitting || loading || changes.length > 0 && (!validation.valid || !automation.ready);
+  const actionUnavailable = submitting || loading || activeRequest !== null || changes.length > 0 && (!validation.valid || !automation.ready);
 
   return <section className="mt-8">
     <div className="flex flex-wrap items-end justify-between gap-4">
@@ -185,12 +196,17 @@ export function PublishingCenter({ csrfToken, canRequest, canClearHistory }: { c
     </section> : null}
 
     {loading ? <p className="mt-6 text-text-secondary">Yükleniyor...</p> : <>
+      {activeRequest ? <section className="mt-6 rounded-card border border-corporate-blue/25 bg-corporate-blue/5 p-5">
+        <div className="flex flex-wrap items-center justify-between gap-3"><div><h3 className="text-lg font-bold">Aşağıdaki Değişiklikler Canlıya Alınıyor...</h3><p className="mt-1 text-sm text-text-secondary">{requestStatus(activeRequest)} · {activeRequest.id}</p></div><span className="rounded-pill bg-corporate-blue px-3 py-1 text-xs font-bold text-white">{publishingChanges.length} değişiklik</span></div>
+        {publishingChanges.length > 0 ? <ul className="mt-4 grid gap-3">{publishingChanges.map((change) => <li className="rounded-control border border-corporate-blue/15 bg-surface-card p-4" key={change.id}><div className="flex flex-wrap items-center justify-between gap-2"><strong>{change.label}</strong><span className="text-xs text-text-secondary">{change.updatedAt ? new Date(change.updatedAt).toLocaleString("tr-TR") : change.type}</span></div><ChangeDetails change={change} emptyText="Bu snapshot için alan bazlı değişiklik bilgisi bulunmuyor." /></li>)}</ul> : null}
+      </section> : null}
       <section className="mt-6 rounded-card border bg-surface-card p-5">
         <h3 className="text-lg font-bold">Yayınlanmamış Değişiklikler ({changes.length})</h3>
-        {changes.length > 0 ? <ul className="mt-4 divide-y">{changes.map((change) => <li className="flex justify-between gap-4 py-3" key={change.id}>
-          <div><p className="font-semibold">{change.label}</p><p className="text-xs text-text-secondary">{change.type}</p></div>
-          <time className="text-sm text-text-secondary">{change.updatedAt ? new Date(change.updatedAt).toLocaleString("tr-TR") : "—"}</time>
-        </li>)}</ul> : <p className="mt-4 text-sm text-text-secondary">Staging’e aktarılmayı bekleyen değişiklik yok.</p>}
+        {activeRequest ? <p className="mt-2 text-sm text-text-secondary">Devam eden snapshot’tan sonra yapılan yeni düzenlemeler burada ayrı gösterilir.</p> : null}
+        {changes.length > 0 ? <ul className="mt-4 grid gap-3">{changes.map((change) => <li className="rounded-control border bg-surface-muted p-4" key={change.id}>
+          <div className="flex flex-wrap items-center justify-between gap-2"><div><p className="font-semibold">{change.label}</p><p className="text-xs text-text-secondary">{change.type}</p></div><time className="text-sm text-text-secondary">{change.updatedAt ? new Date(change.updatedAt).toLocaleString("tr-TR") : "—"}</time></div>
+          <ChangeDetails change={change} emptyText="Bu değişiklik için alan bazlı ayrıntı bulunmuyor." />
+        </li>)}</ul> : <p className="mt-4 text-sm text-text-secondary">{activeRequest ? "Devam eden yayından sonra yapılmış yeni bir değişiklik yok." : "Staging’e aktarılmayı bekleyen değişiklik yok."}</p>}
       </section>
 
       <section className="mt-6 rounded-card border bg-surface-card p-5">
@@ -213,10 +229,7 @@ export function PublishingCenter({ csrfToken, canRequest, canClearHistory }: { c
             <summary className="cursor-pointer font-semibold text-corporate-blue">Değişiklik detayları ({request.changes.length})</summary>
             {request.changes.length > 0 ? <ul className="mt-3 grid gap-3">{request.changes.map((change) => <li className="rounded-control border bg-surface-muted p-4" key={change.id}>
               <div className="flex flex-wrap items-center justify-between gap-2"><span className="font-semibold">{change.label}</span><span className="text-xs text-text-secondary">{change.updatedAt ? new Date(change.updatedAt).toLocaleString("tr-TR") : change.type}</span></div>
-              {change.details && change.details.length > 0 ? <ul className="mt-3 grid gap-3 md:grid-cols-2">{change.details.map((detail, detailIndex) => <li className="rounded-control border bg-surface-card p-3" key={`${change.id}-${detailIndex}`}>
-                <div className="flex flex-wrap items-center justify-between gap-2"><strong>{detail.entity}</strong><span className="rounded-full bg-corporate-blue/10 px-2 py-1 text-xs font-semibold text-corporate-blue">{actionLabels[detail.action]}</span></div>
-                {detail.fields.length > 0 ? <dl className="mt-3 space-y-2">{detail.fields.map((field, fieldIndex) => <div className="grid gap-1 border-t pt-2 text-xs sm:grid-cols-[8rem_1fr]" key={`${field.label}-${fieldIndex}`}><dt className="font-semibold text-text-secondary">{field.label}</dt><dd className="flex min-w-0 flex-wrap items-center gap-2"><span className="break-all text-text-secondary line-through">{field.before}</span><span aria-hidden="true">→</span><strong className="break-all text-text-primary">{field.after}</strong></dd></div>)}</dl> : null}
-              </li>)}</ul> : <p className="mt-3 text-xs text-text-secondary">Bu eski kayıtta alan bazlı değişiklik bilgisi bulunmuyor.</p>}
+              <ChangeDetails change={change} emptyText="Bu eski kayıtta alan bazlı değişiklik bilgisi bulunmuyor." />
             </li>)}</ul> : <p className="mt-2 text-sm text-text-secondary">Bu kayıtta değişiklik detayı bulunmuyor.</p>}
           </details>
         </li>)}</ul> : <p className="mt-4 text-sm text-text-secondary">Henüz staging yayını yok.</p>}
