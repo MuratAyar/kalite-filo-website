@@ -508,6 +508,20 @@ export function validateFoundationContent(): void {
         `vehicle portfolio ${vehicle.id} image licence URL`,
       );
     }
+
+    if (vehicle.galleryImages || vehicle.imageLicenses) {
+      if (!vehicle.galleryImages || !vehicle.imageLicenses || vehicle.galleryImages.length === 0 || vehicle.galleryImages.length !== vehicle.imageLicenses.length) {
+        throw new ContentValidationError(
+          `Vehicle portfolio ${vehicle.id} gallery media and licence records must be non-empty and aligned.`,
+        );
+      }
+      if (vehicle.coverImage?.src !== vehicle.galleryImages[0]?.src) {
+        throw new ContentValidationError(
+          `Vehicle portfolio ${vehicle.id} gallery must begin with its cover image.`,
+        );
+      }
+      vehicle.galleryImages.forEach((image, index) => assertMediaAsset(image, `vehicle portfolio ${vehicle.id} gallery image ${index}`));
+    }
   }
 
   const faqCategoryIds = new Set(faqCategories.map(({ id }) => id));

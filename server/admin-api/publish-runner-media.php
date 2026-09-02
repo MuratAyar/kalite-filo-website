@@ -20,8 +20,12 @@ try {
     $expected = null;
     if ($kind === 'vehicle') {
         foreach ($record['snapshot']['vehicles'] ?? [] as $vehicle) {
-            $media = is_array($vehicle) && is_array($vehicle['draftMedia'] ?? null) ? $vehicle['draftMedia'] : null;
-            if (is_array($media) && ($media['id'] ?? null) === $id && ($media['extension'] ?? null) === $extension) { $expected = $media; break; }
+            $gallery = is_array($vehicle) && is_array($vehicle['galleryMedia'] ?? null)
+                ? $vehicle['galleryMedia']
+                : (is_array($vehicle) && is_array($vehicle['draftMedia'] ?? null) ? [$vehicle['draftMedia']] : []);
+            foreach ($gallery as $media) {
+                if (is_array($media) && ($media['id'] ?? null) === $id && ($media['extension'] ?? null) === $extension) { $expected = $media; break 2; }
+            }
         }
         $path = kalite_filo_admin_vehicle_media_path($id, $extension);
     } else {

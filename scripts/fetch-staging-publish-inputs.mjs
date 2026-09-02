@@ -18,8 +18,10 @@ export function requiredPrivateMedia(request) {
     result.set(`${kind}:${media.id}`, { ...media, kind });
   };
   for (const vehicle of request.snapshot.vehicles) {
-    const media = vehicle?.draftMedia;
-    if (media) add("vehicle", media);
+    const mediaRecords = Array.isArray(vehicle?.galleryMedia)
+      ? vehicle.galleryMedia
+      : (vehicle?.draftMedia ? [vehicle.draftMedia] : []);
+    for (const media of mediaRecords) add("vehicle", media);
   }
   const mediaById = new Map(request.snapshot.media.map((media) => [media?.id, media]));
   for (const article of request.snapshot.articles) {

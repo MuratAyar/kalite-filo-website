@@ -8,13 +8,14 @@ import type {
   HttpsUrl,
   LocalAssetPath,
   Slug,
+  VehicleImageLicense,
   VehiclePortfolioListPrice,
   VehiclePortfolioRecord,
 } from "@/types";
 
 type PortfolioRecordSource = Omit<
   VehiclePortfolioRecord,
-  "coverImage" | "id" | "imageLicense" | "listPrice" | "slug"
+  "coverImage" | "galleryImages" | "id" | "imageLicense" | "imageLicenses" | "listPrice" | "slug"
 > & {
   readonly id: string;
   readonly slug: string;
@@ -56,37 +57,55 @@ type PortfolioMediaSource = {
   readonly licenseUrl: string;
   readonly localDerivativeNote: string;
   readonly checksum: string;
+  readonly sortOrder?: number;
 };
 
-const portfolioMedia = new Map(
-  (vehicleMediaSource.records as readonly PortfolioMediaSource[]).map((media) => [
-    media.vehicleId,
-    Object.freeze({
-      image: Object.freeze({
-        purpose: "informative" as const,
-        src: `/images/vehicles/${media.fileName}` as LocalAssetPath,
-        width: media.width,
-        height: media.height,
-        alt: media.alt,
-      }),
-      license: Object.freeze({
-        creator: media.creator,
-        sourcePage: media.sourcePage as HttpsUrl,
-        licenseName: media.licenseName,
-        licenseUrl: media.licenseUrl as HttpsUrl,
-        localDerivativeNote: media.localDerivativeNote,
-      }),
-    }),
-  ]),
-);
+type ResolvedPortfolioMedia = {
+  readonly image: NonNullable<VehiclePortfolioRecord["coverImage"]>;
+  readonly license: VehicleImageLicense;
+  readonly sortOrder: number;
+};
 
-if (vehicleMediaSource.schemaVersion !== 1 || portfolioMedia.size !== vehicleMediaSource.records.length) {
-  throw new Error("Vehicle media contract is invalid or contains duplicate vehicle ids.");
+const portfolioMedia = new Map<string, ResolvedPortfolioMedia[]>();
+
+for (const media of vehicleMediaSource.records as readonly PortfolioMediaSource[]) {
+  const records = portfolioMedia.get(media.vehicleId) ?? [];
+  const sortOrder = media.sortOrder ?? records.length + 1;
+  if (records.some((record) => record.image.src.endsWith(`/${media.fileName}`) || record.sortOrder === sortOrder)) {
+    throw new Error(`Vehicle media contract contains duplicate gallery data for ${media.vehicleId}.`);
+  }
+  records.push({
+    image: Object.freeze({
+      purpose: "informative" as const,
+      src: `/images/vehicles/${media.fileName}` as LocalAssetPath,
+      width: media.width,
+      height: media.height,
+      alt: media.alt,
+    }),
+    license: Object.freeze({
+      creator: media.creator,
+      sourcePage: media.sourcePage as HttpsUrl,
+      licenseName: media.licenseName,
+      licenseUrl: media.licenseUrl as HttpsUrl,
+      localDerivativeNote: media.localDerivativeNote,
+    }),
+    sortOrder,
+  });
+  portfolioMedia.set(media.vehicleId, records);
+}
+
+for (const records of portfolioMedia.values()) {
+  records.sort((left, right) => left.sortOrder - right.sortOrder);
+}
+
+if (vehicleMediaSource.schemaVersion !== 2) {
+  throw new Error("Vehicle media contract has an unsupported schema.");
 }
 
 export const vehiclePortfolio: readonly VehiclePortfolioRecord[] = Object.freeze(
   (portfolioRecords as readonly PortfolioRecordSource[]).map((record) => {
-    const media = portfolioMedia.get(record.id);
+    const media = portfolioMedia.get(record.id) ?? [];
+    const coverMedia = media[0];
     const featuredOrder = featuredOrderById.get(record.id);
 
     return Object.freeze({
@@ -98,8 +117,13 @@ export const vehiclePortfolio: readonly VehiclePortfolioRecord[] = Object.freeze
       ...(featuredOrder !== undefined ? { featuredOrder } : {}),
       listPrice: createListPrice(record.sourceId),
       featureLabels: Object.freeze([...record.featureLabels]),
-      ...(media
-        ? { coverImage: media.image, imageLicense: media.license }
+      ...(coverMedia
+        ? {
+          coverImage: coverMedia.image,
+          galleryImages: Object.freeze(media.map((item) => item.image)),
+          imageLicense: coverMedia.license,
+          imageLicenses: Object.freeze(media.map((item) => item.license)),
+        }
         : {}),
     });
   }),

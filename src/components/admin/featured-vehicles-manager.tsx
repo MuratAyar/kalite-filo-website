@@ -2,11 +2,11 @@
 "use client";
 import { useEffect, useState } from "react";
 
-type Vehicle={id:string;make:string;model:string;trim:string;publicationStatus:string;coverImage?:{src:string;alt:string}|null;draftMedia?:{id:string;alt:string}|null};
+type Vehicle={id:string;make:string;model:string;trim:string;publicationStatus:string;coverImage?:{src:string;alt:string}|null;draftMedia?:{id:string;alt:string}|null;galleryMedia?:{id:string;alt:string}[]};
 export function FeaturedVehiclesManager({csrfToken}:{csrfToken:string}){
  const[vehicles,setVehicles]=useState<Vehicle[]>([]),[ids,setIds]=useState<string[]>([]),[error,setError]=useState(""),[saved,setSaved]=useState(false);
  useEffect(()=>{void fetch('/admin-api/featured-vehicles.php',{credentials:'same-origin',cache:'no-store'}).then(r=>r.json()).then(p=>{setVehicles(p.vehicles??[]);setIds(p.ids??[])}).catch(()=>setError('Öne çıkan araçlar yüklenemedi.'))},[]);
- const eligible=vehicles.filter(v=>v.publicationStatus==='published'&&(v.coverImage||v.draftMedia));
+ const eligible=vehicles.filter(v=>v.publicationStatus==='published'&&(v.coverImage||v.draftMedia||v.galleryMedia?.length));
  function change(index:number,id:string){setSaved(false);setIds(current=>current.map((value,i)=>i===index?id:value))}
  function move(index:number,direction:number){const target=index+direction;if(target<0||target>=4)return;setIds(current=>{const next=[...current];[next[index],next[target]]=[next[target],next[index]];return next});setSaved(false)}
  async function save(){if(ids.length!==4||new Set(ids).size!==4){setError('Tam olarak dört farklı araç seçin.');return}const r=await fetch('/admin-api/featured-vehicles.php',{method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/json','X-CSRF-Token':csrfToken},body:JSON.stringify({ids})});const p=await r.json();if(!r.ok){setError(p.error==='featured_vehicle_ineligible'?'Yalnızca yayındaki ve görseli bulunan araçlar seçilebilir.':'Tam olarak dört farklı araç seçin.');return}setError('');setSaved(true)}

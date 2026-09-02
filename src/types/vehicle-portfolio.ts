@@ -55,5 +55,8 @@ export interface VehiclePortfolioRecord {
   readonly priceStatus: "owner-approved-list-net";
   readonly listPrice: VehiclePortfolioListPrice;
   readonly coverImage?: MediaAsset;
+  /** Ordered detail-page gallery; its first item is also the cover image. */
+  readonly galleryImages?: readonly MediaAsset[];
   readonly imageLicense?: VehicleImageLicense;
+  readonly imageLicenses?: readonly VehicleImageLicense[];
 }

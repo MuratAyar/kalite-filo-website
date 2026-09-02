@@ -10,6 +10,7 @@ import {
 } from "./vehicle-card-details";
 import { RelatedVehicleCarouselControls } from "./related-vehicle-carousel-controls";
 import { VehicleOfferControls } from "./vehicle-offer-controls";
+import { VehicleImageGallery } from "./vehicle-image-gallery";
 
 export type VehicleDetailProps = {
   locale?: "en" | "tr";
@@ -102,11 +103,9 @@ function getAdditionalTechnicalSpecifications(
 }
 
 function VehicleMedia({
-  eager = false,
   locale = "tr",
   vehicle,
 }: {
-  eager?: boolean;
   locale?: "en" | "tr";
   vehicle: VehiclePortfolioRecord;
 }) {
@@ -122,18 +121,7 @@ function VehicleMedia({
     );
   }
 
-  return (
-    // Static delivery is intentional for the export-only production host.
-    // eslint-disable-next-line @next/next/no-img-element
-    <img
-      alt={vehicle.coverImage.alt}
-      className="aspect-[16/10] size-full object-cover"
-      height={vehicle.coverImage.height}
-      loading={eager ? "eager" : "lazy"}
-      src={vehicle.coverImage.src}
-      width={vehicle.coverImage.width}
-    />
-  );
+  return <VehicleImageGallery images={vehicle.galleryImages ?? [vehicle.coverImage]} locale={locale} vehicleName={`${vehicle.make} ${vehicle.model}`} />;
 }
 
 function RelatedVehicleCard({ locale = "tr", vehicle }: { locale?: "en" | "tr"; vehicle: VehiclePortfolioRecord }) {
@@ -217,12 +205,7 @@ export function VehicleDetail({
           <div className="grid min-w-0 gap-6 lg:grid-cols-[minmax(0,2fr)_minmax(18rem,0.85fr)] lg:items-start lg:gap-8">
             <div className="min-w-0 space-y-6">
               <figure className="overflow-hidden rounded-panel border border-border-subtle bg-surface-card p-3 shadow-[0_0.5rem_1.5rem_rgb(24_33_54_/_0.06)] sm:p-5">
-                <div className="overflow-hidden rounded-card bg-surface-muted">
-                  <VehicleMedia eager locale={locale} vehicle={vehicle} />
-                </div>
-                <figcaption className="px-1 pt-4 text-label text-text-secondary">
-                  {locale === "en" ? "The vehicle image may represent the model family; equipment and colour may differ." : "Araç görseli model ailesini temsil edebilir; donanım ve renk farklılık gösterebilir."}
-                </figcaption>
+                <VehicleMedia locale={locale} vehicle={vehicle} />
               </figure>
 
               <div

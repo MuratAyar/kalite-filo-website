@@ -146,6 +146,52 @@ function kalite_filo_admin_remove_private_tree(string $path): void
     @rmdir($path);
 }
 
+/** @return array{uploads:int,incoming:int,rollbacks:int,failed:int} */
+function kalite_filo_admin_cleanup_staging_deployments(?int $now = null): array
+{
+    $now ??= time();
+    $root = kalite_filo_admin_publish_deploy_root();
+    $counts = ['uploads'=>0,'incoming'=>0,'rollbacks'=>0,'failed'=>0];
+    $releasePattern = '/^publish-\d{8}-\d{6}-[a-f0-9]{12}-[a-f0-9]{12}$/D';
+    foreach ([['uploads', 86400], ['incoming', 86400]] as [$name, $minimumAge]) {
+        $directory = $root . DIRECTORY_SEPARATOR . $name;
+        if (!is_dir($directory) || is_link($directory)) continue;
+        foreach (scandir($directory) ?: [] as $entry) {
+            if (preg_match($releasePattern, $entry) !== 1) continue;
+            $path = $directory . DIRECTORY_SEPARATOR . $entry;
+            $modified = is_dir($path) && !is_link($path) ? filemtime($path) : false;
+            if (!is_int($modified) || $now - $modified < $minimumAge) continue;
+            kalite_filo_admin_remove_private_tree($path);
+            if (!file_exists($path)) $counts[$name]++;
+        }
+    }
+
+    $rollbackRoot = $root . DIRECTORY_SEPARATOR . 'rollbacks';
+    $rollbacks = [];
+    if (is_dir($rollbackRoot) && !is_link($rollbackRoot)) foreach (scandir($rollbackRoot) ?: [] as $entry) {
+        if (preg_match($releasePattern, $entry) !== 1 && preg_match('/^admin-restore-\d{14}-[a-f0-9]{8}$/D', $entry) !== 1) continue;
+        $path = $rollbackRoot . DIRECTORY_SEPARATOR . $entry;
+        $modified = is_dir($path) && !is_link($path) ? filemtime($path) : false;
+        if (is_int($modified)) $rollbacks[] = ['path'=>$path,'modified'=>$modified];
+    }
+    usort($rollbacks, static fn (array $left, array $right): int => $right['modified'] <=> $left['modified']);
+    foreach (array_slice($rollbacks, 3) as $rollback) {
+        if ($now - $rollback['modified'] < 604800) continue;
+        kalite_filo_admin_remove_private_tree($rollback['path']);
+        if (!file_exists($rollback['path'])) $counts['rollbacks']++;
+    }
+
+    foreach (scandir($root) ?: [] as $entry) {
+        if (preg_match('/^(?:failed|rolled-back)-publish-\d{8}-\d{6}-[a-f0-9]{12}-[a-f0-9]{12}(?:-\d{14})?$/D', $entry) !== 1) continue;
+        $path = $root . DIRECTORY_SEPARATOR . $entry;
+        $modified = is_dir($path) && !is_link($path) ? filemtime($path) : false;
+        if (!is_int($modified) || $now - $modified < 604800) continue;
+        kalite_filo_admin_remove_private_tree($path);
+        if (!file_exists($path)) $counts['failed']++;
+    }
+    return $counts;
+}
+
 /** @return list<array{path:string,size:int,sha256:string}> */
 function kalite_filo_admin_validate_extracted_release(string $root, array $identity): array
 {
@@ -190,7 +236,7 @@ function kalite_filo_admin_validate_extracted_release(string $root, array $ident
     return array_values($expected);
 }
 
-/** @return array{rollbackId:string,alreadyDeployed:bool} */
+/** @return array{rollbackId:string,alreadyDeployed:bool,retention?:array{uploads:int,incoming:int,rollbacks:int,failed:int}} */
 function kalite_filo_admin_activate_staging_release(array $record, string $artifactHash, int $chunkCount, string $runId): array
 {
     $requestId = (string) $record['id']; $snapshotHash = (string) $record['snapshotHash'];
@@ -246,7 +292,9 @@ function kalite_filo_admin_activate_staging_release(array $record, string $artif
         if ($movedOld && is_dir($rollback) && !file_exists($documentRoot)) @rename($rollback, $documentRoot);
         throw $exception;
     }
-    return ['rollbackId' => $releaseId, 'alreadyDeployed' => false];
+    try { $retention = kalite_filo_admin_cleanup_staging_deployments(); }
+    catch (Throwable $exception) { error_log('Staging deployment retention failed [' . get_class($exception) . '].'); $retention = ['uploads'=>0,'incoming'=>0,'rollbacks'=>0,'failed'=>0]; }
+    return ['rollbackId' => $releaseId, 'alreadyDeployed' => false, 'retention' => $retention];
 }
 
 function kalite_filo_admin_rollback_staging_release(array $record, string $artifactHash, string $runId): string

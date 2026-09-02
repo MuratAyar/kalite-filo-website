@@ -10,23 +10,22 @@ function fail(message){throw new Error(`Admin snapshot materialization failed: $
 function hashSnapshot(snapshot){return createHash("sha256").update(JSON.stringify(snapshot)).digest("hex");}
 function text(value){return typeof value==="string"?value.trim():"";}
 function validateMediaRecord(record){
-  if(!record||typeof record!=="object"||!text(record.vehicleId)||!/^[a-z0-9][a-z0-9-]*\.(?:jpg|jpeg|png|webp)$/.test(text(record.fileName))||!Number.isSafeInteger(record.width)||record.width<=0||!Number.isSafeInteger(record.height)||record.height<=0||!["alt","creator","sourcePage","licenseName","licenseUrl","localDerivativeNote"].every((field)=>text(record[field]))||!/^https:\/\//.test(record.sourcePage)||!/^https:\/\//.test(record.licenseUrl)||!/^[a-f0-9]{64}$/.test(record.checksum))fail("invalid vehicle media record");
+  if(!record||typeof record!=="object"||!text(record.vehicleId)||!/^[a-z0-9][a-z0-9-]*\.(?:jpg|jpeg|png|webp)$/.test(text(record.fileName))||!Number.isSafeInteger(record.width)||record.width<=0||!Number.isSafeInteger(record.height)||record.height<=0||(record.sortOrder!==undefined&&(!Number.isSafeInteger(record.sortOrder)||record.sortOrder<1))||!["alt","creator","sourcePage","licenseName","licenseUrl","localDerivativeNote"].every((field)=>text(record[field]))||!/^https:\/\//.test(record.sourcePage)||!/^https:\/\//.test(record.licenseUrl)||!/^[a-f0-9]{64}$/.test(record.checksum))fail("invalid vehicle media record");
   return record;
 }
 function createMediaMaterialization(snapshot,published,source){
-  if(source?.schemaVersion!==1||!Array.isArray(source.records))fail("unsupported vehicle media contract");
-  const base=new Map();for(const record of source.records){validateMediaRecord(record);if(base.has(record.vehicleId))fail("duplicate vehicle media record");base.set(record.vehicleId,record);}
+  if(source?.schemaVersion!==2||!Array.isArray(source.records))fail("unsupported vehicle media contract");
+  const base=new Map();for(const record of source.records){validateMediaRecord(record);const records=base.get(record.vehicleId)??[];if(records.some((item)=>item.fileName===record.fileName))fail("duplicate vehicle media record");records.push({...record,sortOrder:Number.isSafeInteger(record.sortOrder)?record.sortOrder:records.length+1});records.sort((left,right)=>left.sortOrder-right.sortOrder);base.set(record.vehicleId,records);}
   const records=published.flatMap((vehicle)=>{
-    if(vehicle.draftMedia){
-      const media=vehicle.draftMedia;const extension=text(media.extension).toLowerCase();
-      const record={vehicleId:vehicle.id,fileName:`${vehicle.id}-${text(media.checksum).slice(0,12)}.${extension}`,width:media.width,height:media.height,alt:text(media.alt),creator:text(media.creator),sourcePage:text(media.sourcePage),licenseName:text(media.licenseName),licenseUrl:text(media.licenseUrl),localDerivativeNote:"Yönetim paneline yüklenen doğrulanmış yerel dosya.",checksum:text(media.checksum),size:media.size,sourceKind:"admin-upload",sourceMediaId:text(media.id),sourceExtension:extension};
-      return[validateMediaRecord(record)];
+    const uploads=Array.isArray(vehicle.galleryMedia)&&vehicle.galleryMedia.length?vehicle.galleryMedia:(vehicle.draftMedia?[vehicle.draftMedia]:[]);
+    if(uploads.length){
+      return uploads.map((media,index)=>{const extension=text(media.extension).toLowerCase();const record={vehicleId:vehicle.id,fileName:`${vehicle.id}-${text(media.checksum).slice(0,12)}.${extension}`,width:media.width,height:media.height,alt:text(media.alt),creator:text(media.creator),sourcePage:text(media.sourcePage),licenseName:text(media.licenseName),licenseUrl:text(media.licenseUrl),localDerivativeNote:"Yönetim paneline yüklenen doğrulanmış yerel dosya.",checksum:text(media.checksum),size:media.size,sourceKind:"admin-upload",sourceMediaId:text(media.id),sourceExtension:extension,sortOrder:index+1};return validateMediaRecord(record);});
     }
-    const record=base.get(vehicle.id);return record?[{...record,sourceKind:"repository"}]:[];
+    return (base.get(vehicle.id)??[]).map((record)=>({...record,sourceKind:"repository"}));
   });
   const mediaIds=new Set(records.map((record)=>record.vehicleId));
   for(const id of snapshot.featuredVehicleIds)if(!mediaIds.has(id))fail(`featured vehicle ${id} has no materializable media`);
-  return{schemaVersion:1,records};
+  return{schemaVersion:2,records};
 }
 function normalizeLibraryMedia(record){
   if(!record||typeof record!=="object"||!/^[a-f0-9]{32}$/.test(text(record.id))||!['jpg','png','webp'].includes(text(record.extension))||!/^[a-f0-9]{64}$/.test(text(record.checksum))||!Number.isSafeInteger(record.size)||record.size<1||record.size>5242880||!Number.isSafeInteger(record.width)||record.width<400||record.width>4096||!Number.isSafeInteger(record.height)||record.height<225||record.height>4096||!['article','general'].includes(record.usage)||!record.alt||typeof record.alt!=="object"||!text(record.alt.tr))fail("invalid article cover media");
@@ -91,7 +90,7 @@ export function validatePublishRequest(request){
   return snapshot;
 }
 
-export function createVehicleMaterialization(request,priceSourceMetadata,vehicleMediaSource={schemaVersion:1,records:[]}){
+export function createVehicleMaterialization(request,priceSourceMetadata,vehicleMediaSource={schemaVersion:2,records:[]}){
   const snapshot=validatePublishRequest(request);
   const order=new Map(snapshot.featuredVehicleIds.map((id,index)=>[id,index]));
   const published=snapshot.vehicles.filter((vehicle)=>vehicle.publicationStatus==="published").sort((left,right)=>{

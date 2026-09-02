@@ -106,6 +106,8 @@ export const englishVehiclePortfolio: readonly VehiclePortfolioRecord[] = Object
     summary: `${fullName} is a corporate fleet option selected for ${useCases[vehicle.slug] ?? "business mobility requirements"}, combining ${fuel.toLowerCase()} power with a ${transmission.toLowerCase()} transmission.`,
     featureLabels: vehicle.featureLabels.map(translateFeature),
     coverImage: vehicle.coverImage ? Object.freeze({ ...vehicle.coverImage, purpose: "informative" as const, alt: `${vehicle.make} ${vehicle.model}, representative model-family image; trim and colour may differ` }) : undefined,
+    galleryImages: vehicle.galleryImages ? Object.freeze(vehicle.galleryImages.map((image, index) => Object.freeze({ ...image, purpose: "informative" as const, alt: `${vehicle.make} ${vehicle.model}, image ${index + 1}` }))) : undefined,
     imageLicense: vehicle.imageLicense ? Object.freeze({ ...vehicle.imageLicense, localDerivativeNote: "A local 960-pixel derivative of the Wikimedia Commons file is used. The image represents the model family; trim and colour may differ." }) : undefined,
+    imageLicenses: vehicle.imageLicenses ? Object.freeze(vehicle.imageLicenses.map((license) => Object.freeze({ ...license, localDerivativeNote: "A verified local vehicle image derivative is used." }))) : undefined,
   });
 }));

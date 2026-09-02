@@ -42,7 +42,7 @@ function createFixture(name) {
   writeFileSync(path.join(root, "public", "images", "vehicles", "fixture.jpg"), fixtureMedia);
   const fixtureChecksum = createHash("sha256").update(fixtureMedia).digest("hex");
   writeFileSync(path.join(root, "src", "data", "vehicle-media.json"), JSON.stringify({
-    schemaVersion: 1,
+    schemaVersion: 2,
     records: ["one", "two", "three", "four"].map((id) => ({
       vehicleId: `vehicle-${id}`, fileName: "fixture.jpg", width: 960, height: 640,
       alt: "Araç", creator: "Creator", sourcePage: "https://example.com/source",
@@ -158,7 +158,7 @@ test("vehicle media contract rejects checksum drift", () => {
   mkdirSync(path.join(root, "public", "images", "vehicles"), { recursive: true });
   writeFileSync(path.join(root, "public", "images", "vehicles", "vehicle.jpg"), "binary");
   writeFileSync(path.join(root, "src", "data", "vehicle-media.json"), JSON.stringify({
-    schemaVersion: 1,
+    schemaVersion: 2,
     records: [{
       vehicleId: "kf-001", fileName: "vehicle.jpg", width: 960, height: 640,
       alt: "Araç", creator: "Creator", sourcePage: "https://example.com/source",

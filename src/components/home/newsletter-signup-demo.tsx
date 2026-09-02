@@ -41,9 +41,16 @@ export function NewsletterSignupDemo({ locale = "tr" }: { locale?: "en" | "tr" }
       }
       const response = await fetch("/forms/bulten.php", {
         body,
-        headers: { "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8" },
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
+        },
         method: "POST",
       });
+      const contentType = response.headers.get("content-type") ?? "";
+      if (!contentType.toLowerCase().includes("application/json")) {
+        throw new Error(locale === "en" ? "Your subscription request could not be processed at this time." : "Kayıt talebi şu anda alınamadı. Lütfen daha sonra yeniden deneyin.");
+      }
       const result = (await response.json()) as { message?: string; result?: string };
 
       if (!response.ok || result.result !== "basarili") {

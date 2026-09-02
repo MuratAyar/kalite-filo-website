@@ -35,6 +35,7 @@ try {
         'id' => $requestId,
         'rollbackId' => $deployment['rollbackId'],
         'alreadyDeployed' => $deployment['alreadyDeployed'],
+        'retention' => $deployment['retention'] ?? null,
     ]);
     kalite_filo_admin_json($deployment);
 } catch (OutOfBoundsException) {

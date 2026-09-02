@@ -127,8 +127,10 @@ function kalite_filo_admin_vehicle_change_details(array $before, array $after): 
         if ($old === null || $new === null) { $details[] = ['entity'=>$entity,'action'=>$old === null ? 'created' : 'removed','fields'=>[]]; continue; }
         $changed = [];
         foreach ($fields as $key => $label) if (($old[$key] ?? null) !== ($new[$key] ?? null)) $changed[] = ['label'=>$label,'before'=>kalite_filo_admin_diff_value($old[$key] ?? null),'after'=>kalite_filo_admin_diff_value($new[$key] ?? null)];
-        $oldImage = $old['draftMedia']['id'] ?? $old['coverImage']['src'] ?? null;
-        $newImage = $new['draftMedia']['id'] ?? $new['coverImage']['src'] ?? null;
+        $oldImage = array_map(static fn(array $media): mixed => $media['id'] ?? null, is_array($old['galleryMedia'] ?? null) ? $old['galleryMedia'] : (is_array($old['draftMedia'] ?? null) ? [$old['draftMedia']] : []));
+        $newImage = array_map(static fn(array $media): mixed => $media['id'] ?? null, is_array($new['galleryMedia'] ?? null) ? $new['galleryMedia'] : (is_array($new['draftMedia'] ?? null) ? [$new['draftMedia']] : []));
+        if ($oldImage === []) $oldImage = $old['coverImage']['src'] ?? null;
+        if ($newImage === []) $newImage = $new['coverImage']['src'] ?? null;
         if ($oldImage !== $newImage) $changed[] = ['label'=>'Görsel','before'=>kalite_filo_admin_diff_value($oldImage),'after'=>kalite_filo_admin_diff_value($newImage)];
         if ($changed !== []) $details[] = ['entity'=>$entity,'action'=>'updated','fields'=>array_slice($changed, 0, 20)];
         if (count($details) >= 50) break;
@@ -414,7 +416,7 @@ function kalite_filo_admin_validate_staging_publish_payload(array $payload): arr
     $media=is_array($payload['media']??null)?$payload['media']:[];
     try{kalite_filo_admin_assert_vehicle_uniqueness($vehicles);}catch(Throwable){$blockers[]=['code'=>'vehicle_identity','message'=>'Araç kimliği, sourceId veya slug değerleri benzersiz değil.'];}
     if(count($featured)!==4||count(array_unique($featured))!==4){$blockers[]=['code'=>'featured_requires_four','message'=>'Tam olarak dört farklı öne çıkan araç seçilmelidir.'];}
-    else{$byId=[];foreach($vehicles as $vehicle)if(is_array($vehicle))$byId[(string)($vehicle['id']??'')]=$vehicle;foreach($featured as $id){$vehicle=$byId[(string)$id]??null;if(!is_array($vehicle)||($vehicle['publicationStatus']??'')!=='published'||!is_int($vehicle['priceAmountMinor']??null)||(!is_array($vehicle['coverImage']??null)&&!is_array($vehicle['draftMedia']??null))){$blockers[]=['code'=>'featured_vehicle_ineligible','message'=>'Öne çıkan araçların tümü yayında, fiyatlı ve görselli olmalıdır.'];break;}}}
+    else{$byId=[];foreach($vehicles as $vehicle)if(is_array($vehicle))$byId[(string)($vehicle['id']??'')]=$vehicle;foreach($featured as $id){$vehicle=$byId[(string)$id]??null;$hasGallery=is_array($vehicle['galleryMedia']??null)&&count($vehicle['galleryMedia'])>0;if(!is_array($vehicle)||($vehicle['publicationStatus']??'')!=='published'||!is_int($vehicle['priceAmountMinor']??null)||(!is_array($vehicle['coverImage']??null)&&!is_array($vehicle['draftMedia']??null)&&!$hasGallery)){$blockers[]=['code'=>'featured_vehicle_ineligible','message'=>'Öne çıkan araçların tümü yayında, fiyatlı ve görselli olmalıdır.'];break;}}}
     $mediaIds=[];foreach($media as $asset)if(is_array($asset)&&is_string($asset['id']??null))$mediaIds[$asset['id']]=true;
     foreach($articles as $article){if(!is_array($article))continue;$tr=$article['locales']['tr']??null;if(!is_array($tr))$blockers[]=['code'=>'article_tr_missing','message'=>'Her Filo Rehberi taslağında Türkçe içerik bulunmalıdır.'];$coverId=$article['coverMediaId']??null;if(is_string($coverId)&&!isset($mediaIds[$coverId]))$blockers[]=['code'=>'article_media_missing','message'=>'Bir Filo Rehberi taslağı bulunamayan bir medya kaydına bağlı.'];if(is_array($tr)&&($tr['status']??'')!=='ready')$warnings[]=['code'=>'article_draft','message'=>'Draft durumundaki Filo Rehberi içerikleri public çıktıya alınmayacaktır.'];}
     return ['valid'=>$blockers===[],'blockers'=>array_values(array_unique($blockers,SORT_REGULAR)),'warnings'=>array_values(array_unique($warnings,SORT_REGULAR))];

@@ -28,6 +28,13 @@ test("selects only snapshot-bound private media without duplicates", () => {
   assert.deepEqual(requiredPrivateMedia(request).map((item) => item.kind), ["library", "vehicle"]);
 });
 
+test("selects every ordered private vehicle gallery image", () => {
+  const first = { id: "a".repeat(32), extension: "webp", checksum: "b".repeat(64), size: 10 };
+  const second = { id: "c".repeat(32), extension: "jpg", checksum: "d".repeat(64), size: 11 };
+  const request = { snapshot: { vehicles: [{ galleryMedia: [first, second], draftMedia: first }], media: [], articles: [] } };
+  assert.deepEqual(requiredPrivateMedia(request).map((item) => item.id), [first.id, second.id]);
+});
+
 test("uploads a release in bounded hash-addressed chunks", async () => {
   const root = mkdtempSync(path.join(tmpdir(), "kalite-filo-api-upload-"));
   try {

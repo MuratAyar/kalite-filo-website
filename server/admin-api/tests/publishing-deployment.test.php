@@ -2,6 +2,8 @@
 declare(strict_types=1);
 const KALITE_FILO_RUNNER_MAX_CHUNK_BYTES = 1048576;
 const KALITE_FILO_RUNNER_MAX_ARTIFACT_BYTES = 134217728;
+$deploymentRoot = '';
+function kalite_filo_admin_publish_deploy_root(): string { global $deploymentRoot; return $deploymentRoot; }
 require_once dirname(__DIR__) . '/publishing-deployment.php';
 
 function deployment_assert(bool $condition, string $message): void { if (!$condition) throw new RuntimeException($message); }
@@ -58,5 +60,36 @@ try {
         kalite_filo_admin_deployment_failure_reason(new RuntimeException('New staging release could not be activated.')) === 'release_activation_failed',
         'Activation failures must receive a safe diagnostic code.'
     );
+
+    $deploymentRoot = $root . '/deploy';
+    $old = time() - 900000;
+    $recent = time() - 60;
+    $releaseNames = [
+        'publish-20260801-120000-abcdef123456-111111111111',
+        'publish-20260802-120000-abcdef123456-222222222222',
+        'publish-20260803-120000-abcdef123456-333333333333',
+        'publish-20260804-120000-abcdef123456-444444444444',
+    ];
+    foreach (['uploads/' . $releaseNames[0], 'uploads/' . $releaseNames[1], 'incoming/' . $releaseNames[0]] as $relative) {
+        mkdir($deploymentRoot . '/' . $relative, 0700, true);
+        file_put_contents($deploymentRoot . '/' . $relative . '/part', 'x');
+    }
+    touch($deploymentRoot . '/uploads/' . $releaseNames[0], $old);
+    touch($deploymentRoot . '/uploads/' . $releaseNames[1], $recent);
+    touch($deploymentRoot . '/incoming/' . $releaseNames[0], $old);
+    foreach ($releaseNames as $index => $name) {
+        mkdir($deploymentRoot . '/rollbacks/' . $name, 0700, true);
+        file_put_contents($deploymentRoot . '/rollbacks/' . $name . '/index.html', 'release');
+        touch($deploymentRoot . '/rollbacks/' . $name, $old + $index);
+    }
+    $failedName = 'failed-' . $releaseNames[0] . '-20260801130000';
+    mkdir($deploymentRoot . '/' . $failedName, 0700, true);
+    touch($deploymentRoot . '/' . $failedName, $old);
+    mkdir($deploymentRoot . '/rollbacks/not-a-release', 0700, true);
+    touch($deploymentRoot . '/rollbacks/not-a-release', $old);
+    $cleanup = kalite_filo_admin_cleanup_staging_deployments(time());
+    deployment_assert($cleanup === ['uploads'=>1,'incoming'=>1,'rollbacks'=>1,'failed'=>1], 'Retention must remove only expired allowlisted deployment paths.');
+    deployment_assert(is_dir($deploymentRoot . '/uploads/' . $releaseNames[1]), 'A recent upload must be retained.');
+    deployment_assert(is_dir($deploymentRoot . '/rollbacks/' . $releaseNames[3]) && is_dir($deploymentRoot . '/rollbacks/not-a-release'), 'The newest rollback set and unknown paths must be retained.');
     fwrite(STDOUT, "Admin publishing deployment validation tests passed.\n");
 } finally { deployment_remove($root); }

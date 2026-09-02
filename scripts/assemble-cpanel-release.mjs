@@ -68,7 +68,7 @@ function parseEnglishArticleCopy(source) {
 export function readVehicleMediaContract(repositoryRoot) {
   const contractPath = path.join(repositoryRoot, "src", "data", "vehicle-media.json");
   const contract = JSON.parse(readFileSync(contractPath, "utf8"));
-  if (contract?.schemaVersion !== 1 || !Array.isArray(contract.records)) {
+  if (contract?.schemaVersion !== 2 || !Array.isArray(contract.records)) {
     throw new Error("Vehicle media contract has an unsupported schema.");
   }
   const mediaById = {};
@@ -79,14 +79,14 @@ export function readVehicleMediaContract(repositoryRoot) {
       || !/^[a-z0-9][a-z0-9-]*\.(?:jpg|jpeg|png|webp)$/.test(record.fileName)
       || !Number.isSafeInteger(record.width) || record.width <= 0
       || !Number.isSafeInteger(record.height) || record.height <= 0
+      || (record.sortOrder !== undefined && (!Number.isSafeInteger(record.sortOrder) || record.sortOrder < 1))
       || !["alt", "creator", "sourcePage", "licenseName", "licenseUrl", "localDerivativeNote"]
         .every((field) => typeof record[field] === "string" && record[field].trim() !== "")
       || !/^https:\/\//.test(record.sourcePage)
       || !/^https:\/\//.test(record.licenseUrl)
       || !/^[a-f0-9]{64}$/.test(record.checksum)
-      || mediaById[record.vehicleId]
     ) {
-      throw new Error("Vehicle media contract contains an invalid or duplicate record.");
+      throw new Error("Vehicle media contract contains an invalid record.");
     }
     const assetPath = path.join(repositoryRoot, "public", "images", "vehicles", record.fileName);
     if (!existsSync(assetPath)) throw new Error(`Vehicle media asset is missing: ${record.fileName}`);
@@ -94,18 +94,13 @@ export function readVehicleMediaContract(repositoryRoot) {
     if (checksum !== record.checksum) {
       throw new Error(`Vehicle media checksum mismatch: ${record.fileName}`);
     }
-    mediaById[record.vehicleId] = {
-      src: `/images/vehicles/cards/${record.fileName}`,
-      alt: record.alt,
-      width: record.width,
-      height: record.height,
-      creator: record.creator,
-      sourcePage: record.sourcePage,
-      licenseName: record.licenseName,
-      licenseUrl: record.licenseUrl,
-      localDerivativeNote: record.localDerivativeNote,
-      checksum: record.checksum,
-    };
+    const records = mediaById[record.vehicleId] ?? [];
+    if (records.some((item) => item.fileName === record.fileName || item.sortOrder === (record.sortOrder ?? records.length + 1))) {
+      throw new Error("Vehicle media contract contains a duplicate filename or sort order.");
+    }
+    records.push({ ...record, sortOrder: record.sortOrder ?? records.length + 1 });
+    records.sort((left, right) => left.sortOrder - right.sortOrder);
+    mediaById[record.vehicleId] = records;
   }
   return mediaById;
 }
@@ -164,7 +159,14 @@ export function createAdminContentSnapshot(repositoryRoot, target) {
         ...(featuredOrderById.has(vehicle.id)?{featuredOrder:featuredOrderById.get(vehicle.id)}:{}),
         publicationStatus: vehicle.sourceStatus === "active" ? "published" : "unpublished",
         priceAmountMinor: prices.amountsMinor?.[vehicle.sourceId] ?? null,
-        coverImage: mediaById[vehicle.id] ?? null,
+        coverImage: mediaById[vehicle.id]?.[0] ? {
+          ...mediaById[vehicle.id][0],
+          src: `/images/vehicles/cards/${mediaById[vehicle.id][0].fileName}`,
+        } : null,
+        galleryImages: (mediaById[vehicle.id] ?? []).map((media) => ({
+          ...media,
+          src: `/images/vehicles/${media.fileName}`,
+        })),
       })),
       featuredIds: featuredVehicleIds,
     },

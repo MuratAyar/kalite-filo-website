@@ -3,6 +3,11 @@ declare(strict_types=1);
 
 require_once dirname(__DIR__) . '/quote-mailer.php';
 
+$composerManifest = json_decode((string) file_get_contents(dirname(__DIR__) . '/composer.json'), true, 8, JSON_THROW_ON_ERROR);
+if (($composerManifest['require']['php'] ?? null) !== '>=8.1') {
+    throw new RuntimeException('The web form Composer platform must support PHP 8.1 and newer handlers.');
+}
+
 function assert_true(bool $condition, string $message): void
 {
     if (!$condition) {

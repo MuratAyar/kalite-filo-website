@@ -8,13 +8,33 @@ the status and handoff sections before ending.
 
 ## Current Status
 
+The 2026-09-02 vehicle-gallery and public-form reliability pass is complete
+locally. Vehicle media contract schema 2 supports ordered, licensed image lists
+per vehicle while retaining the first image as the card/cover image. The public
+detail page now uses a narrowly scoped Client Component for next/previous
+navigation, image-click advance, scrollable thumbnails, keyboard arrows and a
+native full-viewport dialog. Admin vehicle uploads append to a maximum-20
+private gallery, individual images can be downloaded or deleted, legacy
+`draftMedia` records remain readable, and the publishing runner downloads,
+verifies, materializes and deploys every referenced private gallery file.
+
+The same pass fixes the three public form failures caused by Composer's
+generated PHP 8.5 platform check emitting `Composer detected issues...` before
+the endpoint JSON. The form code itself and PHPMailer support PHP 8.1+, so the
+release dependency boundary now declares PHP 8.1+ while the intended hosting
+runtime remains PHP 8.5. Newsletter submission also rejects a non-JSON response
+without exposing raw server text or a browser JSON parser exception. A new
+staging release is required before the live form endpoints receive the rebuilt
+Composer runtime.
+
 Live staging automation is now confirmed successful end to end by the operator:
 admin change detection, GitHub dispatch, frozen snapshot claim, validation,
 static build, chunk upload, PHP extraction, atomic activation, HTTPS smoke and
 terminal success reporting all complete without recurring File Manager or
 cPanel Terminal work. Phase 7's normal staging publication path is therefore
-operational; the remaining Phase 7 item is a deliberate rollback/retention
-drill rather than basic deployment enablement.
+operational; the remaining Phase 7 item is a deliberate rollback drill and live
+observation of the implemented retention policy rather than basic deployment
+enablement.
 
 The Publishing Center now exposes each request's safe change summary in an
 expandable detail panel. Successful retained releases can be atomically
@@ -1034,6 +1054,15 @@ A planned drill can reapply the already verified preserved release and restore
 the same rollback target without another upload. Production is deliberately
 unsupported.
 
+AD-004 staging activation now performs bounded best-effort private deployment
+retention after a successful atomic swap. Orphaned `uploads/` and `incoming/`
+release directories become eligible after 24 hours. Failed/rolled-back working
+copies become eligible after seven days. The newest three recognized rollback
+releases are always retained; older rollback releases are removed only after
+seven days. Cleanup accepts only strict generated directory-name patterns,
+leaves unknown paths untouched, and cannot convert a successful deployment into
+a failure if cleanup itself encounters a hosting error.
+
 ## Production Deployment Model
 
 Production publish is disabled until staging workflow, target isolation,
@@ -1167,6 +1196,8 @@ leave private storage. Stored change summaries are deliberately excluded.
     atomic staging activation and same-run rollback
   - [x] Replace manual result entry with direct `Staging Oluştur`, status polling
     and successful-publication fingerprint baselines
+  - [x] Add bounded post-activation cleanup for stale upload/incoming/failed
+    workspaces while always retaining the newest three rollback releases
   - [ ] Bootstrap the automation endpoints/config once on cPanel and execute a
     live automated staging publish plus rollback drill
 - [ ] **Phase 8:** production publish, rollback and version history
@@ -1501,6 +1532,9 @@ leave private storage. Stored change summaries are deliberately excluded.
 - [x] Corrected staging history cleanup to preserve the active release, remove
   stale orphaned queued/running records, retain recent work and reconstruct an
   already-deleted current row from the private baseline.
+- [x] Added conservative automatic staging deployment retention with strict
+  generated-name allowlists, age thresholds, newest-three rollback protection
+  and non-fatal post-activation cleanup reporting.
 
 ## Current Task
 
@@ -1592,7 +1626,7 @@ the still-required Phase 2/3 staging smoke tests before closing those phases.
   automatic staging flow and use `Geçmişi Temizle` to remove obsolete records.
 - [ ] Perform a controlled retained-release restore drill and verify audit,
   baseline, current-site content and recovery of the displaced release.
-- [ ] Define retention limits/cleanup for orphaned upload, incoming and rollback
+- [x] Define retention limits/cleanup for orphaned upload, incoming and rollback
   directories before closing Phase 7 completely.
 - [x] Push the dot-root-free archive fix to `main`, retry `Staging Oluştur`, and
   verify activation, release marker and HTTPS smoke complete successfully.
@@ -1778,8 +1812,8 @@ the still-required Phase 2/3 staging smoke tests before closing those phases.
   rename are fail-closed deployment requirements until live evidence exists.
 - A queued run can be retried after 20 minutes and a claimed/deploying run after
   45 minutes. These conservative stale thresholds require live timing review.
-- Automated release uploads and retained rollbacks do not yet have a cleanup
-  retention job. Do not delete them manually before the first rollback drill.
+- Automated release retention is implemented with conservative staging limits;
+  live disk-usage behavior still needs review after the rollback drill.
 
 - Production PHP extension list is not available; SQLite and `finfo` cannot be
   assumed. Local PHP has PDO but reports no PDO drivers.
@@ -1800,8 +1834,9 @@ the still-required Phase 2/3 staging smoke tests before closing those phases.
 
 ## Open Decisions
 
-- Staging automated-retention limits and stale-run thresholds after observing
-  real GitHub Actions and shared-hosting durations.
+- Whether the initial staging retention limits (24-hour upload/incoming,
+  seven-day failed/older rollback, newest three rollbacks always retained) need
+  adjustment after observing real disk use and recovery drills.
 - Production GitHub environment approval, separate tokens/data root, explicit
   recent-auth confirmation and deployment endpoint. Nothing from staging may be
   silently reused for production.
@@ -1842,6 +1877,40 @@ src/app/robots.ts                          (update)
 ```
 
 ## Files Changed
+
+Current 2026-09-02 public-form and vehicle-gallery continuation:
+
+- `server/forms/composer.json`
+- `server/forms/composer.lock`
+- `server/forms/tests/quote-mailer-config.test.php`
+- `src/components/home/newsletter-signup-demo.tsx`
+- `src/components/vehicles/vehicle-detail.tsx`
+- `src/components/vehicles/vehicle-image-gallery.tsx`
+- `src/types/vehicle-portfolio.ts`
+- `src/data/vehicle-media.json`
+- `src/data/vehicle-portfolio.ts`
+- `src/data/vehicles.en.ts`
+- `src/lib/content-validation.ts`
+- `src/components/admin/vehicle-manager.tsx`
+- `src/components/admin/featured-vehicles-manager.tsx`
+- `server/admin-api/media.php`
+- `server/admin-api/media-delete.php`
+- `server/admin-api/media-file.php`
+- `server/admin-api/publish-runner-media.php`
+- `server/admin-api/featured-vehicles.php`
+- `server/admin-api/publishing-store.php`
+- `scripts/assemble-cpanel-release.mjs`
+- `scripts/fetch-staging-publish-inputs.mjs`
+- `scripts/materialize-admin-snapshot.mjs`
+- corresponding Node tests and `scripts/validate-foundation.mjs`
+- `docs/ADMIN_DASHBOARD_IMPLEMENTATION.md`
+
+Current 2026-09-02 Phase 7 deployment-retention continuation:
+
+- `server/admin-api/publishing-deployment.php`
+- `server/admin-api/publish-runner-deploy.php`
+- `server/admin-api/tests/publishing-deployment.test.php`
+- `docs/ADMIN_DASHBOARD_IMPLEMENTATION.md`
 
 Current 2026-09-02 active-history cleanup correction:
 
@@ -2245,6 +2314,37 @@ Current Phase 6 test-mail continuation:
 - `server/admin-api/tests/media-store.test.php`
 
 ## Validation Results
+
+2026-09-02 public-form and vehicle-gallery continuation:
+
+- Root cause of the malformed form responses was reproduced from Composer's
+  generated `platform_check.php`; the lock/runtime now target PHP 8.1+ and the
+  release workflow will regenerate a compatible autoloader.
+- Newsletter fetch handling now checks the response MIME type before JSON
+  parsing, so server text cannot appear as an `Unexpected token` exception.
+- Ordered two-image admin snapshot materialization and complete private-media
+  selection have dedicated tests; legacy single-image input still passes.
+- The exported detail HTML contains `data-vehicle-gallery` and `Görseli Büyüt`;
+  the retired disclaimer is absent. Vehicles with one image keep enlargement
+  without redundant carousel controls; multi-image records render both arrow
+  sets and the thumbnail track.
+- All 84 project/server PHP files pass syntax checks. Lint, strict typecheck,
+  all 90 Node tests, every project-owned PHP test suite, staging static export
+  of 140 pages, output verification and `git diff --check` pass.
+
+2026-09-02 Phase 7 deployment retention:
+
+- Successful staging activation now runs best-effort cleanup and reports/audits
+  bounded counts without turning a valid deployment into a failure.
+- Upload/incoming workspaces expire after 24 hours; failed workspaces and
+  rollback entries beyond the newest three expire after seven days.
+- Cleanup is restricted to generated directory-name patterns and leaves recent,
+  newest-three and unknown paths untouched.
+- PHP syntax and focused deployment-retention tests passed. Full project quality
+  gates passed: all 58 top-level admin PHP files syntax-check, lint and strict
+  typecheck pass, 88 Node tests plus every project-owned PHP suite pass,
+  `build:staging` generates 140 pages, output verification and `git diff --check`
+  pass.
 
 2026-09-02 active-history cleanup correction:
 
@@ -2814,6 +2914,23 @@ still excludes missing consent and unsubscribed rows. No recipient list is sent
 to the browser and no delivery endpoint is packaged.
 
 ## Session Handoff
+
+2026-09-02 form/gallery handoff: deploy the refreshed staging release so
+Composer regenerates `vendor/composer/platform_check.php` from the PHP 8.1+
+constraint, then submit one synthetic newsletter, contact and quote form and
+confirm valid JSON/success delivery. In Admin, edit a staging vehicle, upload at
+least two licensed images with complete metadata, publish to staging, and verify
+thumbnail navigation, image-click advance, both arrow sets and the full-screen
+dialog at mobile and desktop widths. Do not copy unverified images into the
+repository or bypass the normal staging publication flow.
+
+2026-09-02 deployment-retention handoff: publish the retention update together
+with the pending history fixes through automatic staging. No config.php change
+or cron entry is required. Cleanup runs only after a successful activation;
+inspect the `staging_publish_deploy` audit result after the next publish. It
+retains the newest three rollback releases, so the next operational task remains
+the controlled restore drill. Do not manually remove rollback directories or
+enable production publishing before that drill succeeds.
 
 2026-09-02 active-history cleanup handoff: publish this correction through the
 working automatic staging flow, then click `Geçmişi Temizle`. Confirm

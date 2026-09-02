@@ -128,6 +128,7 @@ const approvedClientComponents = new Set([
   "src/components/privacy/privacy-settings-button.tsx",
   "src/components/vehicles/mobile-vehicle-filter-dialog.tsx",
   "src/components/vehicles/related-vehicle-carousel-controls.tsx",
+  "src/components/vehicles/vehicle-image-gallery.tsx",
   "src/components/vehicles/vehicle-offer-controls.tsx",
   "src/components/vehicles/vehicle-query-state.tsx",
 ]);
@@ -717,6 +718,9 @@ export function validateQuotePhpSource({ requireComposerLock = true } = {}) {
 
   if (composerManifest.require?.["phpmailer/phpmailer"] !== "^7.1") {
     fail("The quote-form Composer manifest must require phpmailer/phpmailer ^7.1.");
+  }
+  if (composerManifest.require?.php !== ">=8.1") {
+    fail("The form Composer runtime must remain compatible with PHP 8.1+ web handlers.");
   }
 
   for (const [pattern, description] of [
@@ -1593,6 +1597,17 @@ export function validateVehicleDetailOutput(
     !/\bdata-vehicle-technical-section=["']true["']/i.test(mainHtml)
   ) {
     fail(`Vehicle detail ${vehicle.slug} must use one technical section without the retired about or related copy.`);
+  }
+
+  if (
+    (vehicle.coverImage && (
+      !/\bdata-vehicle-gallery=["']true["']/i.test(mainHtml) ||
+      !/(?:Görseli Büyüt|Enlarge Image)/i.test(mainHtml)
+    )) ||
+    /Araç görseli model ailesini temsil edebilir/i.test(mainHtml) ||
+    /The vehicle image may represent the model family/i.test(mainHtml)
+  ) {
+    fail(`Vehicle detail ${vehicle.slug} must render the interactive gallery without the retired image disclaimer.`);
   }
 
   const technicalSpecificationCount = (
