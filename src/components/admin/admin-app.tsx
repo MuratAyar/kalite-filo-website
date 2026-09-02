@@ -11,6 +11,7 @@ import { SubscriberListView } from "./subscriber-list-view";
 import { IysManagementView } from "./iys-management-view";
 import { CampaignManager } from "./campaign-manager";
 import { PublishingCenter } from "./publishing-center";
+import { FormSubmissionsView } from "./form-submissions-view";
 
 type AdminIdentity = {
   id: string;
@@ -229,10 +230,13 @@ export function AdminApp() {
     | "subscribers"
     | "iys"
     | "campaigns"
+    | "quoteForms"
+    | "contactForms"
     | "publishing"
   >("dashboard");
   const [vehiclesOpen, setVehiclesOpen] = useState(false);
   const [articlesOpen, setArticlesOpen] = useState(false);
+  const [formsOpen, setFormsOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
 
   useEffect(() => {
@@ -587,6 +591,19 @@ export function AdminApp() {
               <button className="flex min-h-10 w-full items-center px-3 text-sm text-text-inverse-muted hover:text-white" onClick={() => setView("draftArticles")}>Draft Bloglar</button>
             </div>
           ) : null}
+          {(["owner", "admin"].includes(session.user.role)) ? <>
+            <button
+              aria-expanded={formsOpen}
+              className={`flex min-h-11 w-full items-center rounded-control px-4 text-left text-label font-semibold text-text-inverse hover:bg-white/10 ${view === "quoteForms" || view === "contactForms" ? "bg-white/10" : ""}`}
+              onClick={() => setFormsOpen((value) => !value)}
+            >
+              Formlar <span className="ml-auto">{formsOpen ? "−" : "+"}</span>
+            </button>
+            {formsOpen ? <div className="ml-3 border-l border-white/15 pl-2">
+              <button className="flex min-h-10 w-full items-center px-3 text-sm text-text-inverse-muted hover:text-white" onClick={() => setView("quoteForms")}>Teklif Formu</button>
+              <button className="flex min-h-10 w-full items-center px-3 text-sm text-text-inverse-muted hover:text-white" onClick={() => setView("contactForms")}>İletişim Formu</button>
+            </div> : null}
+          </> : null}
           <button
             className={`flex min-h-11 w-full items-center rounded-control px-4 text-left text-label font-semibold text-text-inverse hover:bg-white/10 ${view === "media" ? "bg-white/10" : ""}`}
             onClick={() => setView("media")}
@@ -667,6 +684,8 @@ export function AdminApp() {
         ) : null}
         {view === "publishing" ? (
           <PublishingCenter canClearHistory={session.user.role === "owner"} canRequest={["owner", "admin"].includes(session.user.role)} csrfToken={session.csrfToken} />
+        ) : view === "quoteForms" || view === "contactForms" ? (
+          <FormSubmissionsView kind={view === "quoteForms" ? "quote" : "contact"} csrfToken={session.csrfToken} />
         ) : view === "campaigns" ? (
           <CampaignManager
             canEdit={["owner", "admin", "marketing"].includes(

@@ -9,10 +9,11 @@ export type VehiclePortfolioConfidence =
 
 export interface VehicleImageLicense {
   readonly creator: string;
-  readonly sourcePage: HttpsUrl;
+  readonly sourcePage?: HttpsUrl;
   readonly licenseName: string;
-  readonly licenseUrl: HttpsUrl;
+  readonly licenseUrl?: HttpsUrl;
   readonly localDerivativeNote: string;
+  readonly rightsBasis?: "user-provided-for-site-use";
 }
 
 /** Owner-approved monthly list-net price sourced from the supplied workbook. */

@@ -4,6 +4,7 @@ declare(strict_types=1);
 require_once __DIR__ . '/quote-mailer.php';
 require_once __DIR__ . '/subscriber-store.php';
 require_once __DIR__ . '/customer-mailer.php';
+require_once __DIR__ . '/form-submission-store.php';
 
 const CONTACT_MAX_BODY_BYTES = 16384;
 const CONTACT_RATE_LIMIT_WINDOW_SECONDS = 600;
@@ -183,6 +184,18 @@ $sent = kalite_filo_send_email([
     'reply_to_name' => $name,
 ], 'contact');
 if ($sent) {
+    try {
+        kalite_filo_store_form_submission([
+            'kind' => 'contact',
+            'formType' => 'contact',
+            'name' => $name,
+            'email' => $email,
+            'locale' => $locale,
+            'details' => ['message' => $message],
+        ]);
+    } catch (Throwable $exception) {
+        error_log('Kalite Filo contact submission storage failed: ' . $exception->getMessage());
+    }
     try {
         kalite_filo_store_form_contact($email, 'website_contact_form');
         if ($commercialEmailConsent === 'onaylandi') {

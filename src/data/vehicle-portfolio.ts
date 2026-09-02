@@ -52,12 +52,13 @@ type PortfolioMediaSource = {
   readonly height: number;
   readonly alt: string;
   readonly creator: string;
-  readonly sourcePage: string;
+  readonly sourcePage?: string;
   readonly licenseName: string;
-  readonly licenseUrl: string;
+  readonly licenseUrl?: string;
   readonly localDerivativeNote: string;
   readonly checksum: string;
   readonly sortOrder?: number;
+  readonly rightsBasis?: "user-provided-for-site-use";
 };
 
 type ResolvedPortfolioMedia = {
@@ -84,10 +85,11 @@ for (const media of vehicleMediaSource.records as readonly PortfolioMediaSource[
     }),
     license: Object.freeze({
       creator: media.creator,
-      sourcePage: media.sourcePage as HttpsUrl,
+      sourcePage: media.sourcePage as HttpsUrl | undefined,
       licenseName: media.licenseName,
-      licenseUrl: media.licenseUrl as HttpsUrl,
+      licenseUrl: media.licenseUrl as HttpsUrl | undefined,
       localDerivativeNote: media.localDerivativeNote,
+      rightsBasis: media.rightsBasis,
     }),
     sortOrder,
   });

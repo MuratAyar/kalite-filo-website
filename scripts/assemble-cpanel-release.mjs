@@ -80,10 +80,11 @@ export function readVehicleMediaContract(repositoryRoot) {
       || !Number.isSafeInteger(record.width) || record.width <= 0
       || !Number.isSafeInteger(record.height) || record.height <= 0
       || (record.sortOrder !== undefined && (!Number.isSafeInteger(record.sortOrder) || record.sortOrder < 1))
-      || !["alt", "creator", "sourcePage", "licenseName", "licenseUrl", "localDerivativeNote"]
+      || !["alt", "creator", "licenseName", "localDerivativeNote"]
         .every((field) => typeof record[field] === "string" && record[field].trim() !== "")
-      || !/^https:\/\//.test(record.sourcePage)
-      || !/^https:\/\//.test(record.licenseUrl)
+      || (record.rightsBasis === "user-provided-for-site-use"
+        ? record.sourcePage !== undefined || record.licenseUrl !== undefined
+        : !/^https:\/\//.test(record.sourcePage) || !/^https:\/\//.test(record.licenseUrl))
       || !/^[a-f0-9]{64}$/.test(record.checksum)
     ) {
       throw new Error("Vehicle media contract contains an invalid record.");
@@ -250,6 +251,7 @@ export function assembleCpanelRelease(target, repositoryRoot = defaultRepository
     "customer-mailer.php",
     "export-iys-daily.php",
     "subscriber-store.php",
+    "form-submission-store.php",
     "unsubscribe-store.php",
     "unsubscribe.php",
     "quote-mailer.php",
@@ -318,6 +320,10 @@ export function assembleCpanelRelease(target, repositoryRoot = defaultRepository
     "publish-runner-rollback.php",
     "publish-runner-complete.php",
     "publish-runner-fail.php",
+    "form-submissions.php",
+    "form-submission.php",
+    "form-submission-reply.php",
+    "form-submission-mailer.php",
   ];
   for (const requiredFile of adminRuntimeFiles) {
     if (!existsSync(path.join(adminApiSource, requiredFile))) {
@@ -341,6 +347,7 @@ export function assembleCpanelRelease(target, repositoryRoot = defaultRepository
     "customer-mailer.php",
     "export-iys-daily.php",
     "subscriber-store.php",
+    "form-submission-store.php",
     "unsubscribe-store.php",
     "unsubscribe.php",
     "quote-mailer.php",

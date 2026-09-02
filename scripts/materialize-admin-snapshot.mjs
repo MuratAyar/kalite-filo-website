@@ -10,7 +10,7 @@ function fail(message){throw new Error(`Admin snapshot materialization failed: $
 function hashSnapshot(snapshot){return createHash("sha256").update(JSON.stringify(snapshot)).digest("hex");}
 function text(value){return typeof value==="string"?value.trim():"";}
 function validateMediaRecord(record){
-  if(!record||typeof record!=="object"||!text(record.vehicleId)||!/^[a-z0-9][a-z0-9-]*\.(?:jpg|jpeg|png|webp)$/.test(text(record.fileName))||!Number.isSafeInteger(record.width)||record.width<=0||!Number.isSafeInteger(record.height)||record.height<=0||(record.sortOrder!==undefined&&(!Number.isSafeInteger(record.sortOrder)||record.sortOrder<1))||!["alt","creator","sourcePage","licenseName","licenseUrl","localDerivativeNote"].every((field)=>text(record[field]))||!/^https:\/\//.test(record.sourcePage)||!/^https:\/\//.test(record.licenseUrl)||!/^[a-f0-9]{64}$/.test(record.checksum))fail("invalid vehicle media record");
+  if(!record||typeof record!=="object"||!text(record.vehicleId)||!/^[a-z0-9][a-z0-9-]*\.(?:jpg|jpeg|png|webp)$/.test(text(record.fileName))||!Number.isSafeInteger(record.width)||record.width<=0||!Number.isSafeInteger(record.height)||record.height<=0||(record.sortOrder!==undefined&&(!Number.isSafeInteger(record.sortOrder)||record.sortOrder<1))||!["alt","creator","licenseName","localDerivativeNote"].every((field)=>text(record[field]))||(record.rightsBasis==="user-provided-for-site-use"?(record.sourcePage!==undefined||record.licenseUrl!==undefined):(!/^https:\/\//.test(record.sourcePage)||!/^https:\/\//.test(record.licenseUrl)))||!/^[a-f0-9]{64}$/.test(record.checksum))fail("invalid vehicle media record");
   return record;
 }
 function createMediaMaterialization(snapshot,published,source){

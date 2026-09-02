@@ -499,14 +499,27 @@ export function validateFoundationContent(): void {
         vehicle.imageLicense.localDerivativeNote,
         `vehicle portfolio ${vehicle.id} image derivative note`,
       );
-      asHttpsUrl(
-        vehicle.imageLicense.sourcePage,
-        `vehicle portfolio ${vehicle.id} image source`,
-      );
-      asHttpsUrl(
-        vehicle.imageLicense.licenseUrl,
-        `vehicle portfolio ${vehicle.id} image licence URL`,
-      );
+      if (vehicle.imageLicense.rightsBasis === "user-provided-for-site-use") {
+        if (vehicle.imageLicense.sourcePage || vehicle.imageLicense.licenseUrl) {
+          throw new ContentValidationError(
+            `Vehicle portfolio ${vehicle.id} user-provided media must not invent source URLs.`,
+          );
+        }
+      } else {
+        if (!vehicle.imageLicense.sourcePage || !vehicle.imageLicense.licenseUrl) {
+          throw new ContentValidationError(
+            `Vehicle portfolio ${vehicle.id} licensed media requires source and licence URLs.`,
+          );
+        }
+        asHttpsUrl(
+          vehicle.imageLicense.sourcePage,
+          `vehicle portfolio ${vehicle.id} image source`,
+        );
+        asHttpsUrl(
+          vehicle.imageLicense.licenseUrl,
+          `vehicle portfolio ${vehicle.id} image licence URL`,
+        );
+      }
     }
 
     if (vehicle.galleryImages || vehicle.imageLicenses) {

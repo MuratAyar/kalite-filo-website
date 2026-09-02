@@ -8,6 +8,28 @@ the status and handoff sections before ending.
 
 ## Current Status
 
+The 2026-09-02 admin forms pass is complete locally. Successful public contact
+and quote deliveries now create a versioned private record outside the document
+root; a storage failure is logged independently and cannot suppress the
+existing newsletter/contact consent evidence path. `Formlar` is available only
+to Owner/Admin roles and contains separate Teklif Formu and İletişim Formu
+views. Quote records can be filtered as individual, corporate or cart; both
+views provide bounded search/status filters, detailed horizontal cards, audited
+status changes and an escaped branded reply composer. Individual replies reuse
+the approved PHPMailer SMTP boundary, are capped at 20 attempts per admin per
+10 minutes and update the record to `replied` only after successful delivery.
+Historical mailbox messages are not imported: the dashboard begins collecting
+records only after this release is deployed, because no reviewed IMAP/mailbox
+integration exists.
+
+The same pass gives `/admin/` the canonical square Kalite Filo tab icon. The
+BMW 320i Sedan gallery now has three ordered images: the existing cover plus
+the two owner-supplied 1280×853 JPEG (174 KB) and 1440×1080 WebP (144 KB)
+assets. They retain their compact source encodings to avoid destructive
+recompression, use descriptive filenames/alt text, and carry an explicit
+`user-provided-for-site-use` rights basis without fabricated source or licence
+URLs.
+
 The 2026-09-02 vehicle-gallery and public-form reliability pass is complete
 locally. Vehicle media contract schema 2 supports ordered, licensed image lists
 per vehicle while retaining the first image as the card/cover image. The public

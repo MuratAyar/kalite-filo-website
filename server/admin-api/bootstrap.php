@@ -344,9 +344,10 @@ function kalite_filo_admin_audit(string $action, string $result, array $summary 
             str_starts_with($action, 'campaign_') => 'campaign',
             str_starts_with($action, 'subscriber_') => 'subscriber',
             str_starts_with($action, 'iys_') => 'iys',
+            str_starts_with($action, 'form_submission_') => 'form_submission',
             default => 'authentication',
         };
-        $entityId = in_array($entityType,['vehicle','article','subscriber','publishing'],true) && is_string($summary['id'] ?? null) ? $summary['id'] : null;
+        $entityId = in_array($entityType,['vehicle','article','subscriber','publishing','form_submission'],true) && is_string($summary['id'] ?? null) ? $summary['id'] : null;
         $record = [
             'id' => bin2hex(random_bytes(16)),
             'timestamp' => gmdate('c'),

@@ -4,6 +4,7 @@ declare(strict_types=1);
 require_once __DIR__ . '/quote-mailer.php';
 require_once __DIR__ . '/subscriber-store.php';
 require_once __DIR__ . '/customer-mailer.php';
+require_once __DIR__ . '/form-submission-store.php';
 
 const MAX_BODY_BYTES = 32768;
 const RATE_LIMIT_WINDOW_SECONDS = 600;
@@ -394,6 +395,38 @@ $sent = kalite_filo_send_quote_email([
     'reply_to_name' => $firstName . ' ' . $lastName,
 ]);
 if ($sent) {
+    try {
+        $submissionDetails = [
+            'title' => $title,
+            'city' => $city,
+            'district' => $district,
+            'companyWebsite' => $companyWebsite,
+            'companyType' => $companyType,
+            'companyTitle' => $companyTitle,
+            'taxCity' => $taxCity,
+            'taxOffice' => $taxOffice,
+            'vehicleMake' => $vehicleMake,
+            'vehicleModel' => $vehicleModel,
+            'vehicleCount' => $vehicleCount,
+            'durationMonths' => $duration,
+            'annualKilometres' => $annualDistance,
+            'cartItems' => $cartItems,
+            'note' => $note,
+            'campaignCode' => $campaignCode,
+        ];
+        kalite_filo_store_form_submission([
+            'kind' => 'quote',
+            'formType' => $isCart ? 'cart' : ($isCorporate ? 'corporate' : 'individual'),
+            'referenceNumber' => $quoteNumber,
+            'name' => $firstName . ' ' . $lastName,
+            'email' => $email,
+            'phone' => '+' . $countryCode . ' ' . $phoneDigits,
+            'locale' => $locale,
+            'details' => $submissionDetails,
+        ]);
+    } catch (Throwable $exception) {
+        error_log('Kalite Filo quote submission storage failed: ' . $exception->getMessage());
+    }
     try {
         $recipientType = $isCorporate ? 'TACIR' : 'BIREYSEL';
         kalite_filo_store_form_contact($email, 'website_quote_form', $recipientType);

@@ -321,7 +321,36 @@
       "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
       "localDerivativeNote": "Wikimedia Commons'taki dosyanın 960 piksel genişliğindeki türevi yerelleştirildi; görsel model ailesini temsil eder, donanım ve renk farklı olabilir.",
       "checksum": "4c983afe319c78041fb0858f7bf360b8b3c3609e98a93edd3a1daa4a8f4caa90",
-      "sourceKind": "repository"
+      "sourceKind": "repository",
+      "sortOrder": 1
+    },
+    {
+      "vehicleId": "kf-024",
+      "fileName": "bmw-320i-sedan-interior.jpg",
+      "width": 1280,
+      "height": 853,
+      "alt": "BMW 320i Sedan sürücü kokpiti, direksiyon, dijital gösterge ve orta konsol görünümü",
+      "creator": "Site sahibi tarafından sağlandı",
+      "licenseName": "Site kullanımı için sağlanan görsel",
+      "localDerivativeNote": "Kaynak dosya 1280 × 853 piksel ve 174 KB boyutuyla ek dönüşüm gerektirmeden hızlı, keskin galeri gösterimi için kullanıldı.",
+      "checksum": "481ca64a073af9a46a1590b602f459e3232530260d2b6af08ae98ca705b9c1ba",
+      "sourceKind": "repository",
+      "rightsBasis": "user-provided-for-site-use",
+      "sortOrder": 2
+    },
+    {
+      "vehicleId": "kf-024",
+      "fileName": "bmw-320i-sedan-road.webp",
+      "width": 1440,
+      "height": 1080,
+      "alt": "BMW 320i Sedan'ın yolda önden üç çeyrek dış görünümü",
+      "creator": "Site sahibi tarafından sağlandı",
+      "licenseName": "Site kullanımı için sağlanan görsel",
+      "localDerivativeNote": "Kaynak WebP dosyası 1440 × 1080 piksel ve 144 KB boyutuyla hızlı, keskin galeri gösterimi için doğrudan kullanıldı.",
+      "checksum": "c1fa12ad521db085214cd6bf08854a250fbb083e7e721533f5081e4ade7698ab",
+      "sourceKind": "repository",
+      "rightsBasis": "user-provided-for-site-use",
+      "sortOrder": 3
     },
     {
       "vehicleId": "kf-025",

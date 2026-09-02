@@ -57,6 +57,7 @@ function createFixture(name) {
     "customer-mailer.php",
     "export-iys-daily.php",
     "subscriber-store.php",
+    "form-submission-store.php",
     "unsubscribe-store.php",
     "unsubscribe.php",
     "quote-mailer.php",
@@ -123,6 +124,10 @@ function createFixture(name) {
     "publish-runner-rollback.php",
     "publish-runner-complete.php",
     "publish-runner-fail.php",
+    "form-submissions.php",
+    "form-submission.php",
+    "form-submission-reply.php",
+    "form-submission-mailer.php",
   ]) {
     writeFileSync(path.join(root, "server", "admin-api", file), "fixture");
   }
@@ -185,6 +190,7 @@ test("release assembly includes the complete Composer mail runtime and no privat
     "forms/customer-mailer.php",
     "forms/export-iys-daily.php",
     "forms/subscriber-store.php",
+    "forms/form-submission-store.php",
     "forms/unsubscribe-store.php",
     "forms/unsubscribe.php",
     "forms/quote-mailer.php",
@@ -199,6 +205,10 @@ test("release assembly includes the complete Composer mail runtime and no privat
     "admin-api/logout.php",
     "admin-api/dashboard.php",
     "admin-api/audit.php",
+    "admin-api/form-submissions.php",
+    "admin-api/form-submission.php",
+    "admin-api/form-submission-reply.php",
+    "admin-api/form-submission-mailer.php",
     "admin-api/articles.php",
     "admin-api/article-store.php",
     "admin-api/article-preview.php",

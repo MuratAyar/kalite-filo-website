@@ -6,6 +6,10 @@ export const metadata: Metadata = {
   applicationName: "Kalite Filo Admin",
   title: "Yönetim Paneli | Kalite Filo",
   description: "Kalite Filo yetkili yönetim paneli.",
+  icons: {
+    icon: [{ url: "/icons/kalite-filo-icon.png", type: "image/png", sizes: "512x512" }],
+    apple: [{ url: "/icons/kalite-filo-icon.png", type: "image/png", sizes: "512x512" }],
+  },
   robots: {
     index: false,
     follow: false,
