@@ -39,6 +39,7 @@ export function VehicleImageGallery({ images, locale = "tr", vehicleName }: Vehi
   const galleryRef = useRef<HTMLDivElement>(null);
   const thumbnailTrackRef = useRef<HTMLDivElement>(null);
   const hasMultipleImages = images.length > 1;
+  const showThumbnailScrollControls = images.length >= 7;
   const activeImage = images[activeIndex] ?? images[0];
 
   const selectImage = useCallback((index: number) => {
@@ -114,8 +115,8 @@ export function VehicleImageGallery({ images, locale = "tr", vehicleName }: Vehi
       </div>
 
       {hasMultipleImages ? (
-        <div className="mt-4 grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-2">
-          <button aria-label={locale === "en" ? "Scroll thumbnails left" : "Küçük görselleri sola kaydır"} className="grid size-9 place-items-center rounded-full border border-border-control bg-white text-brand-navy" onClick={() => thumbnailTrackRef.current?.scrollBy({ left: -320, behavior: "smooth" })} type="button"><ArrowIcon direction="left" /></button>
+        <div className={`mt-4 grid items-center gap-2 ${showThumbnailScrollControls ? "grid-cols-[auto_minmax(0,1fr)_auto]" : "grid-cols-1"}`}>
+          {showThumbnailScrollControls ? <button aria-label={locale === "en" ? "Scroll thumbnails left" : "Küçük görselleri sola kaydır"} className="grid size-9 place-items-center rounded-full border border-border-control bg-white text-brand-navy" onClick={() => thumbnailTrackRef.current?.scrollBy({ left: -320, behavior: "smooth" })} type="button"><ArrowIcon direction="left" /></button> : null}
           <div className="flex snap-x gap-3 overflow-x-auto scroll-smooth py-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden" ref={thumbnailTrackRef}>
             {images.map((image, index) => (
               <button
@@ -132,7 +133,7 @@ export function VehicleImageGallery({ images, locale = "tr", vehicleName }: Vehi
               </button>
             ))}
           </div>
-          <button aria-label={locale === "en" ? "Scroll thumbnails right" : "Küçük görselleri sağa kaydır"} className="grid size-9 place-items-center rounded-full border border-border-control bg-white text-brand-navy" onClick={() => thumbnailTrackRef.current?.scrollBy({ left: 320, behavior: "smooth" })} type="button"><ArrowIcon direction="right" /></button>
+          {showThumbnailScrollControls ? <button aria-label={locale === "en" ? "Scroll thumbnails right" : "Küçük görselleri sağa kaydır"} className="grid size-9 place-items-center rounded-full border border-border-control bg-white text-brand-navy" onClick={() => thumbnailTrackRef.current?.scrollBy({ left: 320, behavior: "smooth" })} type="button"><ArrowIcon direction="right" /></button> : null}
         </div>
       ) : null}
 
@@ -150,8 +151,16 @@ export function VehicleImageGallery({ images, locale = "tr", vehicleName }: Vehi
             </button>
           </div>
           <div className="relative flex min-h-0 items-center justify-center p-4 sm:p-8">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img alt={activeImage.alt} className="max-h-full max-w-full object-contain" height={activeImage.height} src={activeImage.src} width={activeImage.width} />
+            <button
+              aria-label={hasMultipleImages ? nextLabel : undefined}
+              className={`flex size-full items-center justify-center ${hasMultipleImages ? "cursor-pointer" : "cursor-default"}`}
+              disabled={!hasMultipleImages}
+              onClick={() => selectImage(activeIndex + 1)}
+              type="button"
+            >
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img alt={activeImage.alt} className="max-h-full max-w-full object-contain" height={activeImage.height} src={activeImage.src} width={activeImage.width} />
+            </button>
             {hasMultipleImages ? (
               <>
                 <button aria-label={previousLabel} className={`${arrowClass} left-3 sm:left-6`} onClick={() => selectImage(activeIndex - 1)} type="button"><ArrowIcon direction="left" /></button>
