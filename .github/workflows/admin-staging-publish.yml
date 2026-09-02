@@ -25,14 +25,6 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 35
     environment: staging
-    env:
-      REQUEST_FILE: ${{ runner.temp }}/kalite-filo/request.json
-      PRIVATE_DATA_ROOT: ${{ runner.temp }}/kalite-filo/private-data
-      REVIEW_ROOT: ${{ runner.temp }}/kalite-filo/review
-      BACKUP_ROOT: ${{ runner.temp }}/kalite-filo/backup
-      RELEASE_ARTIFACT: ${{ runner.temp }}/kalite-filo/staging-release.tar
-      RUNNER_RESULT: ${{ runner.temp }}/kalite-filo/runner-result.json
-
     steps:
       - name: Check out trusted publisher code
         uses: actions/checkout@v4
@@ -63,20 +55,20 @@ jobs:
           node scripts/fetch-staging-publish-inputs.mjs
           --request-id "${{ inputs.request_id }}"
           --snapshot-hash "${{ inputs.snapshot_hash }}"
-          --output "$REQUEST_FILE"
-          --private-data-root "$PRIVATE_DATA_ROOT"
+          --output "$RUNNER_TEMP/kalite-filo/request.json"
+          --private-data-root "$RUNNER_TEMP/kalite-filo/private-data"
 
       - name: Materialize, validate and build static staging release
         id: build
         run: >-
           node scripts/run-staging-publish.mjs
-          --request "$REQUEST_FILE"
-          --private-data-root "$PRIVATE_DATA_ROOT"
+          --request "$RUNNER_TEMP/kalite-filo/request.json"
+          --private-data-root "$RUNNER_TEMP/kalite-filo/private-data"
           --repository .
-          --review "$REVIEW_ROOT"
-          --backup "$BACKUP_ROOT"
-          --artifact "$RELEASE_ARTIFACT"
-          --result "$RUNNER_RESULT"
+          --review "$RUNNER_TEMP/kalite-filo/review"
+          --backup "$RUNNER_TEMP/kalite-filo/backup"
+          --artifact "$RUNNER_TEMP/kalite-filo/staging-release.tar"
+          --result "$RUNNER_TEMP/kalite-filo/runner-result.json"
           --apply
 
       - name: Upload, activate and smoke-test staging
@@ -85,11 +77,13 @@ jobs:
           KALITE_FILO_STAGING_RUNNER_TOKEN: ${{ secrets.KALITE_FILO_STAGING_RUNNER_TOKEN }}
         run: >-
           node scripts/deploy-staging-via-admin-api.mjs
-          --release-result "$RUNNER_RESULT"
-          --artifact "$RELEASE_ARTIFACT"
+          --release-result "$RUNNER_TEMP/kalite-filo/runner-result.json"
+          --artifact "$RUNNER_TEMP/kalite-filo/staging-release.tar"
 
       - name: Report a build failure to Admin Dashboard
         if: ${{ failure() && steps.claim.outcome == 'success' && steps.build.outcome == 'failure' }}
         env:
           KALITE_FILO_STAGING_RUNNER_TOKEN: ${{ secrets.KALITE_FILO_STAGING_RUNNER_TOKEN }}
-        run: node scripts/report-staging-publish-failure.mjs --result "$RUNNER_RESULT"
+        run: >-
+          node scripts/report-staging-publish-failure.mjs
+          --result "$RUNNER_TEMP/kalite-filo/runner-result.json"

@@ -8,6 +8,13 @@ the status and handoff sections before ending.
 
 ## Current Status
 
+The GitHub workflow schema issue reported during bootstrap is fixed. The
+job-level `env` block no longer references `${{ runner.temp }}`, because the
+`runner` context is unavailable at `jobs.<job_id>.env`. Runtime paths now use
+GitHub's default `$RUNNER_TEMP` environment variable directly inside shell
+steps. The workflow is ready to be committed and pushed before the one-time
+cPanel bootstrap release.
+
 The 2026-09-02 Phase 7 automation implementation replaces the recurring manual
 cPanel File Manager/Terminal publication procedure. `Staging Oluştur` now
 freezes the validated snapshot and dispatches the repository's
@@ -1095,6 +1102,9 @@ leave private storage. Stored change summaries are deliberately excluded.
 
 ## Completed Tasks
 
+- [x] Fixed the GitHub Actions workflow context validation error by replacing
+  invalid job-level `runner.temp` expressions with step-time `$RUNNER_TEMP`
+  paths.
 - [x] Replaced recurring manual cPanel staging publication with a one-click
   GitHub Actions dispatch from the authenticated Publishing Center.
 - [x] Added staging-only machine authentication, request/run/snapshot binding,
@@ -1396,6 +1406,11 @@ and enable `publishing_automation` in the private staging `config.php`. Then use
 chunk upload, atomic activation, live marker, HTTPS smoke, terminal status and
 retained rollback. Production remains disabled.
 
+The workflow context validation blocker is resolved locally. The immediate
+operator action is now to commit/push the workflow and automation code, verify
+the GitHub Actions workflow is visible, and install the generated bootstrap ZIP
+once in the staging document root.
+
 No recurring File Manager or cPanel Terminal action is expected after this
 one-time bootstrap. Do not mark Phase 7 complete until the target host proves
 PHP curl/PharData, POST chunk handling, same-filesystem rename and rollback.
@@ -1445,6 +1460,8 @@ the still-required Phase 2/3 staging smoke tests before closing those phases.
 
 ## Next Tasks
 
+- [x] Remove the invalid job-level `${{ runner.temp }}` expressions from the
+  staging workflow and use `$RUNNER_TEMP` during runner shell execution.
 - [ ] Push `.github/workflows/admin-staging-publish.yml` to the repository's
   default branch and create the GitHub `staging` environment.
 - [ ] Generate a new 64-character hexadecimal staging runner token; store only
@@ -2020,6 +2037,18 @@ Current Phase 6 test-mail continuation:
 
 ## Validation Results
 
+2026-09-02 GitHub workflow context correction:
+
+- Removed every `${{ runner.temp }}` expression from job-level `env`; temporary
+  paths are resolved from `$RUNNER_TEMP` only after the job reaches the runner.
+- Direct regression scan confirmed no invalid `runner.temp` expression remains.
+- `actionlint` is not installed locally, so GitHub's hosted parser remains the
+  final workflow-schema authority after push.
+- `npm run lint`: passed without warnings.
+- `npm run typecheck`: passed.
+- `npm test`: passed; 87 Node tests and all project-owned PHP suites passed.
+- `npm run build:staging`: passed; all 140 static pages generated.
+
 2026-09-02 Phase 7 automatic-staging continuation:
 
 - `npm run lint`: passed without warnings.
@@ -2471,6 +2500,15 @@ still excludes missing consent and unsubscribed rows. No recipient list is sent
 to the browser and no delivery endpoint is packaged.
 
 ## Session Handoff
+
+2026-09-02 workflow-fix handoff: the IDE's `Unrecognized named-value: runner`
+error was valid and is now fixed in `.github/workflows/admin-staging-publish.yml`.
+Commit and push this correction together with the complete automation changes
+before creating the bootstrap release. Confirm the Actions page recognizes
+`Admin staging publish`, then assemble and install the one-time staging ZIP.
+Keep the raw runner token only in the GitHub `staging` environment secret; the
+cPanel config must contain only its SHA-256 hash. Keep the GitHub fine-grained
+token only in private cPanel config. Do not paste either token into logs or chat.
 
 2026-09-02 Phase 7 automatic-staging handoff: AD-004 now supersedes recurring
 manual publication. Commit and push the workflow and code to `main`. Create a
