@@ -1,6 +1,6 @@
 # Kalite Filo Admin Dashboard Implementation
 
-Last updated: 2026-09-01
+Last updated: 2026-09-02
 
 This document is the single source of truth for Phase 2 Admin Dashboard work.
 Every admin development session must read it before making changes and update
@@ -8,15 +8,47 @@ the status and handoff sections before ending.
 
 ## Current Status
 
+The 2026-09-02 Phase 7 automation implementation replaces the recurring manual
+cPanel File Manager/Terminal publication procedure. `Staging Oluştur` now
+freezes the validated snapshot and dispatches the repository's
+`admin-staging-publish.yml` workflow. GitHub Actions downloads only that exact
+snapshot and its referenced private media through machine-authenticated,
+staging-only PHP endpoints; it reuses the existing materialization, validation,
+test, static build and release scripts.
+
+The validated release is packaged as an uncompressed USTAR archive with a
+complete path/size/SHA-256 manifest. It is uploaded back to staging in 1 MiB
+hash-bound chunks. PHP assembles and verifies the archive, rejects traversal,
+links, special/PAX/GNU entries and unmanifested or modified files, extracts it
+outside the document root, and atomically swaps the staging document root while
+retaining the previous release for rollback. GitHub then verifies the live
+release marker and public/admin/robots/session HTTPS contracts. A smoke failure
+requests automatic rollback before a bounded terminal result is recorded.
+
+No external SSH, FTP, cPanel API credential, Node runtime on cPanel, deployment
+credential in the browser, or secret in the repository is used. Two one-time
+private values are required before the first automated run: a repository-scoped
+GitHub Actions-write token in cPanel `config.php`, and one strong runner token
+whose SHA-256 hash is in cPanel while its raw value is a GitHub `staging`
+environment secret. The updated release must be installed manually once to
+bootstrap these new PHP endpoints; subsequent admin staging publications are
+automatic. Live cPanel proof of `curl`, `PharData`, chunk upload, atomic rename,
+smoke and rollback remains required before Phase 7 is closed.
+
+The previously documented workstation + File Manager + Terminal route remains
+only a recovery fallback and historical implementation record. It is no longer
+the normal staging workflow.
+
 TURKTİCARET support has now explicitly confirmed that external SSH is not
 provided on the Web Eko shared-hosting package; only cPanel's browser Terminal
-is available. The previous OpenSSH transport is therefore unsupported for this
-hosting target and is superseded by the 2026-09-01 Phase 7 manual-cPanel
-transport. No SSH key is required for deployment. The previously disclosed key
-must still be revoked as an independent security cleanup.
+is available. The previous OpenSSH transport is therefore unsupported. The
+2026-09-01 manual-cPanel transport was the second interim solution and is now a
+bootstrap/recovery fallback under AD-004. No SSH key is required for deployment.
+The previously disclosed key must still be revoked as an independent security
+cleanup.
 
-The replacement workflow keeps the trusted build runner on the operator
-workstation. A `release_ready` ZIP now contains a non-secret
+The historical manual workflow kept the trusted build runner on the operator
+workstation. A `release_ready` ZIP contains a non-secret
 `kalite-filo-release.json` marker bound to request ID, frozen snapshot and review
 manifest. The operator uploads that ZIP plus the reviewed executor through
 cPanel File Manager into an account-private directory, then runs one explicit
@@ -373,8 +405,9 @@ The system has four deliberately separate layers:
 4. **Build/publish runner:** Node/npm remains off-host. A controlled external
    runner materializes an approved content snapshot into the repository, runs
    the existing validators and `release:*` scripts, and deploys the resulting
-   target artifact. The exact CI trigger and credentials remain an open hosting
-   decision; PHP must not reimplement the Next.js build.
+   target artifact. GitHub Actions is the selected staging runner; private PHP
+   dispatch and runner bearer credentials remain split across cPanel and the
+   GitHub `staging` environment. PHP does not reimplement the Next.js build.
 
 ### Architecture Decision AD-001: hybrid private drafts + Git-backed releases
 
@@ -392,10 +425,11 @@ editing of deployed files would bypass validation and make rollback unreliable.
 **Publishing contract:** admin saves normalized drafts and immutable revisions
 outside the web root. A publish request freezes a deterministic snapshot and
 manifest. A separately authorized runner imports that snapshot into the known
-repository contracts, runs generation/validation/tests/build/release, commits
-the content change, and deploys the target artifact. Staging success is recorded
-before production can be requested. Until runner transport and credentials are
-verified, publishing stays disabled rather than simulated.
+repository contracts and runs generation/validation/tests/build/release before
+deploying the target artifact. The Phase 7 staging runner uses an ephemeral
+checkout; the reviewed Git commit/promotion step remains Phase 8 and must bind
+the exact staging-approved snapshot. Staging success is recorded before
+production can be requested.
 
 ### Architecture Decision AD-002: no database in the initial implementation
 
@@ -440,6 +474,36 @@ those powerful transport credentials plus a safe server-side activator. These
 options may be reconsidered only after the manual staging workflow and rollback
 drill are proven; they are not prerequisites for Phase 7 staging.
 
+### Architecture Decision AD-004: GitHub Actions build + machine-authenticated PHP activation
+
+**Decision:** AD-004 supersedes AD-003 as the normal staging transport. The
+authenticated PHP control plane dispatches a `workflow_dispatch` event to the
+fixed repository/workflow/ref configured outside the document root. GitHub
+Actions is the external Node/PHP build runner. A separate high-entropy bearer
+token binds runner requests to a frozen request, snapshot hash and GitHub run
+ID. The PHP backend receives a manifest-bound USTAR in bounded chunks and owns
+the staging-only atomic activation and rollback transaction.
+
+**Why:** the host explicitly blocks external SSH/SFTP and has no Node runtime.
+cPanel UAPI upload would still require a broad account credential and does not
+provide this project-specific atomic release validation/swap. cPanel's archive
+extraction API is legacy/deprecated and lacks a current UAPI equivalent. A
+narrow project-owned PHP activator needs neither credential and can enforce the
+exact request, archive and release-manifest contract before touching staging.
+
+**Secret boundary:** cPanel stores a fine-grained GitHub token limited to the
+single repository with Actions write permission; GitHub stores only the raw
+staging runner bearer token. cPanel stores only its SHA-256 hash. Neither value
+is returned by `publishing.php`, stored in a request, logged, committed or sent
+to the admin browser. Production has no equivalent automation configuration yet.
+
+**Failure boundary:** validation/build failure never uploads. Upload and deploy
+are idempotent by request, run, artifact and chunk hashes. A new release is
+served only after full extraction/manifest validation. The former document root
+is retained privately; failed live smoke triggers an authenticated rollback.
+Stale-run recovery and retention cleanup are operational follow-ups after the
+first live staging drill.
+
 ## Hosting Constraints
 
 - Production: `https://kalitefilo.com.tr`, domain-root cPanel document root.
@@ -456,8 +520,14 @@ drill are proven; they are not prerequisites for Phase 7 staging.
 - Apache header and directory-listing behavior still requires staging proof.
   PHP endpoints set their own headers; static `/admin/` contains no private data.
 - TURKTİCARET Web Eko explicitly does not permit external SSH/SFTP. cPanel's
-  browser Terminal and File Manager are available and form the approved initial
-  staging deployment boundary.
+  browser Terminal and File Manager are available as bootstrap/recovery tools;
+  the active automated staging boundary is AD-004.
+
+- cPanel File Manager and browser Terminal are needed only for the one-time
+  automation bootstrap and recovery fallback, not routine staging publishes.
+- Automatic staging requires PHP `curl` for GitHub dispatch and `PharData` for
+  non-executable TAR extraction. The UI reports either missing capability and
+  the first live run must prove both on the target host.
 
 Proposed private layout (account paths are illustrative, never hard-coded):
 
@@ -472,6 +542,18 @@ Proposed private layout (account paths are illustrative, never hard-coded):
 ```
 
 ## Security Model
+
+- Automated staging uses two independent credentials: a cPanel-only
+  least-privilege GitHub Actions dispatch token and a GitHub-only raw runner
+  bearer token whose hash alone is stored on cPanel. Runner operations bind the
+  frozen request ID, snapshot SHA-256 and immutable GitHub run ID.
+- The runner cannot list/download arbitrary private files: media requests must
+  match an ID, extension, size and SHA-256 already present in the frozen
+  snapshot. Uploads are capped at 128 one-MiB chunks and 128 MiB total.
+- Deployment rejects absolute/traversal/control-character paths, duplicates,
+  links, devices, unsupported TAR extensions and all files absent from the
+  generated release manifest. Every extracted byte is size/hash verified before
+  the staging document root changes.
 
 - Default deny: unauthenticated API calls return a generic 401; unauthorized
   roles return 403; unknown or unconfigured hosts fail closed.
@@ -597,6 +679,12 @@ only after staging proof.
 | `POST /admin-api/publish-staging.php` | Validate/freeze staging request | 7 |
 | `GET /admin-api/publish-request-download.php?id=...` | Owner/Admin frozen request download for the trusted manual runner; audited | 7 |
 | `POST /admin-api/publish-runner-result.php` | CSRF-protected bounded start/result transitions tied to request and snapshot | 7 |
+| `GET /admin-api/publish-runner-request.php` | Runner-token claim and exact frozen snapshot download | 7 |
+| `GET /admin-api/publish-runner-media.php` | Runner-token download of snapshot-referenced private media only | 7 |
+| `POST /admin-api/publish-runner-upload.php` | Idempotent 1 MiB checksum-bound artifact chunk upload | 7 |
+| `POST /admin-api/publish-runner-deploy.php` | Manifest verification and staging-only atomic activation | 7 |
+| `POST /admin-api/publish-runner-rollback.php` | Same-run rollback to the retained previous staging release | 7 |
+| `POST /admin-api/publish-runner-complete.php` | Machine-authenticated bounded terminal build/deploy result | 7 |
 | `POST /admin-api/publish-production.php` | Explicit approved production request | 8 |
 | `POST /admin-api/rollback.php` | Explicit version rollback request | 8 |
 | `GET,PATCH /admin-api/requests.php` | Private request inbox | 9 |
@@ -740,9 +828,10 @@ target, timestamps, result and safe logs. Production requires the exact snapshot
 that passed staging; a changed snapshot must return to staging.
 
 Existing `npm run build:staging`, `npm run build`, `release:staging`, and
-`release:production` remain the only build/release entry points. The future CI
-workflow calls these commands; it does not duplicate them. Required secret names
-will be documented only when transport is selected. No secret values are stored.
+`release:production` remain the only build/release entry points. The staging CI
+workflow calls these commands; it does not duplicate them. The staging runner
+secret name and split cPanel/GitHub secret boundary are documented under AD-004.
+No secret values are stored.
 
 The vehicle review adapter now emits portfolio, price, featured-order and media
 JSON contracts. It accepts the current normalized repository media source as an
@@ -783,11 +872,9 @@ release. `plan_ready` means no repository mutation; `release_ready` means only
 that a verified artifact exists locally. Neither is accepted as deployment or
 smoke-test success without the later explicit transport step.
 
-The selected hosting-compatible transport is manual but cryptographically
-bound. The local ZIP carries a public, non-secret release marker; the cPanel
-Terminal executor and later HTTPS finalizer both require the exact request,
-snapshot, manifest and artifact identities. A File Manager upload alone never
-constitutes deployment success.
+The manual hosting-compatible transport remains a cryptographically bound
+bootstrap/recovery fallback. Normal staging publication now uses AD-004; a
+File Manager upload alone never constitutes deployment success.
 
 Repository application is a separate local CLI boundary. Its plan includes the
 path action, before/after SHA-256 and size for every manifested output. Only the
@@ -798,6 +885,51 @@ targets the canonical Turkish registry and English admin overlay directly; the
 intermediate `article-materialization.json` is no longer an applied build input.
 
 ## Staging Deployment Model
+
+The active model is AD-004. `POST publish-staging.php` creates or reuses the
+immutable request and immediately dispatches GitHub Actions. The runner claims
+the request, downloads only snapshot-bound inputs, executes the existing
+materialize/apply/lint/typecheck/test/release/verify chain and sends a
+release-manifested USTAR to the PHP control plane in bounded chunks. The PHP
+activator performs all archive and extracted-file verification before a
+same-filesystem document-root rename. GitHub verifies the live marker and HTTPS
+smoke contracts; only then is the request `staging_succeeded`. A failed smoke
+attempts rollback and records `failed`. The admin UI polls status every eight
+seconds and no longer accepts handwritten runner evidence in the normal flow.
+
+Successful request fingerprints form the staging publication baseline. Files
+whose current SHA-256 equals their last successful fingerprint are not shown as
+unpublished merely because the private draft file exists.
+
+### One-time AD-004 bootstrap
+
+1. Commit and push this code so `admin-staging-publish.yml` exists on the
+   repository default branch.
+2. Generate a fresh 32-byte hexadecimal runner token locally. Put the raw token
+   only in the GitHub `staging` environment secret
+   `KALITE_FILO_STAGING_RUNNER_TOKEN`; put only `SHA-256(raw token)` in cPanel.
+3. Create a fine-grained GitHub personal access token limited to
+   `MuratAyar/kalite-filo-website` with repository **Actions: Read and write**.
+   Put it only in the private cPanel config as `github_token`.
+4. Add this block to the existing private staging `config.php` array (using real
+   private values, never these placeholders):
+
+```php
+'publishing_automation' => [
+    'enabled' => true,
+    'repository' => 'MuratAyar/kalite-filo-website',
+    'workflow' => 'admin-staging-publish.yml',
+    'ref' => 'main',
+    'github_token' => 'PRIVATE_FINE_GRAINED_GITHUB_TOKEN',
+    'runner_token_hash' => '64_LOWERCASE_HEX_SHA256',
+],
+```
+
+5. Install the updated staging release once with the existing manual ZIP
+   process. Authenticated `GET /admin-api/publishing.php` must then report
+   `automation.enabled: true` and `automation.ready: true`.
+6. Make a synthetic draft change and use `Staging Oluştur`. Do not enable any
+   production automation during this drill.
 
 Staging is the first enabled publish target. Its static build bakes the staging
 origin and global noindex policy into the artifact. Admin config/data, campaign
@@ -949,13 +1081,31 @@ leave private storage. Stored change summaries are deliberately excluded.
     `release_ready` status locally
   - [x] Implement staging-only artifact transport, rollback capture and
     automated HTTPS smoke verification
-  - [ ] Execute the transport against cPanel staging and report the authenticated
-    terminal result
+  - [x] Implement GitHub Actions dispatch, machine-authenticated snapshot/media
+    fetch and hash-bound chunk upload without SSH/cPanel credentials
+  - [x] Implement PHP USTAR preflight, extracted release-manifest verification,
+    atomic staging activation and same-run rollback
+  - [x] Replace manual result entry with direct `Staging Oluştur`, status polling
+    and successful-publication fingerprint baselines
+  - [ ] Bootstrap the automation endpoints/config once on cPanel and execute a
+    live automated staging publish plus rollback drill
 - [ ] **Phase 8:** production publish, rollback and version history
 - [ ] **Phase 9:** request inbox, Site Settings and remaining operations
 - [ ] **Phase 10:** security/accessibility/responsive audit and full regression
 
 ## Completed Tasks
+
+- [x] Replaced recurring manual cPanel staging publication with a one-click
+  GitHub Actions dispatch from the authenticated Publishing Center.
+- [x] Added staging-only machine authentication, request/run/snapshot binding,
+  private referenced-media transfer and bounded checksum-verified chunk upload.
+- [x] Added complete release manifests, strict USTAR preflight, extracted file
+  set/hash verification, atomic document-root activation and automatic rollback
+  request after failed HTTPS smoke.
+- [x] Added automatic admin status polling and a successful-publication
+  fingerprint baseline so unchanged drafts are no longer repeatedly offered.
+- [x] Kept production automation disabled and retained the manual procedure only
+  as a bootstrap/recovery fallback.
 
 - [x] Recorded provider confirmation that Web Eko has no external SSH and
   superseded the unusable OpenSSH staging transport.
@@ -1238,17 +1388,21 @@ leave private storage. Stored change summaries are deliberately excluded.
 
 ## Current Task
 
-Complete the first controlled cPanel Terminal staging run. The current frozen
-request has already been regenerated with the release marker and every local
-quality gate passed. Run the documented cPanel command preflight, upload only
-the prepared ZIP and executor into the account-private deploy root, and execute
-the exact hash-bound deploy command. Then run local marker/HTTPS finalization,
-submit the bounded result through the authenticated Publishing Center and
-perform one explicit rollback drill before closing Phase 7 operationally. No
-external SSH step remains.
+Bootstrap and prove AD-004 on live staging. Commit/push the workflow to the
+default branch, create the GitHub `staging` environment runner secret, install
+this updated staging release once through the existing manual ZIP procedure,
+and enable `publishing_automation` in the private staging `config.php`. Then use
+`Staging Oluştur` for a controlled synthetic change and verify dispatch, build,
+chunk upload, atomic activation, live marker, HTTPS smoke, terminal status and
+retained rollback. Production remains disabled.
 
-Separately revoke/delete the accidentally disclosed SSH key even though the new
-deployment route does not use SSH.
+No recurring File Manager or cPanel Terminal action is expected after this
+one-time bootstrap. Do not mark Phase 7 complete until the target host proves
+PHP curl/PharData, POST chunk handling, same-filesystem rename and rollback.
+
+Historical note: the earlier cPanel Terminal activation task below was
+superseded by AD-004. Keep its executor only as a recovery fallback. The
+separate task to revoke/delete the accidentally disclosed SSH key still applies.
 
 Deploy and staging-smoke-test subscriber resubscription, modal validation,
 three-state date sorting and the live Dashboard draft-content metric.
@@ -1266,10 +1420,9 @@ Deploy and verify the numeric-model taxonomy fix on HTTPS staging. A missing
 `vehicle-taxonomy.json` is valid and must seed groups from vehicles; it will be
 created atomically only after the first custom tag mutation.
 
-Phase 7 publishing request foundation is now implemented locally. It deliberately
-stops at `awaiting_runner`: cPanel PHP does not run the Next.js build, and no
-transport/deployment credential has been invented. The next coding task is the
-tested snapshot-to-repository adapter after runner transport is selected.
+Phase 7 publishing requests now feed the AD-004 GitHub Actions runner. cPanel
+still never runs Node/Next.js; it dispatches, serves only frozen bounded inputs,
+validates the returned static artifact and performs the staging-only swap.
 
 Live staging diagnostics found that Newsletter/IYS was reading the intended
 staging-private contact store while the public staging forms still defaulted to
@@ -1291,6 +1444,20 @@ implemented; next smoke-test staging dry-run before any live delivery. In parall
 the still-required Phase 2/3 staging smoke tests before closing those phases.
 
 ## Next Tasks
+
+- [ ] Push `.github/workflows/admin-staging-publish.yml` to the repository's
+  default branch and create the GitHub `staging` environment.
+- [ ] Generate a new 64-character hexadecimal staging runner token; store only
+  the raw value as GitHub secret `KALITE_FILO_STAGING_RUNNER_TOKEN` and only its
+  SHA-256 hash in private cPanel `config.php`.
+- [ ] Create a fine-grained GitHub token limited to this repository with Actions
+  write permission and store it only as private cPanel `github_token`.
+- [ ] Perform the one-time manual staging release bootstrap, enable automation,
+  confirm `publishing.php` reports `automation.ready: true`, and run the first
+  one-click staging publish.
+- [ ] Prove failed-smoke rollback or a controlled rollback drill and define
+  retention cleanup for old upload/incoming/rollback directories.
+- [x] Add conservative stale queued/running run re-dispatch (20/45 minutes).
 
 - [x] Add deterministic TR/EN article Markdown and metadata review outputs from
   the frozen publish request without inventing a missing translation.
@@ -1315,8 +1482,8 @@ the still-required Phase 2/3 staging smoke tests before closing those phases.
   copies after revocation; no replacement is required for the selected transport.
 - [x] Implement the File Manager + cPanel Terminal executor, release marker,
   manual HTTPS finalizer and explicit rollback command.
-- [ ] Execute the first real staging deployment and rollback drill, then submit
-  bounded authenticated terminal evidence.
+- [ ] Execute the first automated staging deployment and rollback drill, then
+  confirm machine-authenticated terminal evidence in the Publishing Center.
 
 - [ ] Deploy the refreshed staging ZIP; edit the previously unsubscribed test
   contact back to an active status and verify its unsubscribe date becomes
@@ -1426,9 +1593,9 @@ the still-required Phase 2/3 staging smoke tests before closing those phases.
   and bounded cPanel CLI worker before exposing a queue action.
 - [ ] Configure staging `dry_run`, queue only synthetic contacts, execute the
   CLI worker through cPanel Cron and inspect the private terminal ledger.
-- [ ] Deploy the Publishing Center foundation and verify validation blockers,
-  exact `STAGING` confirmation, idempotent repeated requests and private request
-  permissions on HTTPS staging.
+- [ ] Bootstrap the automated Publishing Center and verify validation blockers,
+  idempotent repeated requests, machine-only endpoints and status polling on
+  HTTPS staging.
 - [x] Decide the initial staging runner host/request transport without storing
   any deployment secret; result reporting remains a separate pending endpoint.
 - [x] Normalize existing vehicle media/licence metadata out of handwritten TS
@@ -1440,13 +1607,19 @@ the still-required Phase 2/3 staging smoke tests before closing those phases.
 
 ## Known Issues
 
+- AD-004 is implemented and locally validated but not yet bootstrapped/proven on
+  TURKTİCARET staging. PHP curl, PharData, 1 MiB POST chunks and atomic directory
+  rename are fail-closed deployment requirements until live evidence exists.
+- A queued run can be retried after 20 minutes and a claimed/deploying run after
+  45 minutes. These conservative stale thresholds require live timing review.
+- Automated release uploads and retained rollbacks do not yet have a cleanup
+  retention job. Do not delete them manually before the first rollback drill.
+
 - Production PHP extension list is not available; SQLite and `finfo` cannot be
   assumed. Local PHP has PDO but reports no PDO drivers.
 - Apache rules/security headers for static admin HTML are not yet staging-tested.
 - The public route registry currently describes Phase 1 routes only; admin stays
   deliberately outside sitemap/navigation contracts.
-- Current article generation is Turkish-centric and English metadata is TS code;
-  this needs a controlled Phase 4 migration.
 - Private featured-order changes remain drafts until the Phase 7 runner applies
   the explicit four-ID contract and deploys a rebuilt public artifact.
 - Existing newsletter CSV permits multiple rows per email/source; audience
@@ -1456,17 +1629,21 @@ the still-required Phase 2/3 staging smoke tests before closing those phases.
   the code fix is local and awaits deployment. The unrelated LiteSpeed `__next`
   404 probe lines are static-export probes and not the PHP failure.
 - External SSH/SFTP is unavailable by hosting-provider policy. The historical
-  OpenSSH adapter cannot be used on this account; use the documented cPanel
-  File Manager + browser Terminal transport.
+  OpenSSH adapter cannot be used on this account. AD-004 is the normal staging
+  route; use File Manager + browser Terminal only for bootstrap or recovery.
 
 ## Open Decisions
 
-- Whether the tested operator-workstation runner should later move to CI; the
-  initial request and staging deployment transport are now selected.
-- Production deployment transport and secret names. Staging initially uses no
-  transport secret: File Manager upload plus authenticated browser Terminal.
-- Whether a later cPanel HTTPS UAPI or FTPS automation is worth the broader
-  credential and atomicity trade-offs after the manual staging flow is proven.
+- Staging automated-retention limits and stale-run thresholds after observing
+  real GitHub Actions and shared-hosting durations.
+- Production GitHub environment approval, separate tokens/data root, explicit
+  recent-auth confirmation and deployment endpoint. Nothing from staging may be
+  silently reused for production.
+
+- Production deployment transport and secret names. Staging uses GitHub Actions
+  plus the narrow project-owned PHP activator; production remains unselected.
+- Whether cPanel HTTPS UAPI has any future recovery value. It is not required
+  for AD-004 and its broader account credential is deliberately avoided.
 - Verified production PHP modules (`fileinfo`, image functions, PDO drivers) and
   cPanel Cron PHP CLI path/environment handling.
 - Admin hostname policy: same `/admin/` path on both origins is planned; an
@@ -1499,6 +1676,37 @@ src/app/robots.ts                          (update)
 ```
 
 ## Files Changed
+
+Current 2026-09-02 Phase 7 automatic-staging continuation:
+
+- `.github/workflows/admin-staging-publish.yml` (new)
+- `deploy/staging/README.md`
+- `scripts/admin-publish-runner-client.mjs` (new)
+- `scripts/admin-publish-runner-client.test.mjs` (new)
+- `scripts/fetch-staging-publish-inputs.mjs` (new)
+- `scripts/deploy-staging-via-admin-api.mjs` (new)
+- `scripts/report-staging-publish-failure.mjs` (new)
+- `scripts/run-staging-publish.mjs`
+- `scripts/run-staging-publish.test.mjs`
+- `scripts/assemble-cpanel-release.mjs`
+- `scripts/assemble-cpanel-release.test.mjs`
+- `server/admin-api/bootstrap.php`
+- `server/admin-api/kalite-filo-admin.example.php`
+- `server/admin-api/publishing-store.php`
+- `server/admin-api/publishing.php`
+- `server/admin-api/publish-staging.php`
+- `server/admin-api/publishing-automation.php` (new)
+- `server/admin-api/publishing-deployment.php` (new)
+- `server/admin-api/publish-runner-request.php` (new)
+- `server/admin-api/publish-runner-media.php` (new)
+- `server/admin-api/publish-runner-upload.php` (new)
+- `server/admin-api/publish-runner-deploy.php` (new)
+- `server/admin-api/publish-runner-rollback.php` (new)
+- `server/admin-api/publish-runner-complete.php` (new)
+- `server/admin-api/tests/publishing-deployment.test.php` (new)
+- `src/components/admin/publishing-center.tsx`
+- `package.json`
+- `docs/ADMIN_DASHBOARD_IMPLEMENTATION.md`
 
 Current 2026-09-01 Phase 7 no-external-SSH transport continuation:
 
@@ -1811,6 +2019,23 @@ Current Phase 6 test-mail continuation:
 - `server/admin-api/tests/media-store.test.php`
 
 ## Validation Results
+
+2026-09-02 Phase 7 automatic-staging continuation:
+
+- `npm run lint`: passed without warnings.
+- `npm run typecheck`: passed.
+- `npm test`: passed; 87 Node tests and all project-owned PHP suites passed.
+- `npm run build:staging`: passed; all 140 static pages generated.
+- Staging release assembly and `npm run verify:output`: passed.
+- Every assembled `release/staging/admin-api/*.php` file passed `php -l`.
+- A full 62,035,456-byte staging USTAR containing 2,348 entries passed the PHP
+  server-side archive preflight (60,388,506 extracted file bytes).
+- Focused tests cover machine credential validation, private media selection,
+  bounded two-chunk upload, release-manifest ordering/hashes, tamper detection
+  and traversal rejection.
+- No GitHub dispatch, cPanel mutation, live staging deployment or production
+  operation was performed in this development session; one-time configuration
+  and live staging proof remain.
 
 2026-09-01 Phase 7 no-external-SSH transport continuation:
 
@@ -2246,6 +2471,24 @@ still excludes missing consent and unsubscribed rows. No recipient list is sent
 to the browser and no delivery endpoint is packaged.
 
 ## Session Handoff
+
+2026-09-02 Phase 7 automatic-staging handoff: AD-004 now supersedes recurring
+manual publication. Commit and push the workflow and code to `main`. Create a
+GitHub `staging` environment secret named
+`KALITE_FILO_STAGING_RUNNER_TOKEN`. In private cPanel staging `config.php`, add
+the fixed repository/workflow/ref, a fine-grained Actions-write token and only
+the runner token's SHA-256 hash. Never put either raw token in this repository,
+the admin browser, a screenshot or chat.
+
+Because the currently deployed staging PHP cannot receive the new automated
+protocol, perform exactly one final manual `release:staging` ZIP installation.
+Afterwards verify `/admin-api/publishing.php` while authenticated reports
+`automation.enabled` and `automation.ready` as true. Make a synthetic admin
+change and press `Staging Oluştur`; watch the status progress through queued,
+running, deploying and completed. Verify the live content/marker and retained
+private rollback. Exercise rollback before closing Phase 7. Routine later
+staging publishes require no File Manager or Terminal. Production remains
+disabled and must receive separate Phase 8 credentials, approvals and proof.
 
 2026-09-01 Phase 7 no-external-SSH handoff: external SSH/SFTP is conclusively
 unavailable on TURKTİCARET Web Eko. Do not continue hostname, port, SSH-agent or

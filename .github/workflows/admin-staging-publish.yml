@@ -1,0 +1,95 @@
+name: Admin staging publish
+
+on:
+  workflow_dispatch:
+    inputs:
+      request_id:
+        description: Frozen admin publish request ID
+        required: true
+        type: string
+      snapshot_hash:
+        description: Frozen admin snapshot SHA-256
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: admin-staging-publish
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    name: Validate, build and deploy staging
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    environment: staging
+    env:
+      REQUEST_FILE: ${{ runner.temp }}/kalite-filo/request.json
+      PRIVATE_DATA_ROOT: ${{ runner.temp }}/kalite-filo/private-data
+      REVIEW_ROOT: ${{ runner.temp }}/kalite-filo/review
+      BACKUP_ROOT: ${{ runner.temp }}/kalite-filo/backup
+      RELEASE_ARTIFACT: ${{ runner.temp }}/kalite-filo/staging-release.tar
+      RUNNER_RESULT: ${{ runner.temp }}/kalite-filo/runner-result.json
+
+    steps:
+      - name: Check out trusted publisher code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.5"
+          coverage: none
+
+      - name: Install JavaScript dependencies
+        run: npm ci
+
+      - name: Install PHP mail runtime
+        run: composer --working-dir=server/forms install --no-dev --prefer-dist --optimize-autoloader --no-interaction
+
+      - name: Claim frozen request and download required private media
+        id: claim
+        env:
+          KALITE_FILO_STAGING_RUNNER_TOKEN: ${{ secrets.KALITE_FILO_STAGING_RUNNER_TOKEN }}
+        run: >-
+          node scripts/fetch-staging-publish-inputs.mjs
+          --request-id "${{ inputs.request_id }}"
+          --snapshot-hash "${{ inputs.snapshot_hash }}"
+          --output "$REQUEST_FILE"
+          --private-data-root "$PRIVATE_DATA_ROOT"
+
+      - name: Materialize, validate and build static staging release
+        id: build
+        run: >-
+          node scripts/run-staging-publish.mjs
+          --request "$REQUEST_FILE"
+          --private-data-root "$PRIVATE_DATA_ROOT"
+          --repository .
+          --review "$REVIEW_ROOT"
+          --backup "$BACKUP_ROOT"
+          --artifact "$RELEASE_ARTIFACT"
+          --result "$RUNNER_RESULT"
+          --apply
+
+      - name: Upload, activate and smoke-test staging
+        id: deploy
+        env:
+          KALITE_FILO_STAGING_RUNNER_TOKEN: ${{ secrets.KALITE_FILO_STAGING_RUNNER_TOKEN }}
+        run: >-
+          node scripts/deploy-staging-via-admin-api.mjs
+          --release-result "$RUNNER_RESULT"
+          --artifact "$RELEASE_ARTIFACT"
+
+      - name: Report a build failure to Admin Dashboard
+        if: ${{ failure() && steps.claim.outcome == 'success' && steps.build.outcome == 'failure' }}
+        env:
+          KALITE_FILO_STAGING_RUNNER_TOKEN: ${{ secrets.KALITE_FILO_STAGING_RUNNER_TOKEN }}
+        run: node scripts/report-staging-publish-failure.mjs --result "$RUNNER_RESULT"

@@ -1,5 +1,5 @@
 import { createHash } from "node:crypto";
-import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
+import { existsSync, lstatSync, mkdirSync, readFileSync, readdirSync, statSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
@@ -28,6 +28,31 @@ export function writeStagingReleaseMarker(releaseRoot, request, manifestHash) {
   return marker;
 }
 
+function releaseFiles(root, directory = root, prefix = "") {
+  const files = [];
+  for (const entry of readdirSync(directory, { withFileTypes: true }).sort((left, right) => left.name.localeCompare(right.name, "en"))) {
+    const relative = prefix ? `${prefix}/${entry.name}` : entry.name;
+    const target = path.join(directory, entry.name);
+    if (entry.isSymbolicLink()) fail("release contains a symbolic link");
+    if (entry.isDirectory()) files.push(...releaseFiles(root, target, relative));
+    else if (entry.isFile() && relative !== "kalite-filo-release-manifest.json") files.push(relative);
+    else if (!entry.isFile()) fail("release contains an unsupported filesystem entry");
+  }
+  return files;
+}
+
+export function writeStagingReleaseManifest(releaseRoot, request, manifestHash) {
+  const root = path.resolve(releaseRoot);
+  const files = releaseFiles(root).map((relative) => {
+    const target = path.resolve(root, ...relative.split("/"));
+    if (!target.startsWith(`${root}${path.sep}`) || !lstatSync(target).isFile() || lstatSync(target).isSymbolicLink()) fail("release manifest path escaped its root");
+    return { path: relative, size: statSync(target).size, sha256: hashFile(target) };
+  });
+  const value = { schemaVersion: 1, target: "staging", requestId: request.id, snapshotHash: request.snapshotHash, manifestHash, files };
+  writeFileSync(path.join(root, "kalite-filo-release-manifest.json"), `${JSON.stringify(value, null, 2)}\n`, "utf8");
+  return value;
+}
+
 const invokedPath = process.argv[1] ? path.resolve(process.argv[1]) : "";
 if (invokedPath === path.resolve(fileURLToPath(import.meta.url))) {
   const requestPath = argument("--request"), privateRoot = argument("--private-data-root"), repository = path.resolve(argument("--repository") ?? "."), review = argument("--review"), backup = argument("--backup"), artifact = argument("--artifact"), resultPath = argument("--result"), apply = process.argv.includes("--apply");
@@ -40,6 +65,6 @@ if (invokedPath === path.resolve(fileURLToPath(import.meta.url))) {
     const plan = planRepositoryApplication(reviewRoot, repository, request.snapshotHash); assertCleanRepositoryTargets(repository, plan); process.stdout.write(`${JSON.stringify(plan, null, 2)}\n`); if (!apply) { writeRunnerResult(path.resolve(resultPath), request, "plan_ready", runnerStages(), manifestHash, null, "Review and repository plan generated; no files applied."); process.exit(0); }
     applyRepositoryApplication(reviewRoot, repository, path.resolve(backup), request.snapshotHash);
     activeStage = "validation"; const npm = process.platform === "win32" ? "npm.cmd" : "npm"; command(npm, ["run", "lint"], repository); command(npm, ["run", "typecheck"], repository); command(npm, ["test"], repository); activeStage = "build"; command(npm, ["run", "release:staging"], repository); activeStage = "release"; command(npm, ["run", "verify:output"], repository);
-    const releaseRoot = path.join(repository, "release", "staging"); writeStagingReleaseMarker(releaseRoot, request, manifestHash); const artifactPath = path.resolve(artifact); mkdirSync(path.dirname(artifactPath), { recursive: true }); command("tar", ["-a", "-c", "-f", artifactPath, "-C", releaseRoot, "."], repository); writeRunnerResult(path.resolve(resultPath), request, "release_ready", runnerStages(null, true), manifestHash, hashFile(artifactPath), "Validated staging artifact is ready for explicit deployment and smoke testing.");
+    const releaseRoot = path.join(repository, "release", "staging"); writeStagingReleaseMarker(releaseRoot, request, manifestHash); writeStagingReleaseManifest(releaseRoot, request, manifestHash); const artifactPath = path.resolve(artifact); mkdirSync(path.dirname(artifactPath), { recursive: true }); const tarArguments = artifactPath.toLowerCase().endsWith(".tar") ? ["--format=ustar", "-c", "-f", artifactPath, "-C", releaseRoot, "."] : ["-a", "-c", "-f", artifactPath, "-C", releaseRoot, "."]; command("tar", tarArguments, repository); writeRunnerResult(path.resolve(resultPath), request, "release_ready", runnerStages(null, true), manifestHash, hashFile(artifactPath), "Validated staging artifact is ready for deployment and smoke testing.");
   } catch (error) { const message = error instanceof Error ? error.message.slice(0, 300) : "Runner failed."; writeRunnerResult(path.resolve(resultPath), request, "failed", runnerStages(activeStage), manifestHash, null, message); throw error; }
 }

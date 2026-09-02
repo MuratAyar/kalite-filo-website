@@ -166,8 +166,39 @@ function kalite_filo_admin_config(): array
         'campaign_batch_size' => kalite_filo_admin_validate_campaign_batch_size(
             $raw['campaign_batch_size'] ?? 20,
         ),
+        'publishing_automation' => kalite_filo_admin_validate_publishing_automation(
+            $raw['publishing_automation'] ?? ['enabled' => false],
+            $environment['target'],
+        ),
     ];
     return $config;
+}
+
+/** @return array{enabled:bool,repository:?string,workflow:?string,ref:?string,github_token:?string,runner_token_hash:?string} */
+function kalite_filo_admin_validate_publishing_automation(mixed $input, string $environment): array
+{
+    if (!is_array($input) || !is_bool($input['enabled'] ?? null)) {
+        throw new RuntimeException('Publishing automation configuration is invalid.');
+    }
+    if ($input['enabled'] === false) {
+        return ['enabled' => false, 'repository' => null, 'workflow' => null, 'ref' => null, 'github_token' => null, 'runner_token_hash' => null];
+    }
+    if ($environment !== 'staging') throw new RuntimeException('Publishing automation is staging-only.');
+    $repository = $input['repository'] ?? null;
+    $workflow = $input['workflow'] ?? null;
+    $ref = $input['ref'] ?? null;
+    $githubToken = $input['github_token'] ?? null;
+    $runnerTokenHash = strtolower(trim((string) ($input['runner_token_hash'] ?? '')));
+    if (
+        !is_string($repository) || preg_match('/^[A-Za-z0-9_.-]{1,100}\/[A-Za-z0-9_.-]{1,100}$/', $repository) !== 1
+        || !is_string($workflow) || preg_match('/^[A-Za-z0-9_.-]{1,100}\.ya?ml$/', $workflow) !== 1
+        || !is_string($ref) || preg_match('/^[A-Za-z0-9._\/-]{1,120}$/', $ref) !== 1 || str_contains($ref, '..')
+        || !is_string($githubToken) || strlen($githubToken) < 20 || strlen($githubToken) > 255 || preg_match('/[\r\n]/', $githubToken) === 1
+        || preg_match('/^[a-f0-9]{64}$/', $runnerTokenHash) !== 1
+    ) {
+        throw new RuntimeException('Publishing automation configuration is invalid.');
+    }
+    return ['enabled' => true, 'repository' => $repository, 'workflow' => $workflow, 'ref' => $ref, 'github_token' => $githubToken, 'runner_token_hash' => $runnerTokenHash];
 }
 
 function kalite_filo_admin_validate_campaign_delivery_mode(mixed $mode, string $environment): string
@@ -305,9 +336,17 @@ function kalite_filo_admin_audit(string $action, string $result, array $summary 
             if (is_resource($handle)) fclose($handle);
             throw new RuntimeException('Audit log could not be locked.');
         }
-        $entityType = str_starts_with($action, 'vehicle_tag_') ? 'vehicle_taxonomy'
-            : ((str_starts_with($action, 'vehicle_') || $action === 'featured_vehicle_change') ? 'vehicle' : (str_starts_with($action,'article_')?'article':(str_starts_with($action,'campaign_')?'campaign':(str_starts_with($action,'subscriber_')?'subscriber':(str_starts_with($action,'iys_')?'iys':'authentication')))));
-        $entityId = in_array($entityType,['vehicle','article','subscriber'],true) && is_string($summary['id'] ?? null) ? $summary['id'] : null;
+        $entityType = match (true) {
+            str_starts_with($action, 'staging_publish_'), str_starts_with($action, 'publish_') => 'publishing',
+            str_starts_with($action, 'vehicle_tag_') => 'vehicle_taxonomy',
+            str_starts_with($action, 'vehicle_'), $action === 'featured_vehicle_change' => 'vehicle',
+            str_starts_with($action, 'article_') => 'article',
+            str_starts_with($action, 'campaign_') => 'campaign',
+            str_starts_with($action, 'subscriber_') => 'subscriber',
+            str_starts_with($action, 'iys_') => 'iys',
+            default => 'authentication',
+        };
+        $entityId = in_array($entityType,['vehicle','article','subscriber','publishing'],true) && is_string($summary['id'] ?? null) ? $summary['id'] : null;
         $record = [
             'id' => bin2hex(random_bytes(16)),
             'timestamp' => gmdate('c'),

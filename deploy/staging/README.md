@@ -1,8 +1,23 @@
-# Staging deployment without external SSH
+# Automatic staging deployment without external SSH
+
+The primary Phase 7 flow is now the Admin Dashboard's `Staging Oluştur` action.
+It dispatches `.github/workflows/admin-staging-publish.yml`; GitHub Actions runs
+the existing static build/release pipeline and sends a hash/manifest-bound USTAR
+to staging-only PHP endpoints. PHP validates every archive and extracted file,
+atomically activates the release and retains the old document root. GitHub then
+runs HTTPS smoke checks and requests rollback on failure.
+
+This requires one final manual release installation so the live document root
+contains the automation endpoints. It also requires the private settings and
+GitHub environment secret documented in
+`docs/ADMIN_DASHBOARD_IMPLEMENTATION.md`. After that bootstrap, routine staging
+publication requires no File Manager or Terminal action.
+
+## Manual bootstrap and recovery fallback
 
 TURKTİCARET has confirmed that the Web Eko shared-hosting package does not
-provide external SSH. cPanel's browser Terminal remains available. The initial
-Phase 7 deployment transport is therefore a controlled manual handoff:
+provide external SSH. cPanel's browser Terminal remains available. The earlier
+controlled manual handoff is retained for one-time bootstrap and recovery:
 
 1. the trusted workstation materializes the frozen request, validates it,
    builds the static export and produces a hash-bound ZIP;

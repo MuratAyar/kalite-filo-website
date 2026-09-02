@@ -15,6 +15,16 @@ return [
     // disabled: no queue; dry_run: ledger only/no SMTP; live: production only.
     'campaign_delivery_mode' => 'disabled',
     'campaign_batch_size' => 20,
+    // Optional staging-only GitHub Actions publishing automation. Keep the raw
+    // runner token only in GitHub; store its SHA-256 hash here.
+    'publishing_automation' => [
+        'enabled' => false,
+        'repository' => 'MuratAyar/kalite-filo-website',
+        'workflow' => 'admin-staging-publish.yml',
+        'ref' => 'main',
+        'github_token' => 'REPLACE_WITH_FINE_GRAINED_ACTIONS_WRITE_TOKEN',
+        'runner_token_hash' => 'REPLACE_WITH_SHA256_OF_GITHUB_RUNNER_TOKEN',
+    ],
     'users' => [[
         'id' => 'owner',
         'username' => 'replace-with-private-username',

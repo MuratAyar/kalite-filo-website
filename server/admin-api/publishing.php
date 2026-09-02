@@ -7,6 +7,7 @@ require_once __DIR__ . '/article-store.php';
 require_once __DIR__ . '/media-store.php';
 require_once __DIR__ . '/taxonomy-store.php';
 require_once __DIR__ . '/publishing-store.php';
+require_once __DIR__ . '/publishing-automation.php';
 
 try {
     kalite_filo_admin_require_method('GET');
@@ -18,7 +19,7 @@ try {
         'changes' => kalite_filo_admin_unpublished_changes(),
         'requests' => $requests,
         'validation' => kalite_filo_admin_validate_staging_publish_payload($payload),
-        'runnerConfigured' => false,
+        'automation' => kalite_filo_admin_publishing_automation_status(),
         'productionEnabled' => false,
     ]);
 } catch (Throwable $exception) {

@@ -305,6 +305,14 @@ export function assembleCpanelRelease(target, repositoryRoot = defaultRepository
     "publish-staging.php",
     "publish-request-download.php",
     "publish-runner-result.php",
+    "publishing-automation.php",
+    "publishing-deployment.php",
+    "publish-runner-request.php",
+    "publish-runner-media.php",
+    "publish-runner-upload.php",
+    "publish-runner-deploy.php",
+    "publish-runner-rollback.php",
+    "publish-runner-complete.php",
   ];
   for (const requiredFile of adminRuntimeFiles) {
     if (!existsSync(path.join(adminApiSource, requiredFile))) {

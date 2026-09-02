@@ -51,11 +51,21 @@ function kalite_filo_admin_unpublished_changes(): array
         ['type' => 'vehicle_taxonomy', 'label' => 'Araç etiketleri', 'path' => $root . DIRECTORY_SEPARATOR . 'drafts' . DIRECTORY_SEPARATOR . 'vehicle-taxonomy.json'],
         ['type' => 'media', 'label' => 'Medya kütüphanesi', 'path' => kalite_filo_admin_media_catalog_path()],
     ];
+    $publishedFingerprints = [];
+    foreach (kalite_filo_admin_publish_requests() as $publishedRequest) {
+        if (($publishedRequest['target'] ?? null) !== 'staging' || ($publishedRequest['status'] ?? null) !== 'staging_succeeded') continue;
+        foreach (is_array($publishedRequest['changes'] ?? null) ? $publishedRequest['changes'] : [] as $change) {
+            if (is_array($change) && is_string($change['type'] ?? null) && is_string($change['fingerprint'] ?? null) && !isset($publishedFingerprints[$change['type']])) {
+                $publishedFingerprints[$change['type']] = $change['fingerprint'];
+            }
+        }
+    }
     foreach ($sources as $source) {
         if (!is_file($source['path'])) continue;
         $modified = filemtime($source['path']);
         $fingerprint = hash_file('sha256', $source['path']);
         if (!is_string($fingerprint)) throw new RuntimeException('Draft fingerprint could not be calculated.');
+        if (isset($publishedFingerprints[$source['type']]) && hash_equals($publishedFingerprints[$source['type']], $fingerprint)) continue;
         $changes[] = [
             'id' => hash('sha256', $source['type'] . '|' . $fingerprint),
             'type' => $source['type'],
@@ -124,9 +134,9 @@ function kalite_filo_admin_normalize_runner_result(array $input): array
     if (!in_array($outcome, ['succeeded', 'failed'], true)) throw new InvalidArgumentException('Invalid runner outcome.');
     $manifestHash = strtolower(trim((string) ($input['manifestHash'] ?? '')));
     $artifactHash = strtolower(trim((string) ($input['artifactHash'] ?? '')));
-    if (preg_match('/^[a-f0-9]{64}$/', $manifestHash) !== 1) throw new InvalidArgumentException('Invalid manifest hash.');
+    if ($manifestHash !== '' && preg_match('/^[a-f0-9]{64}$/', $manifestHash) !== 1) throw new InvalidArgumentException('Invalid manifest hash.');
     if ($artifactHash !== '' && preg_match('/^[a-f0-9]{64}$/', $artifactHash) !== 1) throw new InvalidArgumentException('Invalid artifact hash.');
-    if ($outcome === 'succeeded' && $artifactHash === '') throw new InvalidArgumentException('Successful runner result requires an artifact hash.');
+    if ($outcome === 'succeeded' && ($manifestHash === '' || $artifactHash === '')) throw new InvalidArgumentException('Successful runner result requires manifest and artifact hashes.');
     $stageNames = ['materialization', 'validation', 'build', 'release', 'deployment', 'smoke'];
     $stages = $input['stages'] ?? null;
     if (!is_array($stages) || array_keys($stages) !== $stageNames) throw new InvalidArgumentException('Invalid runner stages.');
@@ -141,11 +151,11 @@ function kalite_filo_admin_normalize_runner_result(array $input): array
     $summary = trim((string) ($input['summary'] ?? ''));
     $summaryLength = preg_match_all('/./us', $summary, $unused);
     if ($summaryLength === false || $summaryLength > 300 || preg_match('/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/u', $summary) === 1) throw new InvalidArgumentException('Invalid runner summary.');
-    return ['outcome' => $outcome, 'manifestHash' => $manifestHash, 'artifactHash' => $artifactHash !== '' ? $artifactHash : null, 'stages' => $normalizedStages, 'summary' => $summary !== '' ? $summary : null];
+    return ['outcome' => $outcome, 'manifestHash' => $manifestHash !== '' ? $manifestHash : null, 'artifactHash' => $artifactHash !== '' ? $artifactHash : null, 'stages' => $normalizedStages, 'summary' => $summary !== '' ? $summary : null];
 }
 
 /** @return array<string,mixed> */
-function kalite_filo_admin_transition_publish_request(string $id, string $snapshotHash, string $action, array $input = []): array
+function kalite_filo_admin_transition_publish_request(string $id, string $snapshotHash, string $action, array $input = [], ?string $reportedBy = null): array
 {
     if (preg_match('/^[a-f0-9]{64}$/', $snapshotHash) !== 1) throw new InvalidArgumentException('Invalid snapshot hash.');
     $record = kalite_filo_admin_publish_request($id);
@@ -172,7 +182,11 @@ function kalite_filo_admin_transition_publish_request(string $id, string $snapsh
     }
     $record['status'] = $terminalStatus;
     $record['completedAt'] = gmdate('c');
-    $record['result'] = $result + ['reportedAt' => $record['completedAt'], 'reportedBy' => $_SESSION['identity']['id'] ?? null];
+    $record['result'] = $result + ['reportedAt' => $record['completedAt'], 'reportedBy' => $reportedBy ?? ($_SESSION['identity']['id'] ?? null)];
+    if (is_array($record['automation'] ?? null)) {
+        $record['automation']['status'] = $result['outcome'] === 'succeeded' ? 'succeeded' : 'failed';
+        $record['automation']['updatedAt'] = $record['completedAt'];
+    }
     kalite_filo_admin_replace_publish_request($record);
     return $record;
 }
@@ -227,6 +241,7 @@ function kalite_filo_admin_create_staging_publish_request(): array
         'startedAt' => null,
         'completedAt' => null,
         'result' => null,
+        'automation' => null,
     ];
     $directory = kalite_filo_admin_publish_root() . DIRECTORY_SEPARATOR . 'requests';
     kalite_filo_admin_ensure_private_directory($directory);
@@ -252,5 +267,6 @@ function kalite_filo_admin_safe_publish_request(array $record): array
         'snapshotHash' => $record['snapshotHash'], 'requestedAt' => $record['requestedAt'],
         'requestedBy' => $record['requestedBy'], 'startedAt' => $record['startedAt'],
         'completedAt' => $record['completedAt'], 'result' => $record['result'],
+        'automation' => is_array($record['automation'] ?? null) ? $record['automation'] : null,
     ];
 }

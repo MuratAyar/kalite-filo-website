@@ -66,6 +66,21 @@ try {
     admin_test_assert(kalite_filo_admin_find_user('owner.test') !== null, 'Configured owner must be found.');
     admin_test_assert(kalite_filo_admin_find_user('missing') === null, 'Unknown users must not resolve.');
     admin_test_assert($config['campaign_test_recipients'][0]['id'] === 'owner-test', 'Private test recipient allowlist must validate.');
+    $publishingAutomation = kalite_filo_admin_validate_publishing_automation([
+        'enabled' => true,
+        'repository' => 'MuratAyar/kalite-filo-website',
+        'workflow' => 'admin-staging-publish.yml',
+        'ref' => 'main',
+        'github_token' => str_repeat('g', 40),
+        'runner_token_hash' => str_repeat('a', 64),
+    ], 'staging');
+    admin_test_assert($publishingAutomation['enabled'] === true, 'Valid staging publishing automation must normalize.');
+    try {
+        kalite_filo_admin_validate_publishing_automation($publishingAutomation, 'production');
+        admin_test_assert(false, 'Publishing automation must not silently enable in production.');
+    } catch (RuntimeException) {
+        // Expected.
+    }
     try {
         kalite_filo_admin_validate_test_recipients([['id' => 'unsafe', 'email' => "bad@example.test\nBcc:x", 'name' => 'Unsafe']]);
         admin_test_assert(false, 'Header injection in a test recipient must fail.');
