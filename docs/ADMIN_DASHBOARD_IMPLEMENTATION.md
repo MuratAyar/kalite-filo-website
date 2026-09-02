@@ -8,6 +8,15 @@ the status and handoff sections before ending.
 
 ## Current Status
 
+The first live AD-004 dispatch successfully proved browser-to-PHP-to-GitHub
+queueing and status reporting, but the hosted runner failed before build at
+`npm run typecheck`: a clean checkout had not generated Next.js global route
+types, so the English vehicle detail page could not resolve `PageProps`. The
+project typecheck command now runs `next typegen` before `tsc`. This preserves
+the Next.js 16 typed-route contract and makes local and clean-runner validation
+equivalent. The fix is locally validated and must be pushed to `main` before
+retrying the unchanged admin draft.
+
 The GitHub workflow schema issue reported during bootstrap is fixed. The
 job-level `env` block no longer references `${{ runner.temp }}`, because the
 `runner` context is unavailable at `jobs.<job_id>.env`. Runtime paths now use
@@ -1102,6 +1111,10 @@ leave private storage. Stored change summaries are deliberately excluded.
 
 ## Completed Tasks
 
+- [x] Fixed clean GitHub runner typechecking by generating Next.js route types
+  with `next typegen` before strict `tsc` validation.
+- [x] Proved the live admin-to-GitHub dispatch, queued/in-progress/failed status
+  polling and bounded failure reporting path with the first staging attempt.
 - [x] Fixed the GitHub Actions workflow context validation error by replacing
   invalid job-level `runner.temp` expressions with step-time `$RUNNER_TEMP`
   paths.
@@ -1406,6 +1419,11 @@ and enable `publishing_automation` in the private staging `config.php`. Then use
 chunk upload, atomic activation, live marker, HTTPS smoke, terminal status and
 retained rollback. Production remains disabled.
 
+The bootstrap and dispatch path are now live. Push the clean-runner typecheck
+fix to `main`, retry the retained unpublished change, and prove build, upload,
+activation and smoke success. No new cPanel bootstrap ZIP is required for this
+repository-only runner correction.
+
 The workflow context validation blocker is resolved locally. The immediate
 operator action is now to commit/push the workflow and automation code, verify
 the GitHub Actions workflow is visible, and install the generated bootstrap ZIP
@@ -1460,6 +1478,10 @@ the still-required Phase 2/3 staging smoke tests before closing those phases.
 
 ## Next Tasks
 
+- [ ] Push the `next typegen` typecheck correction to `main` and retry the
+  failed staging publication from the authenticated Publishing Center.
+- [ ] Confirm the retry reaches `staging_succeeded`, that the expected content
+  is live, and that the published fingerprint clears the unpublished changes.
 - [x] Remove the invalid job-level `${{ runner.temp }}` expressions from the
   staging workflow and use `$RUNNER_TEMP` during runner shell execution.
 - [ ] Push `.github/workflows/admin-staging-publish.yml` to the repository's
@@ -1693,6 +1715,11 @@ src/app/robots.ts                          (update)
 ```
 
 ## Files Changed
+
+Current 2026-09-02 clean-runner typecheck correction:
+
+- `package.json`
+- `docs/ADMIN_DASHBOARD_IMPLEMENTATION.md`
 
 Current 2026-09-02 Phase 7 automatic-staging continuation:
 
@@ -2036,6 +2063,20 @@ Current Phase 6 test-mail continuation:
 - `server/admin-api/tests/media-store.test.php`
 
 ## Validation Results
+
+2026-09-02 first live automation failure correction:
+
+- Live staging reported automation `enabled: true`, `ready: true`, provider
+  `github_actions` and no missing configuration.
+- The first dispatch reached GitHub Actions and its queued/running/failure state
+  returned to Admin Dashboard; failure was bounded to clean-runner typechecking.
+- `npm run typecheck` now runs `next typegen` first and passed with an explicit
+  `Types generated successfully` result before strict `tsc`.
+- `npm run lint`: passed without warnings.
+- `npm test`: passed; 87 Node tests and all project-owned PHP suites passed.
+- `npm run build:staging`: passed; all 140 static pages generated.
+- Deployment, live marker, smoke and rollback were not reached by the failed
+  live run and remain the next live proof.
 
 2026-09-02 GitHub workflow context correction:
 
@@ -2500,6 +2541,15 @@ still excludes missing consent and unsubscribed rows. No recipient list is sent
 to the browser and no delivery endpoint is packaged.
 
 ## Session Handoff
+
+2026-09-02 clean-runner failure handoff: the automation configuration and
+dispatch bridge are working. The failed run was caused by `tsc` executing in a
+clean checkout before Next.js had generated global `PageProps`; `package.json`
+now runs `next typegen && tsc --noEmit --incremental false`. Commit and push
+this change to `main`, then retry the unpublished admin change. Do not rebuild
+or upload the cPanel bootstrap ZIP for this fix: the runner reads `package.json`
+from the pushed repository. On retry, verify build, deployment, smoke, live
+content and cleared unpublished changes before closing the live Phase 7 proof.
 
 2026-09-02 workflow-fix handoff: the IDE's `Unrecognized named-value: runner`
 error was valid and is now fixed in `.github/workflows/admin-staging-publish.yml`.
