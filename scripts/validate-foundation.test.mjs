@@ -196,6 +196,13 @@ test("validates the Filo Rehberi index output contract", () => {
   });
   assert.deepEqual(
     validateFleetGuideOutput(
+      validFleetGuide.replace('data-fleet-guide-record-count="18"', 'data-fleet-guide-record-count="17"'),
+      { expectedRecordCount: 17 },
+    ),
+    { articleCount: 7, categoryControlCount: 7, pageCount: 3, recordCount: 17 },
+  );
+  assert.deepEqual(
+    validateFleetGuideOutput(
       validFleetGuide.replace('data-fleet-guide-record-count="18"', 'data-fleet-guide-record-count="19"'),
       { expectedRecordCount: 19 },
     ),

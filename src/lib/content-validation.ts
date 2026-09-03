@@ -246,14 +246,12 @@ function validateAboutCopy(): void {
     (articleId) => articleId,
     "About editorial article ids",
   );
-  const articleIds = new Set<string>(articles.map(({ id }) => id));
+  // Editorial slots are optional references: an administrator may withdraw an
+  // article without having to edit this static page copy in the same release.
+  // The About page filters unavailable records and EditorialPreview already
+  // renders its empty state when none of the configured records remain.
   for (const articleId of aboutPageContent.editorial.articleIds) {
     asEntityId(articleId, "About editorial article id");
-    if (!articleIds.has(articleId)) {
-      throw new ContentValidationError(
-        `About editorial references unknown article ${articleId}.`,
-      );
-    }
   }
 
   const aboutRoute = APPROVED_ROUTES.find((route) => route.id === "about");

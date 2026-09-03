@@ -3603,3 +3603,19 @@ derives catalogue, price, media, transmission, filter and related-card counts
 from the materialized vehicle registries. The Actions-equivalent Node/PHP suite,
 lint, strict typecheck, staging static build, output verification and cPanel
 staging release assembly all pass locally.
+
+2026-09-03 withdrawn editorial-reference release fix: GitHub Actions request
+`publish-20260903-190756-56e67368327a` passed materialization, lint, strict
+typechecking and all 90 Node/PHP tests, then failed while Next.js collected
+page data because an article moved to Draft had correctly been removed from the
+public registry while the static About-page editorial selection still named
+its stable id. About editorial ids are now validated as unique, well-formed
+optional slots rather than mandatory public-registry members. The page already
+filters unavailable articles and its shared editorial component provides an
+empty state, so withdrawing an article no longer blocks unrelated public pages
+or leaves a broken link. Regression coverage now also includes a 17-record
+Filo Rehberi pagination contract. An explicit preflight with a deliberately
+unavailable About editorial id produced all 140 static pages and assembled the
+staging release successfully. The normal 90-test Node/PHP suite, lint, strict
+typecheck, staging release assembly, production static export and exported
+output validation all pass locally.
