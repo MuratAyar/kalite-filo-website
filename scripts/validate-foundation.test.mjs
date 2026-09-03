@@ -5,6 +5,7 @@ import test from "node:test";
 import { fileURLToPath } from "node:url";
 
 import {
+  getAboutEditorialArticleCount,
   getRouteRobotsPolicy,
   isValidInternalPath,
   routeToOutputFile,
@@ -1116,6 +1117,10 @@ test("validates category-aware shared editorial preview links", () => {
   assert.deepEqual(validateEditorialPreviewLinks(valid, 2), {
     articleLinkCount: 2,
   });
+  assert.deepEqual(validateEditorialPreviewLinks("<section></section>", 0), {
+    articleLinkCount: 0,
+  });
+  assert.throws(() => validateEditorialPreviewLinks(valid, 3));
   assert.throws(() =>
     validateEditorialPreviewLinks(
       valid.replace(
@@ -1133,6 +1138,24 @@ test("validates category-aware shared editorial preview links", () => {
       ),
       2,
     ),
+  );
+});
+
+test("derives About editorial cards from articles that remain public", () => {
+  const ids = ["article-one", "article-two", "article-three"];
+  const records = ids.map((id) => ({ id, coverImage: { src: `/${id}.webp` } }));
+
+  assert.equal(getAboutEditorialArticleCount(records, ids), 3);
+  assert.equal(getAboutEditorialArticleCount(records.slice(0, 2), ids), 2);
+  assert.equal(
+    getAboutEditorialArticleCount(
+      records.map((record) => ({ ...record, coverImage: null })),
+      ids,
+    ),
+    0,
+  );
+  assert.throws(() =>
+    getAboutEditorialArticleCount(records, ["article-one", "article-one", "article-three"]),
   );
 });
 

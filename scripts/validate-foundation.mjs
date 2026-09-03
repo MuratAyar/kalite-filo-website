@@ -47,6 +47,12 @@ const articleRecordsPath = path.join(
   "data",
   "article-records.json",
 );
+const aboutEditorialArticleIdsPath = path.join(
+  repositoryRoot,
+  "src",
+  "data",
+  "about-editorial-article-ids.json",
+);
 const articleContentRoot = path.join(
   repositoryRoot,
   "src",
@@ -1685,6 +1691,31 @@ export function validateEditorialPreviewLinks(html, expectedCount) {
   return { articleLinkCount: anchors.length };
 }
 
+export function getAboutEditorialArticleCount(articleRecords, articleIds) {
+  if (
+    !Array.isArray(articleIds) ||
+    articleIds.length !== 3 ||
+    new Set(articleIds).size !== articleIds.length ||
+    articleIds.some(
+      (articleId) =>
+        typeof articleId !== "string" ||
+        !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(articleId),
+    )
+  ) {
+    fail("About editorial selection must contain three unique article ids.");
+  }
+  if (!Array.isArray(articleRecords)) {
+    fail("About editorial validation requires the public article registry.");
+  }
+
+  const recordsById = new Map(
+    articleRecords.map((record) => [record?.id, record]),
+  );
+  return articleIds.filter((articleId) =>
+    Boolean(recordsById.get(articleId)?.coverImage),
+  ).length;
+}
+
 export function validateArticleDetailOutput(html) {
   const mainHtml = html.match(/<main\b[\s\S]*?<\/main>/i)?.[0];
   if (!mainHtml) {
@@ -2309,6 +2340,13 @@ function validateOutput(routes) {
     vehicleRecords.map((record) => `/arac-listesi/${record.slug}/`),
   );
   const articleRecords = JSON.parse(readFileSync(articleRecordsPath, "utf8"));
+  const aboutEditorialArticleIds = JSON.parse(
+    readFileSync(aboutEditorialArticleIdsPath, "utf8"),
+  );
+  const publicAboutEditorialArticleCount = getAboutEditorialArticleCount(
+    articleRecords,
+    aboutEditorialArticleIds,
+  );
   const articleCategoryPaths = new Set(
     [...new Set(articleRecords.map((record) => record.categoryId))]
       .map((category) => `/filo-rehberi/${category}/`),
@@ -2439,7 +2477,7 @@ function validateOutput(routes) {
 
     if (route.id === "about") {
       validateAboutOutput(html);
-      validateEditorialPreviewLinks(html, 3);
+      validateEditorialPreviewLinks(html, publicAboutEditorialArticleCount);
     }
 
     if (route.id === "faq") {

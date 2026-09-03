@@ -3619,3 +3619,17 @@ unavailable About editorial id produced all 140 static pages and assembled the
 staging release successfully. The normal 90-test Node/PHP suite, lint, strict
 typecheck, staging release assembly, production static export and exported
 output validation all pass locally.
+
+2026-09-03 withdrawn editorial output-verifier follow-up: request
+`publish-20260903-192219-6e532994524f` successfully built and assembled the
+136-page materialized staging release, then exposed a separate fixed-cardinality
+assumption in the final exported-output verifier. The About page rendered two
+valid editorial cards after one configured article was withdrawn, but the
+verifier still required exactly three. The three configured editorial ids now
+live in one JSON source shared by Turkish/English copy and the Node verifier.
+Final validation derives the exact expected card count by intersecting that
+selection with public article records that still have a cover, while preserving
+unique category-aware link checks. Unit coverage includes three, two and zero
+available records plus malformed/duplicate selection rejection. A dedicated
+preflight with one deliberately unavailable selection completed both staging
+release assembly and `verify:output` successfully.

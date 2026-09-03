@@ -1,5 +1,7 @@
 import type { AboutPageContent } from "./about";
 
+import aboutEditorialArticleIds from "./about-editorial-article-ids.json";
+
 export const englishAboutPageContent = {
   publicationStatus: "draft",
   metadata: { description: "Discover Kalite Filo’s approach to corporate vehicle leasing, fleet management and structured operational processes." },
@@ -59,6 +61,6 @@ export const englishAboutPageContent = {
     title: "Explore the World of Fleet Management", intro: "Read about corporate vehicle leasing, vehicle selection and fleet costs.",
     emptyState: { title: "Content is being prepared", body: "Approved Fleet Guide articles will appear here when their English editions are ready." },
     allAction: { label: "View All" },
-    articleIds: ["operasyonel-arac-kiralama-nedir", "kurumsal-filoda-dogru-arac-secimi", "filo-toplam-sahip-olma-maliyeti-tco"],
+    articleIds: aboutEditorialArticleIds,
   },
 } satisfies AboutPageContent;

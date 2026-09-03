@@ -1,5 +1,7 @@
 import type { HomeEditorialCopy } from "@/types";
 
+import aboutEditorialArticleIds from "./about-editorial-article-ids.json";
+
 export const aboutPageContent = {
   publicationStatus: "draft",
   metadata: {
@@ -167,11 +169,7 @@ export const aboutPageContent = {
     allAction: {
       label: "Tümünü Görüntüle",
     },
-    articleIds: [
-      "operasyonel-arac-kiralama-nedir",
-      "kurumsal-filoda-dogru-arac-secimi",
-      "filo-toplam-sahip-olma-maliyeti-tco",
-    ],
+    articleIds: aboutEditorialArticleIds,
   } satisfies HomeEditorialCopy & { readonly articleIds: readonly string[] },
 } as const;
 
