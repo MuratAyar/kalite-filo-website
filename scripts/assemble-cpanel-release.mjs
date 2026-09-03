@@ -310,6 +310,7 @@ export function assembleCpanelRelease(target, repositoryRoot = defaultRepository
     "publishing.php",
     "publishing-change-revert.php",
     "publishing-history.php",
+    "publish-cancel.php",
     "publish-staging.php",
     "publish-restore.php",
     "publish-request-download.php",

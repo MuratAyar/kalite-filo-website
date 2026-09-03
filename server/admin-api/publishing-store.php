@@ -427,8 +427,45 @@ function kalite_filo_admin_publish_request_is_stale(array $record, ?int $now = n
     if (!is_string($timestamp)) return true;
     $updatedAt = strtotime($timestamp);
     if ($updatedAt === false) return true;
-    $threshold = $status === 'running' ? 45 * 60 : 20 * 60;
+    $threshold = 20 * 60;
     return ($now ?? time()) - $updatedAt >= $threshold;
+}
+
+/** @return array<string,mixed> */
+function kalite_filo_admin_cancel_publish_request(string $id): array
+{
+    $record = kalite_filo_admin_publish_request($id);
+    if ($record === null) throw new OutOfBoundsException('Publish request was not found.');
+    if (!kalite_filo_admin_publish_request_is_in_flight($record)) {
+        throw new DomainException('Only an active publish request can be cancelled.');
+    }
+    $completedAt = gmdate('c');
+    $record['status'] = 'cancelled';
+    $record['completedAt'] = $completedAt;
+    $record['result'] = [
+        'outcome' => 'failed',
+        'manifestHash' => null,
+        'artifactHash' => null,
+        'stages' => [
+            'materialization' => 'failed',
+            'validation' => 'skipped',
+            'build' => 'skipped',
+            'release' => 'skipped',
+            'deployment' => 'skipped',
+            'smoke' => 'skipped',
+        ],
+        'summary' => 'Admin kullanıcısı tarafından iptal edildi.',
+        'reportedAt' => $completedAt,
+        'reportedBy' => $_SESSION['identity']['id'] ?? null,
+    ];
+    $automation = is_array($record['automation'] ?? null) ? $record['automation'] : [];
+    $record['automation'] = array_merge($automation, [
+        'status' => 'cancelled',
+        'updatedAt' => $completedAt,
+        'errorCode' => 'cancelled_by_admin',
+    ]);
+    kalite_filo_admin_replace_publish_request($record);
+    return $record;
 }
 
 function kalite_filo_admin_publish_request_is_in_flight(array $record): bool

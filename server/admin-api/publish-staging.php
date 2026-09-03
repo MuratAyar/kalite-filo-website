@@ -25,7 +25,7 @@ try {
         $updatedAt = is_string($automation['updatedAt'] ?? null) ? strtotime($automation['updatedAt']) : false;
         $age = is_int($updatedAt) ? time() - $updatedAt : PHP_INT_MAX;
         $stale = in_array($automationState, ['dispatching', 'queued'], true) && $age > 1200
-            || in_array($automationState, ['running', 'deploying'], true) && $age > 2700;
+            || in_array($automationState, ['running', 'deploying'], true) && $age > 1200;
         $shouldDispatch = !in_array($automationState, ['queued', 'running', 'deploying', 'succeeded'], true) || $stale;
         if ($shouldDispatch) {
             if ($stale) { $record['status'] = 'awaiting_runner'; $record['startedAt'] = null; }

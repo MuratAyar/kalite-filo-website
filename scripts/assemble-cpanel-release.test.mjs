@@ -114,6 +114,7 @@ function createFixture(name) {
     "publishing.php",
     "publishing-change-revert.php",
     "publishing-history.php",
+    "publish-cancel.php",
     "publish-staging.php",
     "publish-restore.php",
     "publish-request-download.php",
@@ -250,6 +251,7 @@ test("release assembly includes the complete Composer mail runtime and no privat
     "admin-api/publishing-store.php",
     "admin-api/publishing.php",
     "admin-api/publishing-change-revert.php",
+    "admin-api/publish-cancel.php",
     "admin-api/publish-staging.php",
     "admin-api/_content-snapshot.php",
   ]) {

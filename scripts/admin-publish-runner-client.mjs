@@ -14,19 +14,24 @@ export function runnerCredentials(environment = process.env) {
 
 export function runnerHeaders(credentials, extra = {}) {
   return {
+    "Accept": "application/json",
+    "User-Agent": "Kalite-Filo-Staging-Publisher/1.0",
     "X-Kalite-Runner-Token": credentials.token,
     "X-Kalite-Runner-Run-Id": credentials.runId,
     ...extra,
   };
 }
 
-export async function withRunnerRetry(operation, attempts = 3) {
+export async function withRunnerRetry(operation, attempts = 5) {
   let lastError;
   for (let attempt = 1; attempt <= attempts; attempt++) {
     try { return await operation(); }
     catch (error) {
       lastError = error;
-      if (attempt < attempts) await new Promise((resolve) => setTimeout(resolve, attempt * 750));
+      if (attempt < attempts) {
+        const delayMs = Math.min(15_000, 1_500 * (2 ** (attempt - 1)));
+        await new Promise((resolve) => setTimeout(resolve, delayMs));
+      }
     }
   }
   throw lastError;

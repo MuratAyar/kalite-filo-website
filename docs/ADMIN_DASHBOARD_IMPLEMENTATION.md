@@ -3549,3 +3549,23 @@ now derives card, image and price counts from the materialized approved-price
 mapping and derives placeholder coverage from that same count. This preserves
 the media contract while allowing intentional publish/unpublish operations to
 change catalogue cardinality. The complete local Node/PHP test suite passes.
+
+2026-09-03 staging runner transport hardening: GitHub Actions run `33786847604`
+was intercepted before request claim by the staging hosting layer, which
+returned an HTTP 200 HTML document of roughly 12 KB to both authenticated
+runner endpoints instead of their PHP JSON contract. The same live endpoint
+continues to return the expected secured JSON response to an unauthenticated
+request, so application routing and PHP loading remain intact. Runner requests
+now identify themselves with a stable bounded API User-Agent, explicitly
+accept JSON, and use five exponentially spaced attempts (up to 15 seconds
+between attempts) so a transient LiteSpeed/WAF response does not immediately
+strand a frozen publication request. Tokens remain header-only.
+
+2026-09-03 active publish cancellation: Owner/Admin users can now terminate an
+`awaiting_runner` or `running` staging request directly from the active-request
+panel after confirmation. The CSRF/same-origin protected PHP endpoint records
+the terminal cancellation, actor and audit event; the frozen draft changes are
+left untouched and immediately become eligible for a new staging request. A
+late runner can no longer claim, download media for or deploy the cancelled
+snapshot. Both queued and running stale thresholds are also bounded to 20
+minutes instead of the previous 45-minute running timeout.

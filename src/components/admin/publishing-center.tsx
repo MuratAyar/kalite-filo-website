@@ -30,6 +30,7 @@ const statusLabels: Record<string, string> = {
   dispatch_failed: "Başlatılamadı",
   deploying: "Staging kuruluyor",
   succeeded: "Tamamlandı",
+  cancelled: "İptal edildi",
 };
 
 const actionLabels: Record<ChangeDetail["action"], string> = {
@@ -146,6 +147,29 @@ export function PublishingCenter({ csrfToken, canRequest, canClearHistory }: { c
     finally { setHistoryAction(""); }
   }
 
+  async function cancelActiveRequest() {
+    if (!activeRequest || !window.confirm("Devam eden staging isteğini iptal etmek istediğinize emin misiniz? GitHub Actions işlemi devam ediyorsa artık bu snapshot'ı kuramayacaktır.")) return;
+    setHistoryAction(`cancel:${activeRequest.id}`); setError(""); setNotice("");
+    try {
+      const response = await fetch("/admin-api/publish-cancel.php", {
+        method: "POST",
+        credentials: "same-origin",
+        headers: { "Content-Type": "application/json", "X-CSRF-Token": csrfToken },
+        body: JSON.stringify({ requestId: activeRequest.id, confirmation: "YAYINI İPTAL ET" }),
+      });
+      const payload = await response.json();
+      if (!response.ok) {
+        if (payload?.error === "not_active") throw new Error("Bu staging isteği artık aktif değil; durum yenilendi.");
+        throw new Error("Staging isteği iptal edilemedi.");
+      }
+      await load();
+      setNotice("Staging isteği iptal edildi. Yayınlanmamış değişiklikleriniz korunuyor; yeni bir staging oluşturabilirsiniz.");
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : "Staging isteği iptal edilemedi.");
+      await load();
+    } finally { setHistoryAction(""); }
+  }
+
   async function revertChange(change: Change, detail?: ChangeDetail) {
     const target=detail?.entity ?? change.label;
     if (!window.confirm(`"${target}" için draft değişikliklerini geri almak istediğinize emin misiniz? Bu işlem henüz staging'e alınmayan değişiklikleri kaldıracaktır.`)) return;
@@ -210,7 +234,7 @@ export function PublishingCenter({ csrfToken, canRequest, canClearHistory }: { c
 
     {loading ? <p className="mt-6 text-text-secondary">Yükleniyor...</p> : <>
       {activeRequest ? <section className="mt-6 rounded-card border border-corporate-blue/25 bg-corporate-blue/5 p-5">
-        <div className="flex flex-wrap items-center justify-between gap-3"><div><h3 className="text-lg font-bold">Aşağıdaki Değişiklikler Canlıya Alınıyor...</h3><p className="mt-1 text-sm text-text-secondary">{requestStatus(activeRequest)} · {activeRequest.id}</p></div><span className="rounded-pill bg-corporate-blue px-3 py-1 text-xs font-bold text-white">{publishingChanges.length} değişiklik</span></div>
+        <div className="flex flex-wrap items-center justify-between gap-3"><div><h3 className="text-lg font-bold">Aşağıdaki Değişiklikler Canlıya Alınıyor...</h3><p className="mt-1 text-sm text-text-secondary">{requestStatus(activeRequest)} · {activeRequest.id}</p></div><div className="flex flex-wrap items-center gap-2"><span className="rounded-pill bg-corporate-blue px-3 py-1 text-xs font-bold text-white">{publishingChanges.length} değişiklik</span>{canRequest ? <button className="min-h-9 rounded-control border border-error/40 bg-white px-3 text-sm font-semibold text-error transition hover:bg-error-surface disabled:opacity-50" disabled={historyAction !== ""} onClick={() => void cancelActiveRequest()} type="button">{historyAction === `cancel:${activeRequest.id}` ? "İptal ediliyor..." : "İsteği İptal Et"}</button> : null}</div></div>
         {publishingChanges.length > 0 ? <ul className="mt-4 grid gap-3">{publishingChanges.map((change) => <li className="rounded-control border border-corporate-blue/15 bg-surface-card p-4" key={change.id}><div className="flex flex-wrap items-center justify-between gap-2"><strong>{change.label}</strong><span className="text-xs text-text-secondary">{change.updatedAt ? new Date(change.updatedAt).toLocaleString("tr-TR") : change.type}</span></div><ChangeDetails change={change} emptyText="Bu snapshot için alan bazlı değişiklik bilgisi bulunmuyor." /></li>)}</ul> : null}
       </section> : null}
       <section className="mt-6 rounded-card border bg-surface-card p-5">

@@ -25,3 +25,17 @@ fwrite(STDOUT,"Admin publishing change detail tests passed.\n");
 publish_assert(kalite_filo_admin_publish_request_is_in_flight(['status'=>'awaiting_runner','automation'=>['status'=>'queued']]),'A queued staging snapshot must be classified as in flight.');
 publish_assert(kalite_filo_admin_publish_request_is_in_flight(['status'=>'running','automation'=>['status'=>'deploying']]),'A deploying staging snapshot must be classified as in flight.');
 publish_assert(!kalite_filo_admin_publish_request_is_in_flight(['status'=>'awaiting_runner','automation'=>['status'=>'dispatch_failed']]),'A failed dispatch must return its changes to the unpublished list.');
+
+$root=sys_get_temp_dir().DIRECTORY_SEPARATOR.'kalite-filo-publish-cancel-'.bin2hex(random_bytes(5));
+try {
+    mkdir(dirname(kalite_filo_admin_vehicle_store_path()),0700,true);
+    file_put_contents(kalite_filo_admin_vehicle_store_path(),'{}');
+    file_put_contents(kalite_filo_admin_article_store_path(),'{}');
+    $_SESSION['identity']=['id'=>'owner'];
+    $request=kalite_filo_admin_create_staging_publish_request();
+    $cancelled=kalite_filo_admin_cancel_publish_request($request['id']);
+    publish_assert($cancelled['status']==='cancelled'&&($cancelled['automation']['status']??null)==='cancelled'&&($cancelled['result']['reportedBy']??null)==='owner','An authorized cancellation must immediately terminate the active request.');
+    publish_assert(!kalite_filo_admin_publish_request_is_in_flight($cancelled),'A cancelled request must not block a new staging snapshot.');
+    try{kalite_filo_admin_cancel_publish_request($request['id']);throw new RuntimeException('A terminal request must not be cancelled twice.');}catch(DomainException){}
+} finally { publish_remove($root); }
+fwrite(STDOUT,"Admin publishing cancellation tests passed.\n");

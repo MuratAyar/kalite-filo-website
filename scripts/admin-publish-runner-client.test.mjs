@@ -9,7 +9,10 @@ import { requiredPrivateMedia } from "./fetch-staging-publish-inputs.mjs";
 
 test("requires bounded machine credentials and emits no query-string secret", () => {
   const credentials = runnerCredentials({ KALITE_FILO_STAGING_RUNNER_TOKEN: "a".repeat(64), GITHUB_RUN_ID: "12345" });
-  assert.equal(runnerHeaders(credentials)["X-Kalite-Runner-Token"], "a".repeat(64));
+  const headers = runnerHeaders(credentials);
+  assert.equal(headers["X-Kalite-Runner-Token"], "a".repeat(64));
+  assert.equal(headers.Accept, "application/json");
+  assert.equal(headers["User-Agent"], "Kalite-Filo-Staging-Publisher/1.0");
   assert.throws(() => runnerCredentials({ KALITE_FILO_STAGING_RUNNER_TOKEN: "short", GITHUB_RUN_ID: "1" }), /token/);
 });
 
