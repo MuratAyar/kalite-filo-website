@@ -18,6 +18,12 @@ const repositoryRoot = path.resolve(
 );
 const outputRoot = path.join(repositoryRoot, "out");
 const screenshotMode = process.argv.includes("--screenshots");
+const vehicleRecords = JSON.parse(readFileSync(
+  path.join(repositoryRoot, "src", "data", "vehicle-portfolio.json"),
+  "utf8",
+));
+const expectedVehicleCount = vehicleRecords.length;
+const expectedRenaultCount = vehicleRecords.filter((record) => record.make === "Renault").length;
 const expectedFeaturedVehicleCards = [
   { priceTry: 40_200, sourceId: "KF-001" },
   { priceTry: 39_000, sourceId: "KF-002" },
@@ -737,12 +743,12 @@ try {
   if (
     emptyFilterState.pathname !== "/arac-listesi/" ||
     emptyFilterState.search !== "" ||
-    emptyFilterState.resultCount !== 32 ||
+    emptyFilterState.resultCount !== expectedVehicleCount ||
     makeOnlyFilterState.pathname !== "/arac-listesi/" ||
     makeOnlyFilterState.search !== "?marka=Renault" ||
     makeOnlyFilterState.makeValue !== "Renault" ||
     makeOnlyFilterState.modelValue !== "" ||
-    makeOnlyFilterState.resultCount !== 4 ||
+    makeOnlyFilterState.resultCount !== expectedRenaultCount ||
     fleetSolutionNavigationState.pathname !== "/arac-listesi/" ||
     fleetSolutionNavigationState.search !== "" ||
     activeNavigationStates.some(

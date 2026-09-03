@@ -1955,7 +1955,11 @@ export function validateFaqOutput(html) {
   return { itemCount };
 }
 
-export function validateFleetGuideOutput(html) {
+export function validateFleetGuideOutput(html, options = {}) {
+  const { expectedRecordCount = 18 } = options;
+  if (!Number.isSafeInteger(expectedRecordCount) || expectedRecordCount < 6) {
+    fail("Filo Rehberi expected record count is invalid.");
+  }
   const mainHtml = html.match(/<main\b[\s\S]*?<\/main>/i)?.[0];
   if (!mainHtml) {
     fail("Filo Rehberi output is missing its main landmark.");
@@ -2005,7 +2009,6 @@ export function validateFleetGuideOutput(html) {
     listingTag?.match(/data-fleet-guide-page-count=["'](\d+)["']/i)?.[1],
   );
 
-  const expectedRecordCount = JSON.parse(readFileSync(articleRecordsPath, "utf8")).length;
   const expectedVisibleCount = 1 + Math.min(6, Math.max(0, expectedRecordCount - 1));
   if (listingCount !== 1 || articleCount !== expectedVisibleCount || featuredCount !== 1) {
     fail(
@@ -2445,7 +2448,7 @@ function validateOutput(routes) {
     }
 
     if (route.id === "fleet-guide") {
-      validateFleetGuideOutput(html);
+      validateFleetGuideOutput(html, { expectedRecordCount: articleRecords.length });
     }
 
     if (route.id === "quote") {
@@ -2636,8 +2639,11 @@ function validateOutput(routes) {
     if (getCanonicalHref(html) !== new URL(concretePath, environment.origin).toString()) {
       fail(`${context} has an unexpected canonical URL.`);
     }
-    if ((html.match(/data-fleet-guide-article=["']true["']/gi) ?? []).length !== 3) {
-      fail(`${context} must render exactly its three supplied articles.`);
+    const categoryId = concretePath.split("/").filter(Boolean).at(-1);
+    const categoryRecordCount = articleRecords.filter((record) => record.categoryId === categoryId).length;
+    const expectedCategoryCardCount = 1 + Math.min(6, Math.max(0, categoryRecordCount - 1));
+    if ((html.match(/data-fleet-guide-article=["']true["']/gi) ?? []).length !== expectedCategoryCardCount) {
+      fail(`${context} must render cards matching its materialized category records.`);
     }
   }
 

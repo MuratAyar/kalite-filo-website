@@ -12,6 +12,10 @@ import { createServer } from "node:http";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import {
+  getVehicleFuelGroup,
+  getVehicleTransmissionGroup,
+} from "../src/lib/vehicle-catalogue-filters.mjs";
 
 const repositoryRoot = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
@@ -31,6 +35,33 @@ const expectedPricesTry = Object.fromEntries(
     amountMinor / 100,
   ]),
 );
+const vehicleRecords = JSON.parse(readFileSync(
+  path.join(repositoryRoot, "src", "data", "vehicle-portfolio.json"),
+  "utf8",
+));
+const vehicleMedia = JSON.parse(readFileSync(
+  path.join(repositoryRoot, "src", "data", "vehicle-media.json"),
+  "utf8",
+));
+const expectedVehicleCount = vehicleRecords.length;
+const mediaByVehicle = new Map();
+for (const media of vehicleMedia.records) {
+  const records = mediaByVehicle.get(media.vehicleId) ?? [];
+  records.push(media);
+  records.sort((left, right) => (left.sortOrder ?? 1) - (right.sortOrder ?? 1));
+  mediaByVehicle.set(media.vehicleId, records);
+}
+const expectedCardImageSources = vehicleRecords.map((record) => {
+  const cover = mediaByVehicle.get(record.id)?.[0];
+  return cover ? `/images/vehicles/cards/${cover.fileName}` : "/images/vehicles/cards/vehicle-placeholder.jpg";
+});
+const expectedMissingImageCount = expectedCardImageSources.filter((source) => source.endsWith("/vehicle-placeholder.jpg")).length;
+const expectedUniqueImageCount = new Set(expectedCardImageSources).size;
+const expectedTransmissionDisplayCounts = vehicleRecords.reduce((counts, record) => {
+  const group = getVehicleTransmissionGroup(record.transmissionLabel);
+  if (group) counts[group] = (counts[group] ?? 0) + 1;
+  return counts;
+}, {});
 const temporaryRoot = mkdtempSync(
   path.join(tmpdir(), "kalite-filo-vehicles-qa-"),
 );
@@ -483,38 +514,38 @@ try {
       report.h1Count !== 1 ||
       report.h1Text !== "Uzun Dönem Kiralık Araçlar" ||
       report.catalogueCount !== 1 ||
-      report.cardCount !== 32 ||
-      report.resultCount !== 32 ||
-      report.imageCount !== 32 ||
-      report.uniqueImageCount !== 29 ||
-      report.missingImageCount !== 4 ||
+      report.cardCount !== expectedVehicleCount ||
+      report.resultCount !== expectedVehicleCount ||
+      report.imageCount !== expectedVehicleCount ||
+      report.uniqueImageCount !== expectedUniqueImageCount ||
+      report.missingImageCount !== expectedMissingImageCount ||
       report.quoteCount !== 0 ||
-      report.fullCardLinkCount !== 32 ||
+      report.fullCardLinkCount !== expectedVehicleCount ||
       report.nestedCardLinkCount !== 0 ||
-      report.cardCtaCount !== 32 ||
-      report.cardCtaHoverCount !== 32 ||
-      report.detailLinkCount !== 32 ||
+      report.cardCtaCount !== expectedVehicleCount ||
+      report.cardCtaHoverCount !== expectedVehicleCount ||
+      report.detailLinkCount !== expectedVehicleCount ||
       report.hasObsoleteQuoteOnlyPriceCopy ||
-      report.priceBlockCount !== 32 ||
+      report.priceBlockCount !== expectedVehicleCount ||
       report.monthlyListNetLabelCount !== 0 ||
-      report.vatExcludedLabelCount !== 32 ||
-      report.validPricePresentationCount !== 32 ||
-      report.factGroupCount !== 32 ||
-      report.factItemCount !== 64 ||
-      report.cardsWithTwoFacts !== 32 ||
-      report.factSingleRowLayoutCount !== 32 ||
-      report.cardsWithFactsStartingOnSingleRow !== 32 ||
-      report.validTransmissionDisplayCount !== 32 ||
-      report.transmissionDisplayCounts.Otomatik !== 10 ||
-      report.transmissionDisplayCounts['Yarı Otomatik'] !== 17 ||
-      report.transmissionDisplayCounts.Manuel !== 5 ||
-      report.mediaGroupCount !== 32 ||
+      report.vatExcludedLabelCount !== expectedVehicleCount ||
+      report.validPricePresentationCount !== expectedVehicleCount ||
+      report.factGroupCount !== expectedVehicleCount ||
+      report.factItemCount !== expectedVehicleCount * 2 ||
+      report.cardsWithTwoFacts !== expectedVehicleCount ||
+      report.factSingleRowLayoutCount !== expectedVehicleCount ||
+      report.cardsWithFactsStartingOnSingleRow !== expectedVehicleCount ||
+      report.validTransmissionDisplayCount !== expectedVehicleCount ||
+      report.transmissionDisplayCounts.Otomatik !== (expectedTransmissionDisplayCounts.Otomatik ?? 0) ||
+      report.transmissionDisplayCounts['Yarı Otomatik'] !== (expectedTransmissionDisplayCounts['Yarı Otomatik'] ?? 0) ||
+      report.transmissionDisplayCounts.Manuel !== (expectedTransmissionDisplayCounts.Manuel ?? 0) ||
+      report.mediaGroupCount !== expectedVehicleCount ||
       report.cardsWithCategoryBadgeText !== 0 ||
       report.perCardCreditLinkCount !== 0 ||
       report.cardsWithPerCardCreditText !== 0 ||
       report.imageCreditComponentCount !== 0 ||
       report.vehicleLicenseLedgerCount !== 0 ||
-      Object.keys(report.renderedPricesTry).length !== 32 ||
+      Object.keys(report.renderedPricesTry).length !== expectedVehicleCount ||
       Object.entries(expectedPricesTry).some(
         ([sourceId, amountTry]) =>
           report.renderedPricesTry[sourceId] !== amountTry,
@@ -602,30 +633,34 @@ try {
       ?.getAttribute('data-vehicle-filter-count')),
   })`);
 
+  const expectedRenault = vehicleRecords.filter((record) => record.make === "Renault");
+  const expectedRenaultModels = [...expectedRenault.map((record) => record.model)]
+    .sort((left, right) => left.localeCompare(right, "tr-TR"));
+  const expectedSuvCount = vehicleRecords.filter((record) => record.categoryLabel === "SUV").length;
+  const expectedElectric = vehicleRecords.filter((record) => getVehicleFuelGroup(record.fuelLabel) === "Elektrik");
+
   if (
-    renaultState.count !== 4 ||
+    renaultState.count !== expectedRenault.length ||
     renaultState.query !== "?marka=Renault" ||
     renaultState.modelDisabled !== false ||
-    renaultState.modelOptions.join("|") !==
-      "|Austral|Clio|Duster|Megane Sedan" ||
-    renaultState.headings.join("|") !==
-      "Renault Clio|Renault Megane Sedan|Renault Duster|Renault Austral" ||
+    renaultState.modelOptions.join("|") !== `|${expectedRenaultModels.join("|")}` ||
+    renaultState.headings.join("|") !== expectedRenault.map((record) => `${record.make} ${record.model}`).join("|") ||
     clioState.count !== 1 ||
     clioState.query !== "?marka=Renault&model=Clio" ||
     clioState.heading !== "Renault Clio" ||
     clioState.priceTry !== 40_200 ||
     !clickedSuv ||
-    suvState.count !== 13 ||
+    suvState.count !== expectedSuvCount ||
     suvState.query !== "?kategori=SUV" ||
     suvState.pressed !== "true" ||
-    electricState.count !== 2 ||
+    electricState.count !== expectedElectric.length ||
     electricState.query !== "?yakit=Elektrik" ||
-    electricState.headings.join("|") !== "Kia EV3|Tesla Model Y" ||
+    electricState.headings.join("|") !== expectedElectric.map((record) => `${record.make} ${record.model}`).sort().join("|") ||
     exactQueryState.count !== 1 ||
     exactQueryState.heading !== "Ford Transit Van" ||
     exactQueryState.priceTry !== 64_400 ||
     exactQueryState.filterCount !== 2 ||
-    unknownQueryState.count !== 32 ||
+    unknownQueryState.count !== expectedVehicleCount ||
     unknownQueryState.filterCount !== 0
   ) {
     throw new Error(
@@ -646,21 +681,24 @@ try {
       slug: "renault-clio-evolution-1-0-tce-x-tronic-90",
       title: "Renault Clio",
       trim: "Evolution 1.0 TCe X-Tronic 90",
-      relatedCount: 10,
     },
     {
       slug: "skoda-kamiq-1-0-tsi-115-dsg-premium-fl",
       title: "Škoda Kamiq",
       trim: "1.0 TSI 115 DSG Premium FL",
-      relatedCount: 12,
     },
     {
       slug: "fiat-doblo-cargo-1-5-bluehdi-100-6mt",
       title: "Fiat Doblo Cargo",
       trim: "1.5 BlueHDi 100 6MT",
-      relatedCount: 7,
     },
   ];
+  for (const detailCase of detailCases) {
+    const record = vehicleRecords.find((candidate) => candidate.slug === detailCase.slug);
+    detailCase.relatedCount = record
+      ? vehicleRecords.filter((candidate) => candidate.categoryLabel === record.categoryLabel && candidate.id !== record.id).length
+      : 0;
+  }
   const detailReports = [];
 
   for (const detailCase of detailCases) {
@@ -744,8 +782,8 @@ try {
             return !link || new URL(link.href).pathname !==
               '/arac-listesi/' + slug + '/';
           }).length,
-          priceContext: !main?.innerText.includes('Aylık Liste Net') &&
-            main?.innerText.includes('+ %20 KDV'),
+          priceContext: !main?.querySelector('[data-vehicle-offer-panel="true"]')?.innerText.includes('Aylık Liste Net') &&
+            main?.querySelector('[data-vehicle-offer-panel="true"]')?.innerText.includes('+ %20 KDV'),
           robots: document.querySelector('meta[name="robots"]')?.content,
           canonical: document.querySelector('link[rel="canonical"]')?.href,
           remoteResources: performance

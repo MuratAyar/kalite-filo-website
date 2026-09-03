@@ -3589,3 +3589,17 @@ smoke checks likewise calculate page/card/control counts dynamically and still
 require every visible card to have either a local WebP cover or an explicit
 missing-cover state. The immutable original 18-article source archive hash
 remains protected as provenance evidence.
+
+2026-09-03 end-to-end cardinality audit: the following run reached the Node
+suite after materializing 19 public article records, but the isolated 18-record
+HTML unit fixture was accidentally compared with the mutable on-disk registry.
+`validateFleetGuideOutput` now receives the expected cardinality explicitly in
+real output validation while its standalone fixture remains deterministic;
+regression cases cover 18, 19 and 20 articles, including the page-count boundary
+at 20. Category-route output checks now derive their visible card count from
+the materialized category records. A broader release audit also removed the
+remaining 32-vehicle assumptions from vehicle/Home browser smoke checks and
+derives catalogue, price, media, transmission, filter and related-card counts
+from the materialized vehicle registries. The Actions-equivalent Node/PHP suite,
+lint, strict typecheck, staging static build, output verification and cPanel
+staging release assembly all pass locally.

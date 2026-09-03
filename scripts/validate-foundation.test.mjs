@@ -194,6 +194,21 @@ test("validates the Filo Rehberi index output contract", () => {
     pageCount: 3,
     recordCount: 18,
   });
+  assert.deepEqual(
+    validateFleetGuideOutput(
+      validFleetGuide.replace('data-fleet-guide-record-count="18"', 'data-fleet-guide-record-count="19"'),
+      { expectedRecordCount: 19 },
+    ),
+    { articleCount: 7, categoryControlCount: 7, pageCount: 3, recordCount: 19 },
+  );
+  const twentyArticleFixture = validFleetGuide
+    .replace('data-fleet-guide-record-count="18"', 'data-fleet-guide-record-count="20"')
+    .replace('data-fleet-guide-page-count="3"', 'data-fleet-guide-page-count="4"')
+    .replace(
+      '<button data-fleet-guide-page-control="next"></button>',
+      '<button data-fleet-guide-page-control="4"></button><button data-fleet-guide-page-control="next"></button>',
+    );
+  assert.equal(validateFleetGuideOutput(twentyArticleFixture, { expectedRecordCount: 20 }).pageCount, 4);
   assert.throws(() =>
     validateFleetGuideOutput(
       validFleetGuide.replace('data-fleet-guide-featured="true"', ""),

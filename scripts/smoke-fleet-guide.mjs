@@ -270,6 +270,7 @@ try {
     pathname: location.pathname,
     h1: document.querySelectorAll('main h1').length,
     articles: document.querySelectorAll('[data-fleet-guide-article="true"]').length,
+    recordCount: Number(document.querySelector('[data-fleet-guide-listing="true"]')?.dataset.fleetGuideRecordCount),
     selected: [...document.querySelectorAll('[data-fleet-guide-category-control="true"][aria-current="page"]')]
       .map((link) => link.dataset.fleetGuideCategoryId),
     articleHrefs: [...document.querySelectorAll('[data-fleet-guide-article-link="true"]')]
@@ -279,7 +280,9 @@ try {
   })`);
   if (
     categoryReport.pathname !== "/filo-rehberi/uzun-donem-kiralama/" ||
-    categoryReport.h1 !== 1 || categoryReport.articles !== 3 ||
+    categoryReport.h1 !== 1 || !Number.isSafeInteger(categoryReport.recordCount) ||
+    categoryReport.recordCount < 1 ||
+    categoryReport.articles !== 1 + Math.min(6, categoryReport.recordCount - 1) ||
     categoryReport.selected.length !== 1 ||
     categoryReport.selected[0] !== "uzun-donem-kiralama" ||
     categoryReport.currentNav !== 2 || categoryReport.overflow ||
