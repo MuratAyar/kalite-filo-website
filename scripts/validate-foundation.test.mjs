@@ -879,7 +879,7 @@ test("locks Home featured vehicle prices to the approved source", () => {
   );
 });
 
-test("locks the exported vehicle catalogue to prices and 32/4 card media coverage", () => {
+test("locks the exported vehicle catalogue to its current prices and card media coverage", () => {
   assert.deepEqual(validateVehicleCatalogueOutput(createVehicleCatalogueFixture()), {
     cardCount: 32,
     imageCount: 32,
@@ -893,7 +893,7 @@ test("rejects incomplete, duplicated, mispriced, or incorrectly linked vehicle o
 
   assert.throws(
     () => validateVehicleCatalogueOutput(valid.replace(/<article[\s\S]*?<\/article>/, "")),
-    /exactly 32 portfolio cards/,
+    /must export exactly \d+ portfolio cards/,
   );
   assert.throws(
     () =>

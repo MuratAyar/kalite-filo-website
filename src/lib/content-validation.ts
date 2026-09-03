@@ -383,9 +383,9 @@ export function validateFoundationContent(): void {
     }
   }
 
-  if (vehiclePortfolio.length !== 32) {
+  if (vehiclePortfolio.length < 4) {
     throw new ContentValidationError(
-      "The owner-supplied vehicle portfolio must contain exactly 32 records.",
+      "The published vehicle portfolio must contain at least four records.",
     );
   }
 
@@ -405,7 +405,7 @@ export function validateFoundationContent(): void {
   }
 
   for (const vehicle of vehiclePortfolio) {
-    if (!/^KF-\d{3}$/.test(vehicle.sourceId)) {
+    if (!/^(?:KF-\d{3}|ADMIN-[A-F0-9]{8})$/.test(vehicle.sourceId)) {
       throw new ContentValidationError(
         `Vehicle portfolio ${vehicle.id} has a malformed source id.`,
       );

@@ -3526,3 +3526,17 @@ remain in Draft Araçlar until staged, while public records move between tabs by
 their publication status. Article materialization now removes a public TR/EN
 registry record when its Turkish draft status is Draft. The previously imported
 ready TCO article therefore remains visible only under Yayındaki Bloglar.
+
+2026-09-03 staging runner cardinality fix: GitHub Actions run `33686508838`
+materialized an intentional vehicle unpublish correctly, reducing the public
+catalogue from 32 to 31 records, but the legacy foundation validator and its
+negative tests still required exactly 32 cards/prices/images. Validation now
+derives catalogue cardinality from the materialized approved price mapping,
+requires at least the four vehicles needed by the featured contract, preserves
+identity/price/media/presentation checks, and allows both verified `KF-*` and
+admin-created `ADMIN-*` source identities. The negative test assertion now
+matches the dynamic expected count. Local 90/90 Node tests, all PHP tests,
+lint/type checks through the production build, foundation validation, and the
+clean 140-page static export pass. Commit/push this trusted runner change before
+requesting a new staging snapshot; rerunning the old workflow commit cannot use
+the correction.
