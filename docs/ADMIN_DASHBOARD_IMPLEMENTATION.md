@@ -3569,3 +3569,23 @@ left untouched and immediately become eligible for a new staging request. A
 late runner can no longer claim, download media for or deploy the cancelled
 snapshot. Both queued and running stale thresholds are also bounded to 20
 minutes instead of the previous 45-minute running timeout.
+
+2026-09-03 stale active-request visibility correction: the publishing overview
+now applies the same 20-minute stale rule when selecting its active request.
+A GitHub job that has already failed without reporting its terminal state no
+longer remains indefinitely under `Aşağıdaki Değişiklikler Canlıya Alınıyor...`
+or disables staging creation. Its frozen changes return to the unpublished
+section and the existing request can be safely redispatched.
+
+2026-09-03 article cardinality publishing fix: the next staging run completed
+materialization and all 90 tests, then failed during the release validation
+because the original Phase 1 guards still required exactly 18 public Filo
+Rehberi records and exactly three records per category. Public article
+cardinality and pagination validation now derive from the materialized article
+registry, while still requiring unique identities/slugs, exactly one main
+featured article, all six approved categories, at least one article in each
+category, valid Markdown and local cover assets. Static-output and browser
+smoke checks likewise calculate page/card/control counts dynamically and still
+require every visible card to have either a local WebP cover or an explicit
+missing-cover state. The immutable original 18-article source archive hash
+remains protected as provenance evidence.

@@ -22,8 +22,9 @@ try {
 } finally { publish_remove($root); }
 fwrite(STDOUT,"Admin publishing change detail tests passed.\n");
 
-publish_assert(kalite_filo_admin_publish_request_is_in_flight(['status'=>'awaiting_runner','automation'=>['status'=>'queued']]),'A queued staging snapshot must be classified as in flight.');
-publish_assert(kalite_filo_admin_publish_request_is_in_flight(['status'=>'running','automation'=>['status'=>'deploying']]),'A deploying staging snapshot must be classified as in flight.');
+publish_assert(kalite_filo_admin_publish_request_is_in_flight(['status'=>'awaiting_runner','automation'=>['status'=>'queued','updatedAt'=>gmdate('c')]]),'A queued staging snapshot must be classified as in flight.');
+publish_assert(kalite_filo_admin_publish_request_is_in_flight(['status'=>'running','automation'=>['status'=>'deploying','updatedAt'=>gmdate('c')]]),'A deploying staging snapshot must be classified as in flight.');
+publish_assert(!kalite_filo_admin_publish_request_is_in_flight(['status'=>'running','automation'=>['status'=>'running','updatedAt'=>'2020-01-01T00:00:00+00:00']]),'A stale runner must stop blocking and disappear from the active publish panel.');
 publish_assert(!kalite_filo_admin_publish_request_is_in_flight(['status'=>'awaiting_runner','automation'=>['status'=>'dispatch_failed']]),'A failed dispatch must return its changes to the unpublished list.');
 
 $root=sys_get_temp_dir().DIRECTORY_SEPARATOR.'kalite-filo-publish-cancel-'.bin2hex(random_bytes(5));

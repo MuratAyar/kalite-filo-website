@@ -179,7 +179,11 @@ try {
       const controls = () => [...document.querySelectorAll('[data-fleet-guide-category-control="true"]')];
       const articles = () => [...document.querySelectorAll('[data-fleet-guide-article="true"]')];
       const paginationReports = [];
-      for (const pageNumber of [2, 3, 1]) {
+      const listing = document.querySelector('[data-fleet-guide-listing="true"]');
+      const totalPages = Number(listing?.dataset.fleetGuidePageCount ?? 1);
+      const pageOrder = Array.from({ length: totalPages }, (_, index) => index + 1).filter((page) => page !== 1);
+      pageOrder.push(1);
+      for (const pageNumber of pageOrder) {
         window.scrollTo(0, document.documentElement.scrollHeight);
         document.querySelector('[data-fleet-guide-page-control="' + pageNumber + '"]')?.click();
         await new Promise((resolve) => setTimeout(resolve, 800));
@@ -194,7 +198,6 @@ try {
       }
       document.querySelector('[data-fleet-guide-page-control="1"]')?.click();
       await new Promise((resolve) => setTimeout(resolve, 30));
-      const listing = document.querySelector('[data-fleet-guide-listing="true"]');
       return {
         width: ${width},
         overflow: document.documentElement.scrollWidth > document.documentElement.clientWidth,
@@ -208,6 +211,7 @@ try {
         articleHrefs: [...document.querySelectorAll('[data-fleet-guide-article-link="true"]')]
           .map((link) => link.getAttribute('href')),
         images: document.querySelectorAll('[data-fleet-guide-listing] img[src^="/images/filo-rehberi/"]').length,
+        placeholders: document.querySelectorAll('[data-fleet-guide-cover-placeholder="true"]').length,
         blogLabels: [...document.querySelectorAll('main *')].filter((node) => node.textContent?.trim() === 'Blog').length,
         currentNav: document.querySelectorAll('header a[href="/filo-rehberi/"][aria-current="page"]').length,
         pageCount: listing?.dataset.fleetGuidePageCount,
@@ -228,30 +232,27 @@ try {
       ) &&
       report.selectedCategories.length === 1 &&
       report.selectedCategories[0] === "all";
-    const articleLinksWork = report.articleHrefs.length === 7 &&
+    const recordCount = Number(report.recordCount);
+    const pageCount = Math.max(1, Math.ceil(Math.max(0, recordCount - 1) / 6));
+    const firstPageArticles = 1 + Math.min(6, Math.max(0, recordCount - 1));
+    const articleLinksWork = report.articleHrefs.length === firstPageArticles &&
       report.articleHrefs.every((href) =>
         /^\/filo-rehberi\/[a-z0-9-]+\/[a-z0-9-]+\/$/.test(href)
       );
-    const expectedPages = new Map([
-      [1, { articles: 7, images: 6, placeholders: 1 }],
-      [2, { articles: 7, images: 1, placeholders: 6 }],
-      [3, { articles: 6, images: 1, placeholders: 5 }],
-    ]);
-    const paginationWorks = report.paginationReports.length === 3 &&
+    const paginationWorks = report.paginationReports.length === pageCount &&
       report.paginationReports.every((page) => {
-        const expected = expectedPages.get(page.pageNumber);
-        return expected && page.articles === expected.articles &&
-          page.images === expected.images &&
-          page.placeholders === expected.placeholders &&
+        const expectedArticles = 1 + Math.min(6, Math.max(0, recordCount - 1 - ((page.pageNumber - 1) * 6)));
+        return page.articles === expectedArticles &&
+          page.images + page.placeholders === page.articles &&
           page.current === String(page.pageNumber) && page.scrollY <= 2;
       });
     if (
-      report.overflow || report.h1 !== 1 || report.articles !== 7 ||
-      report.featured !== 1 || report.controls !== 7 || report.images !== 6 ||
+      report.overflow || report.h1 !== 1 || report.articles !== firstPageArticles ||
+      report.featured !== 1 || report.controls !== 7 || report.images + report.placeholders !== report.articles ||
       report.blogLabels !== 0 || report.currentNav !== 2 || !categoriesWork ||
       !articleLinksWork ||
-      !paginationWorks || report.pageCount !== "3" || report.pageSize !== "6" ||
-      report.recordCount !== "18" ||
+      !paginationWorks || report.pageCount !== String(pageCount) || report.pageSize !== "6" ||
+      !Number.isSafeInteger(recordCount) || recordCount < 6 ||
       report.remote.length !== 0
     ) {
       throw new Error(`Filo Rehberi browser QA failed: ${JSON.stringify(report)}`);

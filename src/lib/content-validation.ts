@@ -288,9 +288,9 @@ export function validateFoundationContent(): void {
   validateIds(legalPages, "legal page");
 
   const articleCategoryIds = new Set(articleCategories.map(({ id }) => id));
-  if (articles.length !== 18) {
+  if (articles.length < articleCategories.length) {
     throw new ContentValidationError(
-      "The approved Filo Rehberi source must contain exactly 18 articles.",
+      "Filo Rehberi must contain at least one article for each approved category.",
     );
   }
   if (articles.filter((article) => article.featured).length !== 1) {
@@ -301,10 +301,10 @@ export function validateFoundationContent(): void {
   for (const category of articleCategories) {
     assertNonEmptyString(category.label, `article category ${category.id} label`);
     if (
-      articles.filter((article) => article.categoryId === category.id).length !== 3
+      articles.filter((article) => article.categoryId === category.id).length < 1
     ) {
       throw new ContentValidationError(
-        `Article category ${category.id} must contain exactly three supplied articles.`,
+        `Article category ${category.id} must contain at least one article.`,
       );
     }
   }

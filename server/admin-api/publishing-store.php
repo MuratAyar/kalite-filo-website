@@ -473,8 +473,9 @@ function kalite_filo_admin_publish_request_is_in_flight(array $record): bool
     if (!in_array($record['status'] ?? null, ['awaiting_runner', 'running'], true)) return false;
     $automation = is_array($record['automation'] ?? null) ? $record['automation'] : [];
     $automationStatus = $automation['status'] ?? null;
-    return $automationStatus === null
+    $active = $automationStatus === null
         || in_array($automationStatus, ['dispatching', 'queued', 'running', 'deploying'], true);
+    return $active && !kalite_filo_admin_publish_request_is_stale($record);
 }
 
 /** @return array{deleted:int,deletedStale:int,preservedActive:int,preservedCurrent:int} */
