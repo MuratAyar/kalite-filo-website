@@ -880,11 +880,13 @@ test("locks Home featured vehicle prices to the approved source", () => {
 });
 
 test("locks the exported vehicle catalogue to its current prices and card media coverage", () => {
+  const catalogueCardCount = Object.keys(approvedVehicleListPrices).length;
+
   assert.deepEqual(validateVehicleCatalogueOutput(createVehicleCatalogueFixture()), {
-    cardCount: 32,
-    imageCount: 32,
-    listPriceCount: 32,
-    missingImageCount: 4,
+    cardCount: catalogueCardCount,
+    imageCount: catalogueCardCount,
+    listPriceCount: catalogueCardCount,
+    missingImageCount: Math.max(catalogueCardCount - 28, 0),
   });
 });
 

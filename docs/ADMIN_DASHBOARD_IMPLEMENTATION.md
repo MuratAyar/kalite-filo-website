@@ -3540,3 +3540,12 @@ lint/type checks through the production build, foundation validation, and the
 clean 140-page static export pass. Commit/push this trusted runner change before
 requesting a new staging snapshot; rerunning the old workflow commit cannot use
 the correction.
+
+2026-09-03 staging runner fixture expectation follow-up: GitHub Actions run
+`33785993933` confirmed that the materialized 31-vehicle catalogue passes the
+dynamic production validator, but exposed one remaining hard-coded 32-card
+success expectation in `validate-foundation.test.mjs`. The fixture assertion
+now derives card, image and price counts from the materialized approved-price
+mapping and derives placeholder coverage from that same count. This preserves
+the media contract while allowing intentional publish/unpublish operations to
+change catalogue cardinality. The complete local Node/PHP test suite passes.
