@@ -14,6 +14,8 @@ type Contact = {
   iys_status: string;
   iys_synced_at: string;
   recipient_type: string;
+  sources?: string[];
+  source_count?: number;
 };
 const control =
   "min-h-11 rounded-control border border-border-control bg-white px-3";
@@ -232,7 +234,8 @@ export function SubscriberListView({
                 <td className="px-4 py-4 font-semibold">{record.email}</td>
                 <td className="px-4 py-4">{record.status}</td>
                 <td className="px-4 py-4">
-                  {sources[record.consent_source] ?? record.consent_source}
+                  <span className="block">{sources[record.consent_source] ?? record.consent_source}</span>
+                  {(record.source_count ?? 1) > 1 ? <span className="mt-1 block text-xs text-text-secondary">{record.source_count} kaynakta görüldü</span> : null}
                 </td>
                 <td className="px-4 py-4">
                   <span className="block">

@@ -8,6 +8,15 @@ the status and handoff sections before ending.
 
 ## Current Status
 
+The 2026-09-06 newsletter-contact deduplication pass is complete locally.
+`Bülten Kişileri` now returns one resolved row per normalized email instead of
+repeating the address for every form source. The first consent-backed approved
+row remains the representative consent record, an unsubscribe state wins
+fail-closed, earliest creation/latest update dates are retained, and all unique
+sources remain available for source filtering and a compact source-count note.
+Filtering, sorting, totals and pagination run after consolidation. Raw CSV
+evidence rows are not deleted or rewritten by this read-model change.
+
 The 2026-09-06 Dashboard metric navigation and draft-count correction is
 complete locally. Published vehicles, published blogs, active newsletter
 contacts, draft content and the restored IYS-pending metric are keyboard-
@@ -2036,6 +2045,13 @@ src/app/robots.ts                          (update)
 
 ## Files Changed
 
+Current 2026-09-06 newsletter-contact deduplication:
+
+- `server/admin-api/read-model.php`
+- `server/admin-api/tests/dashboard.test.php`
+- `src/components/admin/subscriber-list-view.tsx`
+- `docs/ADMIN_DASHBOARD_IMPLEMENTATION.md`
+
 Current 2026-09-06 Dashboard navigation/draft-count correction:
 
 - `src/components/admin/admin-dashboard.tsx`
@@ -2517,6 +2533,15 @@ Current Phase 6 test-mail continuation:
 - `server/admin-api/tests/media-store.test.php`
 
 ## Validation Results
+
+2026-09-06 newsletter-contact deduplication:
+
+- Dashboard read-model coverage verifies one visible row for a duplicated
+  approved email, preservation of its first consent record and two-source
+  count, unique-email sorting, and deduplicated IYS totals.
+- All 95 project-owned PHP files pass syntax validation; the complete PHP and
+  Node test suites, lint, strict TypeScript checks, the 140-page production
+  static export, exported-output validation and `git diff --check` all pass.
 
 2026-09-06 Dashboard navigation/draft-count correction:
 
@@ -3172,6 +3197,14 @@ still excludes missing consent and unsubscribed rows. No recipient list is sent
 to the browser and no delivery endpoint is packaged.
 
 ## Session Handoff
+
+2026-09-06 newsletter deduplication handoff: deploy the PHP read model and
+static admin bundle together, then open Bülten Kişileri with an address known to
+exist in newsletter and contact/quote sources. It must appear once, retain its
+first valid consent evidence and show a compact multi-source count. Verify each
+source filter can still find that same consolidated row, pagination totals are
+unique-email totals, and an unsubscribed duplicate remains fail-closed. Do not
+delete historical CSV evidence rows merely to simplify the display.
 
 2026-09-06 Dashboard card-navigation handoff: after atomic staging deployment,
 activate each top metric with mouse and keyboard. Confirm published vehicle and

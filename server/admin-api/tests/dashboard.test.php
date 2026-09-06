@@ -51,16 +51,17 @@ try {
         'unsubscribed' => 1,
     ], 'Dashboard contact metrics must deduplicate and fail closed on unsubscribe.');
     $contactPage=kalite_filo_admin_contact_page($contactPath,1,2,'','approved');
-    dashboard_test_assert($contactPage['total']===2&&count($contactPage['records'])===2,'Contact page must filter exact stored status without rewriting consent.');
+    dashboard_test_assert($contactPage['total']===1&&count($contactPage['records'])===1,'Contact page must list each approved email only once.');
+    dashboard_test_assert($contactPage['records'][0]['id']==='1'&&$contactPage['records'][0]['source_count']===2,'The first consent-backed row must represent a duplicated email while retaining its source count.');
     $leadPage=kalite_filo_admin_contact_page($contactPath,1,20,'lead@','lead_only','not_requested','website_quote_form');
     dashboard_test_assert($leadPage['total']===1&&$leadPage['records'][0]['email']==='lead@example.com','Contact filters must preserve lead-only semantics.');
     try{kalite_filo_admin_contact_page($contactPath,1,20,'','','','../unsafe');dashboard_test_assert(false,'Unsafe contact source filter must fail.');}catch(InvalidArgumentException){/* expected */}
-    $oldestUpdated=kalite_filo_admin_contact_page($contactPath,1,20,'','','','','updatedAt','asc');dashboard_test_assert($oldestUpdated['records'][0]['id']==='1','Contact date sorting must apply before pagination in ascending order.');
-    $newestUpdated=kalite_filo_admin_contact_page($contactPath,1,20,'','','','','updatedAt','desc');dashboard_test_assert($newestUpdated['records'][0]['id']==='4','Contact date sorting must apply before pagination in descending order.');
+    $oldestUpdated=kalite_filo_admin_contact_page($contactPath,1,20,'','','','','updatedAt','asc');dashboard_test_assert($oldestUpdated['records'][0]['id']==='2','Contact date sorting must apply to consolidated emails before pagination in ascending order.');
+    $newestUpdated=kalite_filo_admin_contact_page($contactPath,1,20,'','','','','updatedAt','desc');dashboard_test_assert($newestUpdated['records'][0]['id']==='1','A consolidated email must use its latest source update for descending sorting.');
     try{kalite_filo_admin_contact_page($contactPath,1,20,'','','','','updatedAt','');dashboard_test_assert(false,'Incomplete contact sort input must fail closed.');}catch(InvalidArgumentException){/* expected */}
     file_put_contents(dirname($contactPath).DIRECTORY_SEPARATOR.'iys-email-permissions-2026-08-30.csv',"recipient,consentDate,type,recipientType,source\n");
     file_put_contents(dirname($contactPath).DIRECTORY_SEPARATOR.'iys-export-state.json',json_encode(['last_exported_at_utc'=>'2026-08-30 12:00:00'],JSON_THROW_ON_ERROR));
-    $iys=kalite_filo_admin_iys_overview($contactPath);dashboard_test_assert($iys['counts']['pending']===2&&$iys['counts']['notRequested']===2,'IYS overview must preserve exact row states.');dashboard_test_assert(count($iys['exports'])===1&&$iys['lastExportedAt']==='2026-08-30 12:00:00','IYS overview must expose bounded manual export history.');
+    $iys=kalite_filo_admin_iys_overview($contactPath);dashboard_test_assert($iys['counts']['pending']===2&&$iys['counts']['notRequested']===1,'IYS overview must count each consolidated email state once.');dashboard_test_assert(count($iys['exports'])===1&&$iys['lastExportedAt']==='2026-08-30 12:00:00','IYS overview must expose bounded manual export history.');
     $updatedIys=kalite_filo_admin_update_contact_iys($contactPath,'1','approved','TACIR');
     dashboard_test_assert($updatedIys['iys_status']==='approved'&&$updatedIys['recipient_type']==='TACIR'&&$updatedIys['iys_synced_at']!==''&&$updatedIys['consent_at']==='2026-08-20 10:00:00'&&$updatedIys['consent_text_version']==='v1','Controlled IYS updates must preserve consent evidence and record a sync timestamp.');
     try{kalite_filo_admin_update_contact_iys($contactPath,'2','approved','BIREYSEL');dashboard_test_assert(false,'Lead-only records must not be administratively promoted to approved IYS.');}catch(InvalidArgumentException){/* expected */}

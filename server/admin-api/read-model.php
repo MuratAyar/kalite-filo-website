@@ -87,15 +87,53 @@ function kalite_filo_admin_contact_metrics(string $path): array
     return $metrics;
 }
 
-/** @return array{records:list<array<string,string>>,page:int,limit:int,total:int,hasNext:bool} */
+/** @param list<array<string,string>> $rows @return list<array<string,mixed>> */
+function kalite_filo_admin_consolidate_contact_rows(array $rows): array
+{
+    $groups = [];
+    foreach ($rows as $row) {
+        $email = strtolower(trim((string) ($row['email'] ?? '')));
+        if (filter_var($email, FILTER_VALIDATE_EMAIL) === false) continue;
+        $groups[$email][] = $row;
+    }
+    $records = [];
+    foreach ($groups as $email => $emailRows) {
+        usort($emailRows, static fn(array $left, array $right): int => strcmp((string) ($left['created_at'] ?? ''), (string) ($right['created_at'] ?? '')) ?: strcmp((string) ($left['id'] ?? ''), (string) ($right['id'] ?? '')));
+        $sources = [];
+        $approved = null;
+        $unsubscribed = null;
+        $latest = $emailRows[0];
+        foreach ($emailRows as $row) {
+            $source = trim((string) ($row['consent_source'] ?? ''));
+            if ($source !== '' && !in_array($source, $sources, true)) $sources[] = $source;
+            $hasEvidence = ($row['status'] ?? '') === 'approved'
+                && trim((string) ($row['consent_at'] ?? '')) !== ''
+                && trim((string) ($row['consent_text_version'] ?? '')) !== '';
+            if ($approved === null && $hasEvidence) $approved = $row;
+            if (trim((string) ($row['unsubscribed_at'] ?? '')) !== '' || ($row['status'] ?? '') === 'unsubscribed') $unsubscribed = $row;
+            if (strcmp((string) ($row['updated_at'] ?? ''), (string) ($latest['updated_at'] ?? '')) >= 0) $latest = $row;
+        }
+        $resolved = $unsubscribed ?? $approved ?? $latest;
+        if ($unsubscribed !== null) $resolved['status'] = 'unsubscribed';
+        $resolved['email'] = $email;
+        $resolved['created_at'] = (string) ($emailRows[0]['created_at'] ?? '');
+        $resolved['updated_at'] = (string) ($latest['updated_at'] ?? '');
+        $resolved['sources'] = $sources;
+        $resolved['source_count'] = count($sources);
+        $records[] = $resolved;
+    }
+    return $records;
+}
+
+/** @return array{records:list<array<string,mixed>>,page:int,limit:int,total:int,hasNext:bool} */
 function kalite_filo_admin_contact_page(string $path,int $page,int $limit,string $query='',string $status='',string $iysStatus='',string $source='',string $sortField='',string $sortDirection=''):array
 {
     if($page<1||$page>1000||$limit<1||$limit>100)throw new InvalidArgumentException('Invalid contact pagination.');
     $allowedStatuses=['','approved','active','lead_only','unsubscribed'];$allowedIys=['','not_requested','pending','approved','failed','synced'];$allowedSources=['','website_newsletter','website_quote_form','website_contact_form'];$sortFields=['consentAt'=>'consent_at','iysSyncedAt'=>'iys_synced_at','unsubscribedAt'=>'unsubscribed_at','createdAt'=>'created_at','updatedAt'=>'updated_at'];
     if(!in_array($status,$allowedStatuses,true)||!in_array($iysStatus,$allowedIys,true)||!in_array($source,$allowedSources,true)||mb_strlen($query)>160||($sortField!==''&&!isset($sortFields[$sortField]))||!in_array($sortDirection,['','asc','desc'],true)||(($sortField==='')!==($sortDirection==='')))throw new InvalidArgumentException('Invalid contact filter.');
     if(!is_file($path))return ['records'=>[],'page'=>$page,'limit'=>$limit,'total'=>0,'hasNext'=>false];$size=filesize($path);if(!is_int($size)||$size>KALITE_FILO_ADMIN_MAX_CONTACT_STORE_BYTES)throw new RuntimeException('Contact store exceeds the read limit.');$handle=fopen($path,'rb');if($handle===false||!flock($handle,LOCK_SH)){if(is_resource($handle))fclose($handle);throw new RuntimeException('Contact store could not be read.');}
-    try{$header=fgetcsv($handle);$legacy=array_slice(KALITE_FILO_ADMIN_CONTACT_COLUMNS,0,-1);if($header!==KALITE_FILO_ADMIN_CONTACT_COLUMNS&&$header!==$legacy)throw new RuntimeException('Contact store schema is not recognized.');$matched=[];$needle=mb_strtolower(trim($query));while(($values=fgetcsv($handle))!==false){if($header===$legacy&&count($values)===count($legacy))$values[]='BIREYSEL';if(count($values)!==count(KALITE_FILO_ADMIN_CONTACT_COLUMNS))continue;$row=array_combine(KALITE_FILO_ADMIN_CONTACT_COLUMNS,$values);if(!is_array($row)||filter_var($row['email'],FILTER_VALIDATE_EMAIL)===false)continue;if($needle!==''&&!str_contains(mb_strtolower($row['email']),$needle))continue;if($status!==''&&$row['status']!==$status)continue;if($iysStatus!==''&&$row['iys_status']!==$iysStatus)continue;if($source!==''&&$row['consent_source']!==$source)continue;$matched[]=$row;}}
-    finally{flock($handle,LOCK_UN);fclose($handle);}$column=$sortField!==''?$sortFields[$sortField]:'updated_at';$direction=$sortDirection!==''?$sortDirection:'desc';usort($matched,static function(array $a,array $b)use($column,$direction):int{$left=(string)($a[$column]??'');$right=(string)($b[$column]??'');if($left===$right)return strcmp((string)$a['id'],(string)$b['id']);if($left==='')return 1;if($right==='')return-1;$comparison=strcmp($left,$right);return $direction==='asc'?$comparison:-$comparison;});$total=count($matched);$offset=($page-1)*$limit;return ['records'=>array_values(array_slice($matched,$offset,$limit)),'page'=>$page,'limit'=>$limit,'total'=>$total,'hasNext'=>$offset+$limit<$total];
+    try{$header=fgetcsv($handle);$legacy=array_slice(KALITE_FILO_ADMIN_CONTACT_COLUMNS,0,-1);if($header!==KALITE_FILO_ADMIN_CONTACT_COLUMNS&&$header!==$legacy)throw new RuntimeException('Contact store schema is not recognized.');$rows=[];while(($values=fgetcsv($handle))!==false){if($header===$legacy&&count($values)===count($legacy))$values[]='BIREYSEL';if(count($values)!==count(KALITE_FILO_ADMIN_CONTACT_COLUMNS))continue;$row=array_combine(KALITE_FILO_ADMIN_CONTACT_COLUMNS,$values);if(is_array($row))$rows[]=$row;}}
+    finally{flock($handle,LOCK_UN);fclose($handle);}$needle=mb_strtolower(trim($query));$matched=array_values(array_filter(kalite_filo_admin_consolidate_contact_rows($rows),static function(array $row)use($needle,$status,$iysStatus,$source):bool{if($needle!==''&&!str_contains(mb_strtolower((string)$row['email']),$needle))return false;if($status!==''&&($row['status']??'')!==$status)return false;if($iysStatus!==''&&($row['iys_status']??'')!==$iysStatus)return false;if($source!==''&&!in_array($source,is_array($row['sources']??null)?$row['sources']:[],true))return false;return true;}));$column=$sortField!==''?$sortFields[$sortField]:'updated_at';$direction=$sortDirection!==''?$sortDirection:'desc';usort($matched,static function(array $a,array $b)use($column,$direction):int{$left=(string)($a[$column]??'');$right=(string)($b[$column]??'');if($left===$right)return strcmp((string)$a['id'],(string)$b['id']);if($left==='')return 1;if($right==='')return-1;$comparison=strcmp($left,$right);return $direction==='asc'?$comparison:-$comparison;});$total=count($matched);$offset=($page-1)*$limit;return ['records'=>array_values(array_slice($matched,$offset,$limit)),'page'=>$page,'limit'=>$limit,'total'=>$total,'hasNext'=>$offset+$limit<$total];
 }
 
 /** @return array<string,string> */
