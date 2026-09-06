@@ -8,6 +8,16 @@ the status and handoff sections before ending.
 
 ## Current Status
 
+The 2026-09-06 campaign-template refinement is complete locally. The campaign
+summary no longer exposes the environment-sendable, IYS-blocked, delivery
+engine, staging-blocked or unsubscribed cards. It retains the concise unique,
+legally eligible and missing-consent indicators. Marketing users can now start
+from four editable, claim-safe presets: monthly fleet agenda, vehicle
+announcement, Filo Rehberi selection and seasonal reminder. Selecting a preset
+opens the existing draft editor with editable name, subject, preheader, copy
+blocks and canonical Kalite Filo links; it does not bypass save, preview, test,
+queue, consent, IYS or environment controls.
+
 The 2026-09-06 newsletter-contact deduplication pass is complete locally.
 `Bülten Kişileri` now returns one resolved row per normalized email instead of
 repeating the address for every form source. The first consent-backed approved
@@ -2045,6 +2055,11 @@ src/app/robots.ts                          (update)
 
 ## Files Changed
 
+Current 2026-09-06 campaign-template refinement:
+
+- `src/components/admin/campaign-manager.tsx`
+- `docs/ADMIN_DASHBOARD_IMPLEMENTATION.md`
+
 Current 2026-09-06 newsletter-contact deduplication:
 
 - `server/admin-api/read-model.php`
@@ -2533,6 +2548,14 @@ Current Phase 6 test-mail continuation:
 - `server/admin-api/tests/media-store.test.php`
 
 ## Validation Results
+
+2026-09-06 campaign-template refinement:
+
+- All 95 project-owned PHP files pass syntax validation; the complete 92-test
+  Node suite and PHP test suite, lint, strict TypeScript checks, the 140-page
+  production static export, exported-output validation and `git diff --check`
+  pass after removing the five requested cards and adding four template entry
+  points.
 
 2026-09-06 newsletter-contact deduplication:
 
@@ -3197,6 +3220,13 @@ still excludes missing consent and unsubscribed rows. No recipient list is sent
 to the browser and no delivery endpoint is packaged.
 
 ## Session Handoff
+
+2026-09-06 campaign-template handoff: deploy the static admin bundle, open Mail
+Kampanyaları with a Marketing/Admin/Owner identity and verify that each of the
+four `Şablonu Kullan` buttons opens an independently populated new draft.
+Replace bracketed editorial prompts before saving, then use the existing
+branded preview and allowlisted test-send flow. Templates never send directly;
+the normal save and controlled queue gates remain mandatory.
 
 2026-09-06 newsletter deduplication handoff: deploy the PHP read model and
 static admin bundle together, then open Bülten Kişileri with an address known to

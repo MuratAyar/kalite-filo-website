@@ -19,6 +19,15 @@ type Campaign = {
   revision: number;
   updatedAt: string;
 };
+type CampaignTemplate = {
+  id: string;
+  title: string;
+  description: string;
+  name: string;
+  subject: string;
+  preheader: string;
+  content: Block[];
+};
 type Summary = {
   uniqueContacts: number;
   eligible: number;
@@ -49,6 +58,61 @@ type QueueSummary = {
 const control =
   "mt-1 min-h-11 w-full rounded-control border border-border-control bg-white px-3";
 const blankBlock: Block = { type: "text", heading: "", text: "" };
+const campaignTemplates: CampaignTemplate[] = [
+  {
+    id: "monthly-fleet-guide",
+    title: "Aylık Filo Gündemi",
+    description: "Ayın öne çıkan filo içeriğini ve gündem notlarını paylaşın.",
+    name: "Aylık Filo Gündemi",
+    subject: "[Ay] ayı filo gündemi",
+    preheader: "Filo yönetimine dair bu ay öne çıkan başlıklar.",
+    content: [
+      { type: "hero", heading: "Bu ay filo gündeminde", text: "[Bu ay paylaşmak istediğiniz kısa giriş metnini buraya yazın.]" },
+      { type: "text", heading: "Öne çıkan konu", text: "[Okuyucularınız için öne çıkan gelişmeyi veya öneriyi açıklayın.]" },
+      { type: "cta", label: "Filo Rehberi'ni İncele", url: "https://kalitefilo.com.tr/filo-rehberi/" },
+    ],
+  },
+  {
+    id: "vehicle-news",
+    title: "Yeni Araç Duyurusu",
+    description: "Filoya eklenen veya öne çıkarmak istediğiniz araçları duyurun.",
+    name: "Yeni Araç Duyurusu",
+    subject: "Filomuzdaki yeni araçları keşfedin",
+    preheader: "Güncel araç seçeneklerini inceleyin.",
+    content: [
+      { type: "hero", heading: "Yeni araç seçenekleri", text: "[Duyurunun kısa giriş metnini buraya yazın.]" },
+      { type: "text", heading: "İşletmenize uygun seçenekler", text: "[Öne çıkarılacak araçları ve sağladıkları faydayı kısaca anlatın.]" },
+      { type: "cta", label: "Araçları İncele", url: "https://kalitefilo.com.tr/arac-listesi/" },
+    ],
+  },
+  {
+    id: "guide-selection",
+    title: "Filo Rehberi Seçkisi",
+    description: "Okuyucuları güncel rehber ve bilgilendirici içeriklere yönlendirin.",
+    name: "Filo Rehberi Seçkisi",
+    subject: "Filo yönetiminde öne çıkan içerikler",
+    preheader: "Filo kararlarınıza yardımcı olacak içerikleri keşfedin.",
+    content: [
+      { type: "hero", heading: "Sizin için seçtik", text: "[Bu seçkinin temasını ve okuyucuya sağlayacağı faydayı açıklayın.]" },
+      { type: "text", heading: "Bu sayıda", text: "[Paylaşacağınız içeriklerin kısa özetini buraya ekleyin.]" },
+      { type: "cta", label: "Tüm Yazıları Gör", url: "https://kalitefilo.com.tr/filo-rehberi/" },
+    ],
+  },
+  {
+    id: "seasonal-reminder",
+    title: "Dönemsel Hatırlatma",
+    description: "Sezon, bakım veya filo planlama dönemleri için bilgilendirme yapın.",
+    name: "Dönemsel Filo Hatırlatması",
+    subject: "Filo planlamanız için kısa bir hatırlatma",
+    preheader: "Yeni döneme hazırlanırken değerlendirebileceğiniz başlıklar.",
+    content: [
+      { type: "hero", heading: "Yeni döneme hazır mısınız?", text: "[Döneme özel giriş ve hatırlatma metnini buraya yazın.]" },
+      { type: "divider" },
+      { type: "text", heading: "Planlama notu", text: "[Kullanıcının gözden geçirmesini istediğiniz maddeleri açıklayın.]" },
+      { type: "cta", label: "Teklif Al", url: "https://kalitefilo.com.tr/teklif-al/" },
+    ],
+  },
+];
 export function CampaignManager({
   csrfToken,
   canEdit,
@@ -60,9 +124,9 @@ export function CampaignManager({
 }) {
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [summary, setSummary] = useState<Summary | null>(null);
-  const [deliveryEnabled, setDeliveryEnabled] = useState(false);
   const [editing, setEditing] = useState<Campaign | null>(null);
   const [creating, setCreating] = useState(false);
+  const [draftPreset, setDraftPreset] = useState<CampaignTemplate | null>(null);
   const [blocks, setBlocks] = useState<Block[]>([{ ...blankBlock }]);
   const [error, setError] = useState("");
   const [referenceOptions, setReferenceOptions] = useState<{
@@ -94,7 +158,6 @@ export function CampaignManager({
         throw new Error();
       setCampaigns(payload.campaigns);
       setSummary(payload.audienceSummary);
-      setDeliveryEnabled(payload.deliveryEnabled === true);
       setReferenceOptions({
         vehicles: Array.isArray(payload.referenceOptions?.vehicles)
           ? payload.referenceOptions.vehicles
@@ -143,14 +206,16 @@ export function CampaignManager({
   function open(campaign: Campaign) {
     setEditing(campaign);
     setCreating(false);
+    setDraftPreset(null);
     setBlocks(campaign.content);
     setPreviewHtml("");
     setNotice("");
   }
-  function start() {
+  function start(template: CampaignTemplate | null = null) {
     setEditing(null);
     setCreating(true);
-    setBlocks([{ ...blankBlock }]);
+    setDraftPreset(template);
+    setBlocks(template ? template.content.map((block) => ({ ...block })) : [{ ...blankBlock }]);
     setPreviewHtml("");
     setNotice("");
   }
@@ -212,6 +277,7 @@ export function CampaignManager({
       if (!response.ok) throw new Error();
       setEditing(null);
       setCreating(false);
+      setDraftPreset(null);
       await load();
     } catch {
       setError(
@@ -315,7 +381,7 @@ export function CampaignManager({
         {canEdit ? (
           <button
             className="min-h-11 rounded-control bg-accent-orange px-5 font-bold"
-            onClick={start}
+            onClick={() => start()}
           >
             Yeni Kampanya
           </button>
@@ -327,16 +393,11 @@ export function CampaignManager({
         </p>
       ) : null}
       {summary ? (
-        <dl className="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <dl className="mt-6 grid gap-4 sm:grid-cols-3">
           {[
             ["Benzersiz kişi", summary.uniqueContacts],
             ["Hukuken uygun", summary.eligible],
-            ["Bu ortamda gönderilebilir", summary.sendable],
-            ["İYS nedeniyle bloklu", summary.iysBlocked],
             ["Consent eksik", summary.missingConsent],
-            ["Unsubscribed", summary.unsubscribed],
-            ["Staging bloklu", summary.environmentBlocked],
-            ["Gönderim motoru", deliveryEnabled ? "Aktif" : "Kapalı"],
           ].map(([label, value]) => (
             <div
               className="rounded-card border bg-surface-card p-4"
@@ -347,6 +408,34 @@ export function CampaignManager({
             </div>
           ))}
         </dl>
+      ) : null}
+      {canEdit ? (
+        <section className="mt-7">
+          <div>
+            <h3 className="text-lg font-bold">Hazır Kampanyalar</h3>
+            <p className="mt-1 text-sm text-text-secondary">
+              Bir taslak seçin; konu, metin ve bağlantıları düzenleyip kaydedin.
+            </p>
+          </div>
+          <div className="mt-4 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+            {campaignTemplates.map((template) => (
+              <article className="flex flex-col rounded-card border bg-surface-card p-5" key={template.id}>
+                <span className="w-fit rounded-pill bg-accent-orange/15 px-3 py-1 text-xs font-bold text-brand-navy">
+                  Hazır taslak
+                </span>
+                <h4 className="mt-3 font-bold">{template.title}</h4>
+                <p className="mt-2 flex-1 text-sm text-text-secondary">{template.description}</p>
+                <button
+                  className="mt-5 min-h-11 rounded-control border border-corporate-blue px-4 text-sm font-bold text-corporate-blue hover:bg-surface-muted"
+                  onClick={() => start(template)}
+                  type="button"
+                >
+                  Şablonu Kullan
+                </button>
+              </article>
+            ))}
+          </div>
+        </section>
       ) : null}
       {canQueue ? (
         <section className="mt-7 rounded-card border bg-surface-card p-5">
@@ -456,6 +545,7 @@ export function CampaignManager({
         <div className="fixed inset-0 z-50 overflow-y-auto bg-brand-navy/75 p-4">
           <form
             className="mx-auto my-6 max-w-4xl rounded-card bg-page p-6"
+            key={editing?.id ?? draftPreset?.id ?? "blank-campaign"}
             onSubmit={save}
             ref={formRef}
           >
@@ -473,6 +563,7 @@ export function CampaignManager({
                 onClick={() => {
                   setEditing(null);
                   setCreating(false);
+                  setDraftPreset(null);
                 }}
                 type="button"
               >
@@ -484,7 +575,7 @@ export function CampaignManager({
                 Kampanya adı *
                 <input
                   className={control}
-                  defaultValue={editing?.name}
+                  defaultValue={editing?.name ?? draftPreset?.name}
                   maxLength={160}
                   name="name"
                   required
@@ -494,7 +585,7 @@ export function CampaignManager({
                 E-posta konusu *
                 <input
                   className={control}
-                  defaultValue={editing?.subject}
+                  defaultValue={editing?.subject ?? draftPreset?.subject}
                   maxLength={180}
                   name="subject"
                   required
@@ -504,7 +595,7 @@ export function CampaignManager({
                 Preheader
                 <input
                   className={control}
-                  defaultValue={editing?.preheader}
+                  defaultValue={editing?.preheader ?? draftPreset?.preheader}
                   maxLength={240}
                   name="preheader"
                 />
