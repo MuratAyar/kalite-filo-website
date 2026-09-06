@@ -1,12 +1,22 @@
 # Kalite Filo Admin Dashboard Implementation
 
-Last updated: 2026-09-03
+Last updated: 2026-09-06
 
 This document is the single source of truth for Phase 2 Admin Dashboard work.
 Every admin development session must read it before making changes and update
 the status and handoff sections before ending.
 
 ## Current Status
+
+The 2026-09-06 staging-dispatch compatibility fix is complete locally. The
+Publishing Center no longer treats the absence of `php_curl` by itself as a
+hard blocker. GitHub workflow dispatch still prefers cURL, but can now use a
+bounded direct TLS socket when PHP exposes OpenSSL and `stream_socket_client`.
+The fallback is pinned to `api.github.com:443`, verifies the certificate and
+peer name, does not follow redirects, uses the existing fixed
+repository/workflow/ref configuration and never logs the token or response
+body. The UI reports `https_transport` only when neither secure HTTPS transport
+is available; `PharData` remains mandatory for artifact extraction.
 
 The 2026-09-03 direct image and expanded-log pass is complete locally. The
 standalone `Medya` navigation item, client view and general-purpose media CRUD
@@ -667,7 +677,9 @@ fixed repository/workflow/ref configured outside the document root. GitHub
 Actions is the external Node/PHP build runner. A separate high-entropy bearer
 token binds runner requests to a frozen request, snapshot hash and GitHub run
 ID. The PHP backend receives a manifest-bound USTAR in bounded chunks and owns
-the staging-only atomic activation and rollback transaction.
+the staging-only atomic activation and rollback transaction. Dispatch prefers
+PHP cURL and falls back to a certificate-verified OpenSSL TLS socket restricted
+to `api.github.com:443` when cURL is unavailable.
 
 **Why:** the host explicitly blocks external SSH/SFTP and has no Node runtime.
 cPanel UAPI upload would still require a broad account credential and does not
@@ -710,9 +722,10 @@ first live staging drill.
 
 - cPanel File Manager and browser Terminal are needed only for the one-time
   automation bootstrap and recovery fallback, not routine staging publishes.
-- Automatic staging requires PHP `curl` for GitHub dispatch and `PharData` for
-  non-executable TAR extraction. The UI reports either missing capability and
-  the first live run must prove both on the target host.
+- Automatic staging requires either PHP cURL or an OpenSSL-backed TLS stream for
+  GitHub dispatch, plus `PharData` for non-executable TAR extraction. The UI
+  reports the missing secure HTTPS transport or archive capability separately;
+  the first live fallback run must still prove outbound TLS on the target host.
 
 Proposed private layout (account paths are illustrative, never hard-coded):
 
@@ -1627,6 +1640,14 @@ records and when reading older stored summaries.
 
 ## Current Task
 
+Install the refreshed PHP bootstrap/release on staging once through cPanel File
+Manager or the existing recovery path, because the currently deployed endpoint
+cannot use code it has not received. Reload `Yayına Al`, confirm the
+`php_curl` warning is gone, then create a staging release and verify the
+OpenSSL/TLS dispatch reaches GitHub Actions. If the host blocks outbound TLS,
+capture only the bounded application error and enable cURL in cPanel instead;
+never expose the GitHub token in diagnostics.
+
 Deploy and smoke-test the direct vehicle/article image workflows and expanded
 Loglar view on HTTPS staging. Confirm multi-file selection and drag/drop,
 1600×900 WebP output, repository-image removal/reordering, single blog-cover
@@ -1905,9 +1926,10 @@ the still-required Phase 2/3 staging smoke tests before closing those phases.
 
 ## Known Issues
 
-- AD-004 is implemented and locally validated but not yet bootstrapped/proven on
-  TURKTİCARET staging. PHP curl, PharData, 1 MiB POST chunks and atomic directory
-  rename are fail-closed deployment requirements until live evidence exists.
+- AD-004 is implemented and has completed live staging runs, but the new
+  cURL-independent dispatch fallback is not yet proven on TURKTİCARET staging.
+  The host must provide either cURL or an OpenSSL TLS stream; `PharData`, 1 MiB
+  POST chunks and atomic directory rename remain fail-closed requirements.
 - A queued run can be retried after 20 minutes and a claimed/deploying run after
   45 minutes. These conservative stale thresholds require live timing review.
 - Automated release retention is implemented with conservative staging limits;
@@ -1975,6 +1997,13 @@ src/app/robots.ts                          (update)
 ```
 
 ## Files Changed
+
+Current 2026-09-06 staging-dispatch compatibility fix:
+
+- `server/admin-api/publishing-automation.php`
+- `server/admin-api/tests/publishing-automation.test.php` (new)
+- `package.json`
+- `docs/ADMIN_DASHBOARD_IMPLEMENTATION.md`
 
 Current 2026-09-02 public-form and vehicle-gallery continuation:
 
@@ -2412,6 +2441,17 @@ Current Phase 6 test-mail continuation:
 - `server/admin-api/tests/media-store.test.php`
 
 ## Validation Results
+
+2026-09-06 staging-dispatch compatibility fix:
+
+- PHP syntax checks pass for all 95 project-owned server PHP files.
+- The focused automation test verifies runtime TLS capability detection, valid
+  GitHub 204 parsing and fail-closed malformed-response handling.
+- `npm run lint`, `npm run typecheck` and `npm test` pass; the Node suite reports
+  91/91 passing tests and every project-owned PHP suite passes, including the
+  new publishing-automation regression test.
+- `npm run build` produces the clean 140-page production static export,
+  `npm run verify:output` passes and `git diff --check` reports no errors.
 
 2026-09-02 public-form and vehicle-gallery continuation:
 
@@ -3012,6 +3052,18 @@ still excludes missing consent and unsubscribed rows. No recipient list is sent
 to the browser and no delivery endpoint is packaged.
 
 ## Session Handoff
+
+2026-09-06 staging-dispatch handoff: the disabled `Staging Oluştur` control was
+caused by the deployed readiness check requiring `php_curl`, even though the
+host reports only that extension missing. The backend now prefers cURL but can
+dispatch the same fixed GitHub workflow through a bounded, certificate-verified
+OpenSSL TLS socket to `api.github.com:443`; readiness fails only when neither
+secure transport exists. A parser/capability regression test is included in the
+full test command. Since the old PHP endpoint cannot update itself while its
+button is disabled, install this refreshed release once through cPanel File
+Manager/recovery, reload the Publishing Center, then run one authenticated
+staging publish and confirm GitHub Actions receives it. Do not copy secrets into
+browser or server logs.
 
 2026-09-03 direct-image/log handoff: the standalone Media Library and its
 general CRUD endpoints are removed. Vehicle and article editors now own their

@@ -5,12 +5,19 @@ const KALITE_FILO_RUNNER_MAX_CHUNK_BYTES = 1048576;
 const KALITE_FILO_RUNNER_MAX_CHUNKS = 128;
 const KALITE_FILO_RUNNER_MAX_ARTIFACT_BYTES = 134217728;
 
+function kalite_filo_admin_github_tls_stream_available(): bool
+{
+    return function_exists('stream_socket_client')
+        && extension_loaded('openssl')
+        && in_array('tls', stream_get_transports(), true);
+}
+
 /** @return array{enabled:bool,ready:bool,provider:string,missing:list<string>} */
 function kalite_filo_admin_publishing_automation_status(): array
 {
     $automation = kalite_filo_admin_config()['publishing_automation'];
     $missing = [];
-    if ($automation['enabled'] === true && !function_exists('curl_init')) $missing[] = 'php_curl';
+    if ($automation['enabled'] === true && !function_exists('curl_init') && !kalite_filo_admin_github_tls_stream_available()) $missing[] = 'https_transport';
     if ($automation['enabled'] === true && !class_exists('PharData')) $missing[] = 'php_phar';
     return ['enabled' => $automation['enabled'] === true, 'ready' => $automation['enabled'] === true && $missing === [], 'provider' => 'github_actions', 'missing' => $missing];
 }
@@ -29,8 +36,6 @@ function kalite_filo_admin_dispatch_publish_workflow(array $record): array
         'ref' => $automation['ref'],
         'inputs' => ['request_id' => $record['id'], 'snapshot_hash' => $record['snapshotHash']],
     ], JSON_THROW_ON_ERROR | JSON_UNESCAPED_SLASHES);
-    $curl = curl_init($url);
-    if ($curl === false) throw new RuntimeException('GitHub dispatch could not be initialized.');
     $headers = [
         'Accept: application/vnd.github+json',
         'Authorization: Bearer ' . $automation['github_token'],
@@ -38,14 +43,13 @@ function kalite_filo_admin_dispatch_publish_workflow(array $record): array
         'User-Agent: kalite-filo-admin-publisher',
         'X-GitHub-Api-Version: 2022-11-28',
     ];
-    curl_setopt_array($curl, [CURLOPT_POST => true, CURLOPT_POSTFIELDS => $payload, CURLOPT_HTTPHEADER => $headers, CURLOPT_RETURNTRANSFER => true, CURLOPT_HEADER => false, CURLOPT_CONNECTTIMEOUT => 10, CURLOPT_TIMEOUT => 25, CURLOPT_FOLLOWLOCATION => false, CURLOPT_SSL_VERIFYPEER => true, CURLOPT_SSL_VERIFYHOST => 2]);
-    if (defined('CURLOPT_PROTOCOLS') && defined('CURLPROTO_HTTPS')) curl_setopt($curl, CURLOPT_PROTOCOLS, CURLPROTO_HTTPS);
-    $response = curl_exec($curl);
-    $statusCode = (int) curl_getinfo($curl, CURLINFO_RESPONSE_CODE);
-    $curlError = curl_error($curl);
-    curl_close($curl);
+    if (function_exists('curl_init')) {
+        [$statusCode, $response, $transportError] = kalite_filo_admin_github_dispatch_with_curl($url, $headers, $payload);
+    } else {
+        [$statusCode, $response, $transportError] = kalite_filo_admin_github_dispatch_with_tls_stream($url, $headers, $payload);
+    }
     if (!is_string($response) || !in_array($statusCode, [200, 204], true)) {
-        error_log('GitHub workflow dispatch failed [HTTP ' . $statusCode . '; transport=' . ($curlError !== '' ? 'error' : 'ok') . '].');
+        error_log('GitHub workflow dispatch failed [HTTP ' . $statusCode . '; transport=' . ($transportError ? 'error' : 'ok') . '].');
         throw new RuntimeException('GitHub workflow dispatch failed.');
     }
     $decoded = $response !== '' ? json_decode($response, true) : [];
@@ -54,6 +58,67 @@ function kalite_filo_admin_dispatch_publish_workflow(array $record): array
         'runId' => is_array($decoded) && is_int($decoded['workflow_run_id'] ?? null) ? (string) $decoded['workflow_run_id'] : null,
         'runUrl' => is_array($decoded) && is_string($decoded['html_url'] ?? null) && str_starts_with($decoded['html_url'], 'https://github.com/') ? $decoded['html_url'] : $workflowUrl,
     ];
+}
+
+/** @param list<string> $headers @return array{int,string|false,bool} */
+function kalite_filo_admin_github_dispatch_with_curl(string $url, array $headers, string $payload): array
+{
+    $curl = curl_init($url);
+    if ($curl === false) throw new RuntimeException('GitHub dispatch could not be initialized.');
+    curl_setopt_array($curl, [CURLOPT_POST => true, CURLOPT_POSTFIELDS => $payload, CURLOPT_HTTPHEADER => $headers, CURLOPT_RETURNTRANSFER => true, CURLOPT_HEADER => false, CURLOPT_CONNECTTIMEOUT => 10, CURLOPT_TIMEOUT => 25, CURLOPT_FOLLOWLOCATION => false, CURLOPT_SSL_VERIFYPEER => true, CURLOPT_SSL_VERIFYHOST => 2]);
+    if (defined('CURLOPT_PROTOCOLS') && defined('CURLPROTO_HTTPS')) curl_setopt($curl, CURLOPT_PROTOCOLS, CURLPROTO_HTTPS);
+    $response = curl_exec($curl);
+    $statusCode = (int)curl_getinfo($curl, CURLINFO_RESPONSE_CODE);
+    $transportError = curl_error($curl) !== '';
+    curl_close($curl);
+    return [$statusCode, $response, $transportError];
+}
+
+/** @param list<string> $headers @return array{int,string|false,bool} */
+function kalite_filo_admin_github_dispatch_with_tls_stream(string $url, array $headers, string $payload): array
+{
+    if (!kalite_filo_admin_github_tls_stream_available()) return [0, false, true];
+    $parts = parse_url($url);
+    if (!is_array($parts) || ($parts['scheme'] ?? null) !== 'https' || ($parts['host'] ?? null) !== 'api.github.com' || !is_string($parts['path'] ?? null)) return [0, false, true];
+    $context = stream_context_create(['ssl' => [
+        'verify_peer' => true,
+        'verify_peer_name' => true,
+        'peer_name' => 'api.github.com',
+        'SNI_enabled' => true,
+        'disable_compression' => true,
+    ]]);
+    $socket = @stream_socket_client('tls://api.github.com:443', $errorCode, $errorMessage, 10, STREAM_CLIENT_CONNECT, $context);
+    if (!is_resource($socket)) return [0, false, true];
+    stream_set_timeout($socket, 25);
+    $requestHeaders = [...$headers, 'Host: api.github.com', 'Content-Length: ' . strlen($payload), 'Connection: close'];
+    $request = 'POST ' . $parts['path'] . " HTTP/1.1\r\n" . implode("\r\n", $requestHeaders) . "\r\n\r\n" . $payload;
+    $written = 0;
+    while ($written < strlen($request)) {
+        $count = fwrite($socket, substr($request, $written));
+        if (!is_int($count) || $count < 1) { fclose($socket); return [0, false, true]; }
+        $written += $count;
+    }
+    $raw = '';
+    while (!feof($socket) && strlen($raw) <= 65536) {
+        $chunk = fread($socket, 8192);
+        if (!is_string($chunk)) { fclose($socket); return [0, false, true]; }
+        $raw .= $chunk;
+        $metadata = stream_get_meta_data($socket);
+        if (($metadata['timed_out'] ?? false) === true) { fclose($socket); return [0, false, true]; }
+    }
+    fclose($socket);
+    if (strlen($raw) > 65536) return [0, false, true];
+    return kalite_filo_admin_parse_github_dispatch_response($raw);
+}
+
+/** @return array{int,string|false,bool} */
+function kalite_filo_admin_parse_github_dispatch_response(string $raw): array
+{
+    if (preg_match_all('/^HTTP\/\d(?:\.\d)?\s+(\d{3})\b/im', $raw, $matches) < 1) return [0, false, true];
+    $statusCode = (int)end($matches[1]);
+    $separator = strrpos($raw, "\r\n\r\n");
+    $response = $separator === false ? '' : substr($raw, $separator + 4);
+    return [$statusCode, $response, false];
 }
 
 function kalite_filo_admin_runner_bearer_token(): string
