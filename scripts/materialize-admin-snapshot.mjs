@@ -10,7 +10,8 @@ function fail(message){throw new Error(`Admin snapshot materialization failed: $
 function hashSnapshot(snapshot){return createHash("sha256").update(JSON.stringify(snapshot)).digest("hex");}
 function text(value){return typeof value==="string"?value.trim():"";}
 function validateMediaRecord(record){
-  if(!record||typeof record!=="object"||!text(record.vehicleId)||!/^[a-z0-9][a-z0-9-]*\.(?:jpg|jpeg|png|webp)$/.test(text(record.fileName))||!Number.isSafeInteger(record.width)||record.width<=0||!Number.isSafeInteger(record.height)||record.height<=0||(record.sortOrder!==undefined&&(!Number.isSafeInteger(record.sortOrder)||record.sortOrder<1))||!["alt","creator","licenseName","localDerivativeNote"].every((field)=>text(record[field]))||(record.rightsBasis==="user-provided-for-site-use"?(record.sourcePage!==undefined||record.licenseUrl!==undefined):(!/^https:\/\//.test(record.sourcePage)||!/^https:\/\//.test(record.licenseUrl)))||!/^[a-f0-9]{64}$/.test(record.checksum))fail("invalid vehicle media record");
+  const userUpload=record?.rightsBasis==="user-provided-for-site-use";
+  if(!record||typeof record!=="object"||!text(record.vehicleId)||!/^[a-z0-9][a-z0-9-]*\.(?:jpg|jpeg|png|webp)$/.test(text(record.fileName))||!Number.isSafeInteger(record.width)||record.width<=0||!Number.isSafeInteger(record.height)||record.height<=0||(record.sortOrder!==undefined&&(!Number.isSafeInteger(record.sortOrder)||record.sortOrder<1))||!["alt","localDerivativeNote"].every((field)=>text(record[field]))||(userUpload?(record.sourcePage!==undefined||record.licenseUrl!==undefined):(!text(record.creator)||!text(record.licenseName)||!/^https:\/\//.test(record.sourcePage)||!/^https:\/\//.test(record.licenseUrl)))||!/^[a-f0-9]{64}$/.test(record.checksum))fail("invalid vehicle media record");
   return record;
 }
 function createMediaMaterialization(snapshot,published,source){
@@ -18,10 +19,11 @@ function createMediaMaterialization(snapshot,published,source){
   const base=new Map();for(const record of source.records){validateMediaRecord(record);const records=base.get(record.vehicleId)??[];if(records.some((item)=>item.fileName===record.fileName))fail("duplicate vehicle media record");records.push({...record,sortOrder:Number.isSafeInteger(record.sortOrder)?record.sortOrder:records.length+1});records.sort((left,right)=>left.sortOrder-right.sortOrder);base.set(record.vehicleId,records);}
   const records=published.flatMap((vehicle)=>{
     const uploads=Array.isArray(vehicle.galleryMedia)&&vehicle.galleryMedia.length?vehicle.galleryMedia:(vehicle.draftMedia?[vehicle.draftMedia]:[]);
-    if(uploads.length){
-      return uploads.map((media,index)=>{const extension=text(media.extension).toLowerCase();const record={vehicleId:vehicle.id,fileName:`${vehicle.id}-${text(media.checksum).slice(0,12)}.${extension}`,width:media.width,height:media.height,alt:text(media.alt),creator:text(media.creator),sourcePage:text(media.sourcePage),licenseName:text(media.licenseName),licenseUrl:text(media.licenseUrl),localDerivativeNote:"Yönetim paneline yüklenen doğrulanmış yerel dosya.",checksum:text(media.checksum),size:media.size,sourceKind:"admin-upload",sourceMediaId:text(media.id),sourceExtension:extension,sortOrder:index+1};return validateMediaRecord(record);});
-    }
-    return (base.get(vehicle.id)??[]).map((record)=>({...record,sourceKind:"repository"}));
+    const repository=(base.get(vehicle.id)??[]).map((record)=>({...record,alt:text(vehicle.repositoryMediaAlt?.[record.fileName])||record.alt,sourceKind:"repository"}));
+    const uploaded=uploads.map((media)=>{const extension=text(media.extension).toLowerCase();return{vehicleId:vehicle.id,fileName:`${vehicle.slug||vehicle.id}-${text(media.checksum).slice(0,12)}.${extension}`,width:media.width,height:media.height,alt:text(media.alt),rightsBasis:"user-provided-for-site-use",localDerivativeNote:"Yönetim panelinde 1600×900 WebP olarak optimize edildi.",checksum:text(media.checksum),size:media.size,sourceKind:"admin-upload",sourceMediaId:text(media.id),sourceExtension:extension};});
+    const byToken=new Map([...repository.map((record)=>[`repo:${record.fileName}`,record]),...uploaded.map((record)=>[`upload:${record.sourceMediaId}`,record])]);
+    const selected=Array.isArray(vehicle.galleryOrder)?vehicle.galleryOrder.map((token)=>byToken.get(token)).filter(Boolean):[...repository,...uploaded];
+    return selected.map((record,index)=>validateMediaRecord({...record,sortOrder:index+1}));
   });
   const mediaIds=new Set(records.map((record)=>record.vehicleId));
   for(const id of snapshot.featuredVehicleIds)if(!mediaIds.has(id))fail(`featured vehicle ${id} has no materializable media`);
@@ -56,7 +58,7 @@ export function createArticleMaterialization(request){
       if(article.locales.en.status==="ready"){const en=normalizeArticleLocale(article.locales.en,"en");if(slugs.en.has(en.slug))fail("duplicate English article slug");slugs.en.add(en.slug);locales.en={...en,categoryId:englishCategoryId,routePath:`/en/fleet-guide/${englishCategoryId}/${en.slug}/`,contentPath:`src/content/filo-rehberi/${en.slug}-en.md`};files.push({path:locales.en.contentPath,content:articleFrontmatter(article,"en",en)});}
       else if(article.locales.en.status!=="draft")fail(`article ${article.id} has an invalid English state`);
     }
-    records.push({id:article.id,categoryId:article.categoryId,featured:article.featured===true,coverMediaId:article.coverMediaId??null,cover,revision:Number.isSafeInteger(article.revision)?article.revision:null,locales});
+    records.push({id:article.id,categoryId:article.categoryId,featured:article.featured===true,coverMediaId:article.coverMediaId??null,coverRemoved:article.coverRemoved===true,cover,revision:Number.isSafeInteger(article.revision)?article.revision:null,locales});
   }
   files.sort((left,right)=>left.path.localeCompare(right.path,"en"));return{manifest:{schemaVersion:1,records,unpublishedIds,featuredArticles:snapshot.featuredArticles??null},files};
 }
@@ -65,7 +67,7 @@ function uniqueRegistry(records,identityField,label){
   if(!Array.isArray(records))fail(`invalid ${label} source`);const identities=new Set(),slugs=new Set();
   for(const record of records){const identity=text(record?.[identityField]),slug=text(record?.slug);if(!identity||!slug||identities.has(identity)||slugs.has(slug))fail(`invalid or duplicate ${label} source`);identities.add(identity);slugs.add(slug);}
 }
-function registryCover(record,locale,existing){return record.cover?{src:record.cover.publicPath,alt:locale.coverAlt,width:record.cover.width,height:record.cover.height}:existing?.coverImage??null;}
+function registryCover(record,locale,existing){return record.cover?{src:record.cover.publicPath,alt:locale.coverAlt,width:record.cover.width,height:record.cover.height}:record.coverRemoved===true?null:existing?.coverImage??null;}
 export function createArticleRegistryMaterialization(articleMaterialization,turkishSource=[],englishSource=[]){
   if(!articleMaterialization?.manifest||!Array.isArray(articleMaterialization.manifest.records))fail("invalid article materialization");uniqueRegistry(turkishSource,"id","Turkish article registry");uniqueRegistry(englishSource,"sourceArticleId","English article registry");
   const turkish=new Map(turkishSource.map((record)=>[record.id,record])),english=new Map(englishSource.map((record)=>[record.sourceArticleId,record]));

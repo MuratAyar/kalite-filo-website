@@ -1,6 +1,7 @@
 <?php
 declare(strict_types=1);
 require_once dirname(__DIR__).'/article-store.php';
+require_once dirname(__DIR__).'/featured-article-store.php';
 function article_test_assert(bool $condition,string $message):void{if(!$condition)throw new RuntimeException($message);}
 $articleTestRoot=sys_get_temp_dir().DIRECTORY_SEPARATOR.'kalite-filo-article-test-'.getmypid().'-'.bin2hex(random_bytes(4));
 function kalite_filo_admin_config():array{global $articleTestRoot;return ['data_root'=>$articleTestRoot];}
@@ -36,4 +37,7 @@ article_test_assert(count($revisionSummary)===1&&in_array('tr.markdown',$revisio
 article_test_assert(!array_key_exists('after',$revisionSummary[0]),'Article revision response must not expose Markdown bodies.');
 try{kalite_filo_admin_normalize_article(['categoryId'=>'unknown','locales'=>['tr'=>$locale]]);article_test_assert(false,'Unknown categories must fail.');}catch(InvalidArgumentException){/* expected */}
 try{kalite_filo_admin_normalize_article(['categoryId'=>'filo-yonetimi','locales'=>['tr'=>[...$locale,'status'=>'ready']]]);article_test_assert(false,'Incomplete ready locale must fail.');}catch(InvalidArgumentException){/* expected */}
+$publicFeatured=[['id'=>'main','categoryId'=>'filo-yonetimi','featured'=>true],['id'=>'category-explicit','categoryId'=>'arac-rehberi','categoryFeatured'=>true],['id'=>'category-fallback','categoryId'=>'elektrikli-araclar']];
+$featuredSelection=kalite_filo_admin_featured_articles_selection($publicFeatured);
+article_test_assert($featuredSelection['mainArticleId']==='main'&&$featuredSelection['categoryArticleIds']['arac-rehberi']==='category-explicit'&&$featuredSelection['categoryArticleIds']['elektrikli-araclar']==='category-fallback','Featured article selectors must seed from the current public registry.');
 article_test_remove_tree($articleTestRoot);fwrite(STDOUT,"Admin article store tests passed.\n");

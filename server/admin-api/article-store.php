@@ -99,7 +99,7 @@ function kalite_filo_admin_normalize_article(array $input, ?array $existing=null
     if(array_key_exists('en',$locales)&&$locales['en']!==null){if(!is_array($locales['en']))throw new InvalidArgumentException('Invalid English article content.');$normalized['en']=kalite_filo_admin_normalize_article_locale($locales['en'],'en');}
     $coverMediaId=$input['coverMediaId']??null;if($coverMediaId!==null&&(!is_string($coverMediaId)||preg_match('/^[a-f0-9]{32}$/',$coverMediaId)!==1))throw new InvalidArgumentException('Invalid cover media.');
     $id=$existing['id']??('article-'.bin2hex(random_bytes(6)));$now=gmdate('c');
-    return ['schemaVersion'=>1,'id'=>$id,'categoryId'=>$category,'featured'=>(bool)($input['featured']??false),'coverMediaId'=>$coverMediaId,'locales'=>$normalized,'revision'=>(int)($existing['revision']??0)+1,'createdAt'=>$existing['createdAt']??$now,'updatedAt'=>$now,'updatedBy'=>$_SESSION['identity']['id']??null];
+    return ['schemaVersion'=>1,'id'=>$id,'categoryId'=>$category,'featured'=>(bool)($input['featured']??false),'coverMediaId'=>$coverMediaId,'coverRemoved'=>(bool)($input['coverRemoved']??false),'locales'=>$normalized,'revision'=>(int)($existing['revision']??0)+1,'createdAt'=>$existing['createdAt']??$now,'updatedAt'=>$now,'updatedBy'=>$_SESSION['identity']['id']??null];
 }
 
 /** @param array<string,mixed> $published @return array<string,mixed> */

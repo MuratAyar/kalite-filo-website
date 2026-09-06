@@ -349,6 +349,7 @@ function kalite_filo_admin_audit(string $action, string $result, array $summary 
         };
         $entityId = in_array($entityType,['vehicle','article','subscriber','publishing','form_submission'],true) && is_string($summary['id'] ?? null) ? $summary['id'] : null;
         $record = [
+            'schemaVersion' => 2,
             'id' => bin2hex(random_bytes(16)),
             'timestamp' => gmdate('c'),
             'adminId' => $_SESSION['identity']['id'] ?? null,
@@ -356,8 +357,14 @@ function kalite_filo_admin_audit(string $action, string $result, array $summary 
             'action' => $action,
             'entityType' => $entityType,
             'entityId' => $entityId,
-            'summary' => $summary,
+            'summary' => kalite_filo_admin_audit_safe_value($summary),
             'result' => $result,
+            'request' => [
+                'method' => substr((string)($_SERVER['REQUEST_METHOD'] ?? 'CLI'), 0, 12),
+                'path' => substr((string)(parse_url((string)($_SERVER['REQUEST_URI'] ?? ''), PHP_URL_PATH) ?? ''), 0, 200),
+                'ipAddress' => substr((string)($_SERVER['REMOTE_ADDR'] ?? ''), 0, 45),
+                'userAgent' => substr((string)($_SERVER['HTTP_USER_AGENT'] ?? ''), 0, 300),
+            ],
         ];
         fwrite($handle, json_encode($record, JSON_THROW_ON_ERROR | JSON_UNESCAPED_SLASHES) . "\n");
         fflush($handle);
@@ -367,6 +374,21 @@ function kalite_filo_admin_audit(string $action, string $result, array $summary 
     } catch (Throwable $exception) {
         error_log('Kalite Filo admin audit write failed: ' . $exception->getMessage());
     }
+}
+
+function kalite_filo_admin_audit_safe_value(mixed $value, int $depth = 0): mixed
+{
+    if ($depth > 4) return '[bounded]';
+    if (is_string($value)) return mb_substr($value, 0, 500);
+    if (is_int($value) || is_float($value) || is_bool($value) || $value === null) return $value;
+    if (!is_array($value)) return '[unsupported]';
+    $result = [];
+    foreach (array_slice($value, 0, 50, true) as $key => $item) {
+        $name = substr((string)$key, 0, 80);
+        if (preg_match('/password|secret|token|credential|authorization|cookie/i', $name) === 1) { $result[$name] = '[redacted]'; continue; }
+        $result[$name] = kalite_filo_admin_audit_safe_value($item, $depth + 1);
+    }
+    return $result;
 }
 
 kalite_filo_admin_security_headers();

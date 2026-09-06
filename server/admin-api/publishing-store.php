@@ -1,6 +1,7 @@
 <?php
 declare(strict_types=1);
 require_once __DIR__.'/featured-article-store.php';
+require_once __DIR__.'/article-media-store.php';
 
 function kalite_filo_admin_publish_root(): string
 {
@@ -270,7 +271,7 @@ function kalite_filo_admin_unpublished_changes(): array
         ['type' => 'featured_vehicles', 'label' => 'Öne çıkan araç sıralaması', 'path' => $root . DIRECTORY_SEPARATOR . 'drafts' . DIRECTORY_SEPARATOR . 'featured-vehicles.json'],
         ['type' => 'featured_articles', 'label' => 'Öne çıkan blog seçimleri', 'path' => $root . DIRECTORY_SEPARATOR . 'drafts' . DIRECTORY_SEPARATOR . 'featured-articles.json'],
         ['type' => 'vehicle_taxonomy', 'label' => 'Araç etiketleri', 'path' => $root . DIRECTORY_SEPARATOR . 'drafts' . DIRECTORY_SEPARATOR . 'vehicle-taxonomy.json'],
-        ['type' => 'media', 'label' => 'Medya kütüphanesi', 'path' => kalite_filo_admin_media_catalog_path()],
+        ['type' => 'article_media', 'label' => 'Blog kapak görselleri', 'path' => kalite_filo_admin_article_media_catalog_path()],
     ];
     $publishedFingerprints = kalite_filo_admin_publish_baseline();
     foreach (kalite_filo_admin_publish_requests() as $publishedRequest) {
@@ -527,7 +528,7 @@ function kalite_filo_admin_staging_publish_payload(): array
 {
     $vehicles=kalite_filo_admin_vehicle_records();
     $content=kalite_filo_admin_content_snapshot();$articleSources=is_array($content['articles']['records']??null)?$content['articles']['records']:[];
-    return ['formatVersion'=>1,'vehicles'=>$vehicles,'articles'=>kalite_filo_admin_article_drafts(),'articleSources'=>$articleSources,'media'=>kalite_filo_admin_media_records(),'featuredVehicleIds'=>kalite_filo_admin_publish_featured_ids($vehicles),'featuredArticles'=>kalite_filo_admin_featured_articles_selection(),'taxonomy'=>kalite_filo_admin_taxonomy()];
+    return ['formatVersion'=>1,'vehicles'=>$vehicles,'articles'=>kalite_filo_admin_article_drafts(),'articleSources'=>$articleSources,'media'=>kalite_filo_admin_article_media_records(),'featuredVehicleIds'=>kalite_filo_admin_publish_featured_ids($vehicles),'featuredArticles'=>kalite_filo_admin_featured_articles_selection($articleSources),'taxonomy'=>kalite_filo_admin_taxonomy()];
 }
 
 /** @return array<string,mixed> */

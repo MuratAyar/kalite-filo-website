@@ -110,7 +110,7 @@ const approvedClientComponents = new Set([
   "src/components/admin/admin-app.tsx",
   "src/components/admin/audit-log-view.tsx",
   "src/components/admin/article-list-view.tsx",
-  "src/components/admin/media-library-view.tsx",
+  "src/components/admin/image-dropzone.tsx",
   "src/components/admin/subscriber-list-view.tsx",
   "src/components/admin/iys-management-view.tsx",
   "src/components/admin/campaign-manager.tsx",

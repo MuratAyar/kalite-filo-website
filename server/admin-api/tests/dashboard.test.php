@@ -82,7 +82,7 @@ try {
     $firstPage = kalite_filo_admin_audit_page($root, 1, 1);
     dashboard_test_assert(count($firstPage['records']) === 1 && $firstPage['hasNext'] === true, 'Audit pagination must return a bounded first page.');
     dashboard_test_assert($firstPage['records'][0]['action'] === 'logout', 'Audit pagination must remain newest first.');
-    dashboard_test_assert(!array_key_exists('summary', $firstPage['records'][0]), 'Audit API must never expose stored summaries.');
+    dashboard_test_assert(($firstPage['records'][0]['summary']['secret'] ?? null) === '[redacted]', 'Expanded logs must expose bounded details while redacting secrets.');
     $secondPage = kalite_filo_admin_audit_page($root, 2, 1);
     dashboard_test_assert($secondPage['records'][0]['action'] === 'login' && $secondPage['hasNext'] === false, 'Audit pagination must expose the next valid row exactly once.');
     $filtered = kalite_filo_admin_audit_page($root, 1, 20, 'login', 'success');

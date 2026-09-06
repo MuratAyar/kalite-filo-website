@@ -206,6 +206,8 @@ function kalite_filo_admin_audit_page(string $dataRoot, int $page, int $limit, s
                 'role'=>is_string($record['role']??null)?$record['role']:null,
                 'action'=>$recordAction,'entityType'=>(string)($record['entityType']??''),
                 'entityId'=>is_string($record['entityId']??null)?$record['entityId']:null,'result'=>$recordResult,
+                'summary'=>is_array($record['summary']??null)?kalite_filo_admin_audit_safe_value($record['summary']):[],
+                'request'=>is_array($record['request']??null)?kalite_filo_admin_audit_safe_value($record['request']):[],
             ];
             if (count($records) > $limit) break 2;
         }

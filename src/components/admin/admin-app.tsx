@@ -7,7 +7,6 @@ import { FeaturedVehiclesManager } from "./featured-vehicles-manager";
 import { FeaturedArticlesManager } from "./featured-articles-manager";
 import { AuditLogView } from "./audit-log-view";
 import { ArticleListView } from "./article-list-view";
-import { MediaLibraryView } from "./media-library-view";
 import { SubscriberListView } from "./subscriber-list-view";
 import { IysManagementView } from "./iys-management-view";
 import { CampaignManager } from "./campaign-manager";
@@ -228,7 +227,6 @@ export function AdminApp() {
     | "articles"
     | "draftArticles"
     | "featuredArticles"
-    | "media"
     | "subscribers"
     | "iys"
     | "campaigns"
@@ -608,12 +606,6 @@ export function AdminApp() {
             </div> : null}
           </> : null}
           <button
-            className={`flex min-h-11 w-full items-center rounded-control px-4 text-left text-label font-semibold text-text-inverse hover:bg-white/10 ${view === "media" ? "bg-white/10" : ""}`}
-            onClick={() => setView("media")}
-          >
-            Medya
-          </button>
-          <button
             className={`flex min-h-11 w-full items-center rounded-control px-4 text-left text-label font-semibold text-text-inverse hover:bg-white/10 ${view === "subscribers" ? "bg-white/10" : ""}`}
             onClick={() => setView("subscribers")}
           >
@@ -652,7 +644,7 @@ export function AdminApp() {
             className={`flex min-h-11 w-full items-center rounded-control px-4 text-left text-label font-semibold text-text-inverse hover:bg-white/10 ${view === "audit" ? "bg-white/10" : ""}`}
             onClick={() => setView("audit")}
           >
-            Denetim Kaydı
+            Loglar
           </button>
         </nav>
         <button className={`sticky bottom-4 mt-6 flex min-h-12 w-full items-center justify-center rounded-control bg-accent-orange px-4 text-label font-bold text-on-accent shadow-lg transition hover:bg-orange-dark ${view === "publishing" ? "ring-2 ring-white/70 ring-offset-2 ring-offset-brand-navy" : ""}`} onClick={() => setView("publishing")}>Yayına Al</button>
@@ -710,11 +702,6 @@ export function AdminApp() {
             canManage={["owner", "admin", "marketing"].includes(
               session.user.role,
             )}
-            csrfToken={session.csrfToken}
-          />
-        ) : view === "media" ? (
-          <MediaLibraryView
-            canEdit={["owner", "admin", "editor"].includes(session.user.role)}
             csrfToken={session.csrfToken}
           />
         ) : view === "articles" || view === "draftArticles" ? (

@@ -4,7 +4,7 @@ require_once __DIR__ . '/auth.php';
 require_once __DIR__ . '/publishing-store.php';
 require_once __DIR__ . '/publishing-automation.php';
 require_once __DIR__ . '/vehicle-media.php';
-require_once __DIR__ . '/media-store.php';
+require_once __DIR__ . '/article-media-store.php';
 
 try {
     kalite_filo_admin_require_method('GET');
@@ -32,7 +32,7 @@ try {
         foreach ($record['snapshot']['media'] ?? [] as $media) {
             if (is_array($media) && ($media['id'] ?? null) === $id && ($media['extension'] ?? null) === $extension) { $expected = $media; break; }
         }
-        $path = kalite_filo_admin_media_path($id, $extension);
+        $path = kalite_filo_admin_article_media_path($id, $extension);
     }
     if (!is_array($expected) || !is_file($path) || is_link($path)) kalite_filo_admin_json(['error' => 'not_found'], 404);
     $size = filesize($path);

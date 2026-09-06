@@ -2,6 +2,7 @@
 "use client";
 
 import { FormEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { ImageDropzone, optimizeAdminImage } from "./image-dropzone";
 
 type TranslationState = { complete: boolean; slug?: string | null };
 type Article = {
@@ -34,15 +35,10 @@ type Draft = {
   categoryId: string;
   featured: boolean;
   coverMediaId: string | null;
+  coverRemoved?: boolean;
   revision: number;
   updatedAt: string;
   locales: { tr: DraftLocale; en: DraftLocale | null };
-};
-type CoverMedia = {
-  id: string;
-  originalName: string;
-  alt: { tr: string; en: string };
-  usage: string;
 };
 type Revision = {
   id: string;
@@ -86,7 +82,6 @@ export function ArticleListView({
 }) {
   const [articles, setArticles] = useState<Article[]>([]);
   const [drafts, setDrafts] = useState<Draft[]>([]);
-  const [media, setMedia] = useState<CoverMedia[]>([]);
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState("");
   const [translation, setTranslation] = useState("");
@@ -102,32 +97,24 @@ export function ArticleListView({
   const [revisions, setRevisions] = useState<Revision[]>([]);
   const [showAllRevisions, setShowAllRevisions] = useState(false);
   const [dirty, setDirty] = useState(false);
+  const [pendingCover, setPendingCover] = useState<File[]>([]);
+  const [saving, setSaving] = useState(false);
   const formRef = useRef<HTMLFormElement>(null);
   async function load() {
     try {
-      const [response, mediaResponse] = await Promise.all([
-        fetch("/admin-api/articles.php", {
-          credentials: "same-origin",
-          cache: "no-store",
-        }),
-        fetch("/admin-api/media.php", {
-          credentials: "same-origin",
-          cache: "no-store",
-        }),
-      ]);
+      const response = await fetch("/admin-api/articles.php", {
+        credentials: "same-origin",
+        cache: "no-store",
+      });
       const payload = await response.json();
-      const mediaPayload = await mediaResponse.json();
       if (
         !response.ok ||
         !Array.isArray(payload.articles) ||
-        !Array.isArray(payload.drafts) ||
-        !mediaResponse.ok ||
-        !Array.isArray(mediaPayload.media)
+        !Array.isArray(payload.drafts)
       )
         throw new Error("unavailable");
       setArticles(payload.articles);
       setDrafts(payload.drafts);
-      setMedia(mediaPayload.media);
       setError("");
     } catch {
       setError("Filo Rehberi içerikleri şu anda yüklenemiyor.");
@@ -167,6 +154,7 @@ export function ArticleListView({
     setLocale("tr");
     setIncludeEnglish(draft.locales.en !== null);
     setPreviewHtml("");
+    setPendingCover([]);
     setRevisions([]);
     setShowAllRevisions(false);
     try {
@@ -202,11 +190,13 @@ export function ArticleListView({
     event.preventDefault();
     setError("");
     const form = new FormData(event.currentTarget);
+    setSaving(true);
     const selectedCover = String(form.get("coverMediaId") ?? "");
     const body = {
       categoryId: String(form.get("categoryId") ?? ""),
       featured: editing?.featured ?? false,
       coverMediaId: selectedCover || null,
+      coverRemoved: form.get("coverRemoved") === "true",
       locales: {
         tr: localePayload(form, "tr"),
         en:
@@ -233,12 +223,44 @@ export function ArticleListView({
       setError(
         "İçerik kaydedilemedi. Zorunlu alanları, slug değerlerini ve hazır durumundaki metadata alanlarını kontrol edin.",
       );
+      setSaving(false);
       return;
+    }
+    const payload = await response.json();
+    const saved = payload.article as Draft;
+    if (pendingCover[0]) {
+      try {
+        const optimized = await optimizeAdminImage(pendingCover[0], `${String(form.get("tr.slug") ?? "blog")}-kapak`);
+        const upload = new FormData();
+        upload.set("articleId", saved.id);
+        upload.set("image", optimized);
+        upload.set("altTr", String(form.get("tr.coverAlt") ?? form.get("tr.title") ?? ""));
+        upload.set("altEn", String(form.get("en.coverAlt") ?? ""));
+        const coverResponse = await fetch("/admin-api/article-cover.php", { method: "POST", credentials: "same-origin", headers: { "X-CSRF-Token": csrfToken }, body: upload });
+        if (!coverResponse.ok) throw new Error("cover_upload_failed");
+      } catch {
+        setError("Blog kaydedildi ancak kapak görseli optimize edilip yüklenemedi.");
+        setSaving(false);
+        await load();
+        return;
+      }
     }
     setDirty(false);
     setEditing(null);
     setCreating(false);
     setPreviewHtml("");
+    setPendingCover([]);
+    setSaving(false);
+    await load();
+  }
+
+  async function removeCover() {
+    if (!editing || !window.confirm("Kapak görseli bu blogdan kaldırılsın mı?")) return;
+    const response = await fetch("/admin-api/article-cover.php", { method: "DELETE", credentials: "same-origin", headers: { "Content-Type": "application/json", "X-CSRF-Token": csrfToken }, body: JSON.stringify({ articleId: editing.id }) });
+    if (!response.ok) { setError("Kapak görseli kaldırılamadı."); return; }
+    const payload = await response.json();
+    setEditing(payload.article as Draft);
+    setDirty(false);
     await load();
   }
   async function preview() {
@@ -310,6 +332,7 @@ export function ArticleListView({
     setDirty(false);
     setEditing(null);
     setCreating(false);
+    setPendingCover([]);
   }, [dirty]);
   useEffect(() => {
     if (!editing && !creating) return;
@@ -326,6 +349,7 @@ export function ArticleListView({
       categoryId: "filo-yonetimi",
       featured: false,
       coverMediaId: null,
+      coverRemoved: false,
       revision: 0,
       updatedAt: "",
       locales: { tr: blankLocale, en: null },
@@ -349,6 +373,7 @@ export function ArticleListView({
               setLocale("tr");
               setIncludeEnglish(false);
               setPreviewHtml("");
+              setPendingCover([]);
             }}
           >
             Yeni İçerik
@@ -491,14 +516,16 @@ export function ArticleListView({
           >
             <div className="flex items-start justify-between gap-4">
               <div>
-                <h3 className="text-heading-md">
-                  {editing ? "Draft Düzenle" : "Yeni Filo Rehberi İçeriği"}
+                <p className="text-sm font-semibold text-corporate-blue">Filo Rehberi yönetimi</p>
+                <h3 className="mt-1 text-heading-md">
+                  {editing ? "Blogu Düzenle" : "Yeni Filo Rehberi İçeriği"}
                 </h3>
                 <p className="text-sm text-text-secondary">
                   Public site ancak kontrollü yayınlama aşamasında değişir.
                 </p>
               </div>
               <button
+                className="rounded-control border border-border-control px-4 py-2 font-semibold"
                 type="button"
                 onClick={closeEditor}
               >
@@ -520,26 +547,6 @@ export function ArticleListView({
                     </option>
                   ))}
                 </select>
-              </label>
-              <label className="sm:col-span-2">
-                Kapak görseli
-                <select
-                  className={controlClass}
-                  defaultValue={formDraft.coverMediaId ?? ""}
-                  name="coverMediaId"
-                >
-                  <option value="">Henüz private kapak seçilmedi</option>
-                  {media
-                    .filter((asset) => asset.usage === "article" || asset.usage === "general")
-                    .map((asset) => (
-                      <option key={asset.id} value={asset.id}>
-                        {asset.originalName} · {asset.alt.tr}
-                      </option>
-                    ))}
-                </select>
-                <span className="mt-1 block text-xs text-text-secondary">
-                  Yeni görselleri Medya bölümünden yükleyebilirsiniz.
-                </span>
               </label>
               <label className="sm:col-span-2 flex items-center gap-2">
                 <input
@@ -689,6 +696,23 @@ export function ArticleListView({
                 </fieldset>
               );
             })}
+            <fieldset className="mt-6 grid gap-4 rounded-card border border-border-subtle bg-surface-muted p-4 sm:grid-cols-2">
+              <legend className="px-2 font-bold text-brand-navy">Kapak Görseli</legend>
+              <input name="coverMediaId" type="hidden" value={formDraft.coverMediaId ?? ""} />
+              <input name="coverRemoved" type="hidden" value={formDraft.coverRemoved ? "true" : "false"} />
+              <p className="sm:col-span-2 text-sm text-text-secondary">Tek bir kapak kullanılabilir. Yeni seçim mevcut kapağın yerini alır ve 1600×900 WebP olarak optimize edilir.</p>
+              {formDraft.coverMediaId || (!formDraft.coverRemoved && articles.find((article) => article.id === formDraft.id)?.coverImage) ? (
+                <div className="sm:col-span-2 overflow-hidden rounded-control border border-border-subtle bg-white">
+                  <img
+                    alt={formDraft.locales.tr.coverAlt}
+                    className="aspect-video w-full max-w-xl object-cover"
+                    src={formDraft.coverMediaId ? `/admin-api/image-file.php?id=${formDraft.coverMediaId}` : articles.find((article) => article.id === formDraft.id)?.coverImage?.src}
+                  />
+                  {editing ? <button className="m-3 text-sm font-semibold text-error hover:underline" onClick={() => void removeCover()} type="button">Görseli Sil</button> : null}
+                </div>
+              ) : null}
+              <ImageDropzone files={pendingCover} multiple={false} onFiles={(files) => { setPendingCover(files); setDirty(true); }} />
+            </fieldset>
             <div className="mt-5 flex flex-wrap gap-3">
               <button
                 className="rounded-control border border-corporate-blue px-5 py-3 font-semibold text-corporate-blue"
@@ -699,8 +723,8 @@ export function ArticleListView({
                 {previewing ? "Hazırlanıyor…" : "Önizleme Oluştur"}
               </button>
               {canEdit ? (
-                <button className="rounded-control bg-accent-orange px-6 py-3 font-bold">
-                  Draft’ı Kaydet
+                <button className="rounded-control bg-accent-orange px-6 py-3 font-bold disabled:cursor-wait disabled:opacity-60" disabled={saving}>
+                  {saving ? "Kaydediliyor…" : "Draft’ı Kaydet"}
                 </button>
               ) : null}
             </div>

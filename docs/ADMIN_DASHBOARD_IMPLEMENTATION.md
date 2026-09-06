@@ -1,12 +1,33 @@
 # Kalite Filo Admin Dashboard Implementation
 
-Last updated: 2026-09-02
+Last updated: 2026-09-03
 
 This document is the single source of truth for Phase 2 Admin Dashboard work.
 Every admin development session must read it before making changes and update
 the status and handoff sections before ending.
 
 ## Current Status
+
+The 2026-09-03 direct image and expanded-log pass is complete locally. The
+standalone `Medya` navigation item, client view and general-purpose media CRUD
+endpoints have been removed. Vehicle editing now exposes repository and private
+gallery images together, supports multi-select and drag/drop, alt editing,
+ordering and removal, and preserves repository images when new uploads are
+added. Article editing is titled `Blogu Düzenle`; its single-cover dropzone now
+sits below the localized content fields and can replace or remove the inherited
+or private cover. Browser-side processing strips source metadata, crops to
+1600×900 and emits quality-82 WebP; PHP validates the exact detected WebP
+dimensions, size and private opaque path before accepting it. Public filenames
+remain slug/content-hash based through the controlled materializer.
+
+`Öne Çıkan Bloglar` now derives its initial main/category selections from the
+current public article registry whenever no private override exists, matching
+the public listing fallback instead of showing empty selectors. `Denetim Kaydı`
+is now labelled `Loglar`; each row is a keyboard-accessible expandable detail
+record. New audit entries include a bounded/redacted operation summary plus
+request method, path, IP address and user agent. Existing stored summaries are
+sanitized at read time. Lint, strict TypeScript, PHP syntax checks and the full
+91-test Node/PHP suite and the clean 140-page production static export pass.
 
 The 2026-09-02 form-card interaction refinement is complete locally. The
 text-heavy `Kartı Genişlet` control has been removed from both form views; the
@@ -793,7 +814,6 @@ later routes remain checklist items, not placeholder pages.
 | `/admin/filo-rehberi/` | All/private-draft article views and translation completeness | 4 |
 | `/admin/filo-rehberi/yeni/` | Article creation | 4 |
 | `/admin/filo-rehberi/[id]/` | TR/EN Markdown editor and preview | 4 |
-| `/admin/medya/` | Media library and rights metadata | 4 |
 | `/admin/bulten-kisileri/` | Contacts, consent and suppression views | 5 |
 | `/admin/iys/` | IYS pending/failed/synced and exports | 5 |
 | `/admin/kampanyalar/` | Campaign list and send history | 6 |
@@ -802,7 +822,7 @@ later routes remain checklist items, not placeholder pages.
 | `/admin/yayinlama/` | Change set and staging/production publish | 7–8 |
 | `/admin/talepler/` | Quote/contact request inbox | 9 |
 | `/admin/ayarlar/` | Strongly typed operational site settings | 9 |
-| `/admin/denetim-kaydi/` | Audit log view | 2 |
+| `/admin/loglar/` | Expandable audit log view | 2 |
 
 ## Admin API Route Map
 
@@ -826,10 +846,9 @@ only after staging proof.
 | `GET /admin-api/article-revisions.php?id=` | Safe article revision summaries | 4 |
 | `POST /admin-api/article-preview.php` | Sanitized Markdown preview | 4 |
 | `POST /admin-api/article-import.php` | Clone verified published TR/EN source to private draft | 4 |
-| `GET,POST /admin-api/media.php` | Media list/upload metadata | 4 |
-| `PATCH /admin-api/media-update.php` | Update private media metadata | 4 |
-| `GET /admin-api/media-file.php?id=` | Authorized private preview | 4 |
-| `POST /admin-api/media-delete.php` | Delete an unreferenced private asset | 4 |
+| `POST,PATCH,DELETE /admin-api/vehicle-image.php` | Optimized vehicle gallery upload, alt/order update and removal | 3 |
+| `POST,DELETE /admin-api/article-cover.php` | Optimized single article-cover replace/removal | 4 |
+| `GET /admin-api/image-file.php?id=` | Authorized private vehicle/article image preview | 3–4 |
 | `GET /admin-api/subscribers.php` | Filtered contact view | 5 |
 | `POST /admin-api/subscriber-operation.php` | Explicit audited unsubscribe/IYS or reason-required Owner correction | 5 |
 | `GET /admin-api/iys.php` | State and export history | 5 |
@@ -908,16 +927,20 @@ excerpt, cover alt, valid publication date, reading time and SEO fields. Draft
 persistence uses a locked `drafts/articles.json` store and revisions under
 `revisions/articles/<id>/`; the public Markdown sources remain untouched.
 
-## Media Management Model
+## Direct Image Management Model
 
-Draft uploads live in an environment-specific private media directory. Metadata:
-stable ID, original/safe filename, byte size, server-detected MIME, width,
-height, alt by locale, usage, creator, source page, licence name/URL, upload time,
-uploader, checksum and status. Publication copies immutable/checksummed variants
-to approved `public/images/...` paths through the runner. Existing vehicle
-licence provenance is migrated, not discarded.
+There is no standalone Media Library. Vehicle images are managed only inside
+the vehicle editor and article covers only inside the article editor. New
+uploads live in environment-specific private directories with opaque IDs,
+detected WebP MIME, exact 1600×900 dimensions, byte size, alt text, upload actor,
+timestamp and SHA-256 checksum. The browser re-encodes at quality 82 and PHP
+rejects anything that does not satisfy the resulting contract. Publication
+copies only frozen, referenced, checksum-verified assets to approved
+`public/images/...` paths through the runner. Existing repository vehicle
+licence provenance and legacy private article cover records remain readable;
+new uploads do not request fabricated creator/source/licence fields.
 
-Repository vehicle media uses `vehicle-media.json` schema version 1. Each
+Repository vehicle media uses `vehicle-media.json` schema version 2. Each
 record is keyed by vehicle ID and includes its safe filename, dimensions,
 public alt copy, creator/source/licence evidence, derivative note and
 SHA-256 checksum. Release assembly rejects missing assets, checksum drift,
@@ -926,19 +949,18 @@ unknown vehicle references, duplicate IDs and missing featured media. The Phase
 filename; its contained copy pass now transfers only referenced, checksum- and
 size-verified private binaries into the separate review root.
 
-The binary review adapter now implements that copy boundary. Vehicle
-`draftMedia` is read only from the private vehicle media store and written to
-both `/images/vehicles/` and `/images/vehicles/cards/` review paths using its
-content-addressed filename. Referenced Article/General library covers are read
-only from the private library store and written under
+The binary review adapter now implements that copy boundary. Vehicle gallery
+media is read only from the private vehicle media store and written to both
+`/images/vehicles/` and `/images/vehicles/cards/` review paths using its
+content-addressed filename. Referenced article covers are read only from the
+private article-cover store and written under
 `/images/filo-rehberi/`. Source and destination bytes must match the frozen
 checksum and size; no unreferenced library asset crosses the boundary.
 
-Allowed types are JPEG, PNG and WebP, with a 5 MiB maximum, minimum 400×225 and
-maximum 4096×4096 dimensions. Validation uses PHP image parsing and its detected
-MIME rather than the client MIME; production `fileinfo` remains unverified and
-is not assumed. Paths use opaque 128-bit IDs plus allowlisted extensions and
-are never derived from user path fragments.
+Source selection accepts JPEG, PNG and WebP. Stored new assets are WebP, at most
+5 MiB and exactly 1600×900. Validation uses PHP image parsing and its detected
+MIME rather than the client MIME. Paths use opaque 128-bit IDs plus allowlisted
+extensions and are never derived from user path fragments.
 
 ## Newsletter / Subscriber Model
 
@@ -1146,10 +1168,13 @@ publishes and rollback. Integrity hardening (hash chaining or off-host copy) is
 an open decision before production operations. Log retention and export access
 must be approved before personal-data operations launch.
 
-The initial read endpoint exposes at most 50 records per page (the UI requests
-20), scans at most 24 bounded monthly files and silently skips malformed rows.
-Only event identity, time, safe admin/role, action, entity identity and result
-leave private storage. Stored change summaries are deliberately excluded.
+The read endpoint exposes at most 50 records per page (the UI requests 20),
+scans at most 24 bounded monthly files and silently skips malformed rows. The
+expandable Loglar UI receives event identity, time, admin/role, action, entity,
+result, a recursively bounded operation summary and bounded request method,
+path, IP and user-agent context. Secret-, token-, credential-, authorization-,
+cookie- and password-like fields are redacted both when writing new schema-2
+records and when reading older stored summaries.
 
 ## Backup / Recovery Model
 
@@ -1197,7 +1222,7 @@ leave private storage. Stored change summaries are deliberately excluded.
   - [x] Add expandable Araçlar navigation with Tüm Araçlar/Yayındaki Araçlar views
   - [x] Add vehicle cards, search, make/segment filters and create/edit form
   - [x] Add explicit published/unpublished transition in draft state
-  - [x] Add hardened private image upload/download/delete endpoints and licence editor
+  - [x] Add hardened direct gallery upload/download/delete, alt editing and ordering
   - [x] Complete price editing and price-specific validation/history
   - [x] Add central vehicle taxonomy store and Settings → Tags management view
   - [x] Enforce taxonomy dropdowns for make, model, category, segment and fuel
@@ -1206,7 +1231,7 @@ leave private storage. Stored change summaries are deliberately excluded.
   - [x] Enforce unique vehicle ID/sourceId/slug and bounded power/seats/summary
   - [x] Write immutable create/update vehicle revisions outside document root
   - [x] Add Featured Vehicles editor with exactly four eligible ordered IDs
-- [ ] **Phase 4:** Filo Rehberi CMS, TR/EN management and Media Library
+- [ ] **Phase 4:** Filo Rehberi CMS, TR/EN management and direct cover workflow
   - [x] Add release-time article inventory with verified TR/EN completeness
   - [x] Add authenticated read-only article list endpoint
   - [x] Add searchable category/translation-aware Filo Rehberi admin view
@@ -1216,7 +1241,7 @@ leave private storage. Stored change summaries are deliberately excluded.
   - [x] Add lightweight TR/EN Markdown editor and connect sanitized preview
   - [x] Add safe article revision summaries and editor history
   - [x] Add explicit localized published-source to private-draft import adapter
-  - [x] Add article cover workflow and central Media Library
+  - [x] Replace the central Media Library with a direct single-cover workflow
 - [ ] **Phase 5:** Newsletter Contacts, IYS and unsubscribe infrastructure
   - [x] Add authenticated paginated read-only contact API
   - [x] Add searchable status/source/IYS-aware Newsletter Contacts UI
@@ -1602,6 +1627,12 @@ leave private storage. Stored change summaries are deliberately excluded.
 
 ## Current Task
 
+Deploy and smoke-test the direct vehicle/article image workflows and expanded
+Loglar view on HTTPS staging. Confirm multi-file selection and drag/drop,
+1600×900 WebP output, repository-image removal/reordering, single blog-cover
+replacement, preselected featured blogs, and redaction of sensitive log keys.
+The removed general media routes must return not found in the atomic release.
+
 Deploy and staging-smoke-test the field-level Publishing Center history,
 active-release preservation and stale-run cleanup, then continue the retained-
 release restore. After deployment, explicitly
@@ -1679,6 +1710,9 @@ implemented; next smoke-test staging dry-run before any live delivery. In parall
 the still-required Phase 2/3 staging smoke tests before closing those phases.
 
 ## Next Tasks
+
+- [ ] Publish this direct-image/log release to staging and execute the focused
+  authenticated browser smoke test documented in the latest handoff.
 
 - [ ] Deploy the active-history cleanup correction; click `Geçmişi Temizle`
   and confirm the current release remains visible while the two reported stale
@@ -1823,8 +1857,8 @@ the still-required Phase 2/3 staging smoke tests before closing those phases.
   response headers, rate-limit file permissions and logout in browser/devtools.
 - [ ] Verify whether Apache can apply no-store headers to static `/admin/` and
   disable directory listing without interfering with cPanel HTTPS rules.
-- [ ] Verify audit pagination/filters and confirm API responses never contain
-  the stored `summary` field on HTTPS staging.
+- [ ] Verify Loglar pagination/filters, expandable bounded summaries and
+  sensitive-key redaction on HTTPS staging.
 - [x] Define the Phase 4 localized article draft schema, field limits and
   explicit missing-translation semantics.
 - [x] Implement and test raw-HTML-disabled Markdown preview before enabling any
@@ -1837,9 +1871,9 @@ the still-required Phase 2/3 staging smoke tests before closing those phases.
 - [x] Add authenticated safe article revision summaries.
 - [x] Define and implement an explicit localized import adapter before allowing
   existing published articles to be edited as drafts.
-- [x] Implement article cover selection and the central Media Library contract.
-- [ ] Deploy and smoke-test article import/edit/preview, media upload/edit/
-  download/delete and referenced-media deletion protection on HTTPS staging.
+- [x] Implement direct article cover selection and remove the central Media Library.
+- [ ] Deploy and smoke-test article import/edit/preview plus direct cover
+  upload/replace/delete on HTTPS staging.
 - [x] Start Phase 5 with authenticated read-only Newsletter Contacts filters.
 - [x] Add read-only IYS pending/failed/synced summary and existing manual CSV
   workflow visibility before enabling any state-changing IYS operation.
@@ -2978,6 +3012,21 @@ still excludes missing consent and unsubscribed rows. No recipient list is sent
 to the browser and no delivery endpoint is packaged.
 
 ## Session Handoff
+
+2026-09-03 direct-image/log handoff: the standalone Media Library and its
+general CRUD endpoints are removed. Vehicle and article editors now own their
+images directly, using browser WebP conversion plus strict PHP inspection.
+Deploy the atomic staging release, then upload two vehicle images by both file
+selection and drag/drop; verify existing repository images remain visible,
+alt/order/delete changes survive reload, and the public staging gallery matches
+after publication. Replace and remove one blog cover, confirm only one cover is
+retained, and verify the featured-blog selectors initially reflect the current
+public main/category cards. Open Loglar, expand a new image event and confirm
+method/path/IP/user-agent and safe summary details are present while a
+secret-like test field is redacted. Confirm the removed `/admin-api/media.php`,
+`media-update.php`, `media-delete.php` and `media-file.php` are absent. Local
+lint, strict typecheck, PHP syntax checks and all 91 Node/PHP tests pass; the
+clean 140-page production static export also passes.
 
 2026-09-02 form/gallery handoff: deploy the refreshed staging release so
 Composer regenerates `vendor/composer/platform_check.php` from the PHP 8.1+
