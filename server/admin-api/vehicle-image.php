@@ -67,6 +67,11 @@ try {
                 foreach ($gallery as $candidate) { if (is_array($candidate) && ($candidate['id'] ?? null) === $id) $removed = $candidate; else $remaining[] = $candidate; }
                 $gallery = $remaining;
                 if (is_array($removed)) @unlink(kalite_filo_admin_vehicle_media_path($id, (string)$removed['extension']));
+            } else {
+                $fileName = substr($token, 5);
+                $removedRepositoryMedia = is_array($record['removedRepositoryMedia'] ?? null) ? $record['removedRepositoryMedia'] : [];
+                $removedRepositoryMedia[] = $fileName;
+                $record['removedRepositoryMedia'] = array_values(array_unique(array_filter($removedRepositoryMedia, 'is_string')));
             }
             $action = 'vehicle_image_delete'; $summary = ['id'=>$vehicleId,'image'=>$token];
         } else {

@@ -8,6 +8,14 @@ the status and handoff sections before ending.
 
 ## Current Status
 
+The 2026-09-06 existing-vehicle gallery hydration fix is complete locally.
+Private vehicle drafts no longer hide repository gallery additions from the
+current release snapshot. On read, published-source records receive the current
+repository gallery and cover, retain uploaded media and existing order, and
+append every newly discovered image. Repository-image deletion now stores an
+explicit filename tombstone so a removed image remains absent on reload while
+other current images stay visible, reorderable and removable in `Aracı Düzenle`.
+
 The 2026-09-06 staging-dispatch compatibility fix is complete locally. The
 Publishing Center no longer treats the absence of `php_curl` by itself as a
 hard blocker. GitHub workflow dispatch still prefers cURL, but can now use a
@@ -1998,6 +2006,13 @@ src/app/robots.ts                          (update)
 
 ## Files Changed
 
+Current 2026-09-06 existing-vehicle gallery hydration fix:
+
+- `server/admin-api/vehicle-store.php`
+- `server/admin-api/vehicle-image.php`
+- `server/admin-api/tests/vehicle-store.test.php`
+- `docs/ADMIN_DASHBOARD_IMPLEMENTATION.md`
+
 Current 2026-09-06 staging-dispatch compatibility fix:
 
 - `server/admin-api/publishing-automation.php`
@@ -2441,6 +2456,17 @@ Current Phase 6 test-mail continuation:
 - `server/admin-api/tests/media-store.test.php`
 
 ## Validation Results
+
+2026-09-06 existing-vehicle gallery hydration fix:
+
+- Regression coverage confirms that a stale one-image private draft receives
+  all three current repository images, retains its uploaded image and order,
+  and does not restore a repository image carrying an explicit deletion
+  tombstone.
+- PHP syntax checks pass for all 95 project-owned server PHP files; lint,
+  strict TypeScript and the complete 91-test Node suite plus all PHP suites pass.
+- The clean production build emits all 140 static pages; exported-output
+  validation and `git diff --check` pass.
 
 2026-09-06 staging-dispatch compatibility fix:
 
@@ -3052,6 +3078,15 @@ still excludes missing consent and unsubscribed rows. No recipient list is sent
 to the browser and no delivery endpoint is packaged.
 
 ## Session Handoff
+
+2026-09-06 existing-gallery handoff: deploy the refreshed admin PHP runtime and
+open a previously edited published vehicle, especially one whose private draft
+predates multi-image support. `Araç galerisi` must show every current repository
+image plus all private uploads. Delete one repository image, reload the editor
+and confirm it remains absent while the other images remain visible. Then stage
+the change and confirm the public gallery follows the retained order. The
+removal is represented by `removedRepositoryMedia`; do not delete the original
+repository asset directly.
 
 2026-09-06 staging-dispatch handoff: the disabled `Staging Oluştur` control was
 caused by the deployed readiness check requiring `php_curl`, even though the

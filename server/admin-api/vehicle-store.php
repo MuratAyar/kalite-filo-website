@@ -15,6 +15,40 @@ function kalite_filo_admin_vehicle_store_path(): string
         . DIRECTORY_SEPARATOR . 'vehicles.json';
 }
 
+/** @return array<string, mixed> */
+function kalite_filo_admin_hydrate_vehicle_gallery(array $record, array $source): array
+{
+    $repository = is_array($source['galleryImages'] ?? null) ? array_values($source['galleryImages']) : [];
+    $record['galleryImages'] = $repository;
+    if (array_key_exists('coverImage', $source)) $record['coverImage'] = $source['coverImage'];
+
+    $removed = array_values(array_unique(array_filter(
+        is_array($record['removedRepositoryMedia'] ?? null) ? $record['removedRepositoryMedia'] : [],
+        'is_string',
+    )));
+    $removedTokens = array_fill_keys(array_map(static fn(string $fileName): string => 'repo:' . $fileName, $removed), true);
+    $gallery = is_array($record['galleryMedia'] ?? null)
+        ? array_values($record['galleryMedia'])
+        : (is_array($record['draftMedia'] ?? null) ? [$record['draftMedia']] : []);
+    $available = [];
+    foreach ($repository as $media) {
+        if (!is_array($media) || !is_string($media['fileName'] ?? null)) continue;
+        $token = 'repo:' . $media['fileName'];
+        if (!isset($removedTokens[$token])) $available[$token] = true;
+    }
+    foreach ($gallery as $media) {
+        if (is_array($media) && is_string($media['id'] ?? null)) $available['upload:' . $media['id']] = true;
+    }
+    $order = [];
+    foreach (is_array($record['galleryOrder'] ?? null) ? $record['galleryOrder'] : [] as $token) {
+        if (is_string($token) && isset($available[$token]) && !in_array($token, $order, true)) $order[] = $token;
+    }
+    foreach (array_keys($available) as $token) if (!in_array($token, $order, true)) $order[] = $token;
+    $record['removedRepositoryMedia'] = $removed;
+    $record['galleryOrder'] = $order;
+    return $record;
+}
+
 /** @return list<array<string, mixed>> */
 function kalite_filo_admin_vehicle_records(): array
 {
@@ -57,7 +91,16 @@ function kalite_filo_admin_vehicle_records(): array
             'Vehicle draft store must contain schemaVersion 1 and a records array.',
         );
     }
-    return array_values($draft['records']);
+    $sources = [];
+    foreach ($base as $source) if (is_array($source) && is_string($source['id'] ?? null)) $sources[$source['id']] = $source;
+    return array_values(array_map(
+        static function (mixed $record) use ($sources): mixed {
+            if (!is_array($record) || !is_string($record['id'] ?? null)) return $record;
+            $source = $sources[$record['id']] ?? null;
+            return is_array($source) ? kalite_filo_admin_hydrate_vehicle_gallery($record, $source) : $record;
+        },
+        $draft['records'],
+    ));
 }
 
 /** @param list<array<string, mixed>> $records */
