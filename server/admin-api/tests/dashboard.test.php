@@ -103,6 +103,10 @@ try {
     ], kalite_filo_admin_dashboard_range_start('week', $now));
     dashboard_test_assert($formMetrics['quote']['total'] === 2 && $formMetrics['quote']['new'] === 1 && $formMetrics['quote']['inProgress'] === 1, 'Dashboard quote metrics must respect the selected period and statuses.');
     dashboard_test_assert($formMetrics['contact']['total'] === 1 && $formMetrics['contact']['replied'] === 1, 'Dashboard contact metrics must respect the selected period.');
+    dashboard_test_assert(kalite_filo_admin_dashboard_recent_count([['publishedAt'=>'2026-09-01'],['publishedAt'=>'2026-08-01'],['publishedAt'=>'invalid']], kalite_filo_admin_dashboard_range_start('week', $now), 'publishedAt') === 1, 'Dashboard content growth must use valid dates inside the selected period.');
+    dashboard_test_assert(kalite_filo_admin_dashboard_recent_count([['publishedAt'=>'2026-09-01'],['publishedAt'=>'2026-08-01']], null, 'publishedAt') === 2, 'All-time content growth must equal the supplied published total.');
+    dashboard_test_assert(kalite_filo_admin_dashboard_active_contact_growth($contactPath, null) === 2, 'All-time newsletter growth must deduplicate active consent records.');
+    dashboard_test_assert(kalite_filo_admin_dashboard_active_contact_growth($contactPath, kalite_filo_admin_dashboard_range_start('week', $now)) === 0, 'Newsletter growth must respect the selected period.');
 
     fwrite(STDOUT, "Admin dashboard read-model tests passed.\n");
 } finally {

@@ -3,7 +3,7 @@ import { copyFileSync, existsSync, lstatSync, mkdirSync, readFileSync, readdirSy
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
-const vehicleFields=["id","sourceId","contentStatus","sourceStatus","priority","featured","make","model","trim","modelYearLabel","categoryLabel","segmentLabel","fuelLabel","transmissionLabel","powerHp","seats","slug","summary","featureLabels","dataConfidence","editorialReviewRequired","priceStatus"];
+const vehicleFields=["id","sourceId","contentStatus","sourceStatus","priority","featured","make","model","trim","modelYearLabel","categoryLabel","segmentLabel","fuelLabel","transmissionLabel","powerHp","seats","slug","summary","featureLabels","dataConfidence","editorialReviewRequired","priceStatus","createdAt"];
 const articleCategories=new Map([["uzun-donem-kiralama","long-term-leasing"],["maliyet-ve-finans","cost-and-finance"],["arac-rehberi","vehicle-guide"],["filo-yonetimi","fleet-management"],["elektrikli-araclar","electric-vehicles"],["bakim-ve-hasar","maintenance-and-damage"]]);
 
 function fail(message){throw new Error(`Admin snapshot materialization failed: ${message}`);}

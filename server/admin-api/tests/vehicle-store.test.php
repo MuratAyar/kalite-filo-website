@@ -8,6 +8,7 @@ $base=['make'=>'Renault','model'=>'Clio','trim'=>'Evolution','modelYearLabel'=>'
 $vehicle=kalite_filo_admin_normalize_vehicle($base);
 vehicle_test_assert($vehicle['powerHp']===90&&$vehicle['seats']===5,'Numeric technical fields must normalize.');
 vehicle_test_assert($vehicle['priceAmountMinor']===4020000,'Whole TRY price must normalize to integer minor units.');
+vehicle_test_assert(is_string($vehicle['createdAt'])&&$vehicle['createdAt']!=='','New vehicles must retain a creation timestamp for period metrics.');
 vehicle_test_assert(!array_key_exists('priceAmountTry',$vehicle),'Transport-only price input must not enter the store.');
 kalite_filo_admin_assert_vehicle_uniqueness([$vehicle]);
 try{kalite_filo_admin_assert_vehicle_uniqueness([$vehicle,[...$vehicle,'id'=>'other','sourceId'=>'OTHER']]);vehicle_test_assert(false,'Duplicate slug must fail.');}catch(InvalidArgumentException){/* expected */}

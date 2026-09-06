@@ -202,6 +202,7 @@ function kalite_filo_admin_normalize_vehicle(array $input, ?array $existing = nu
         'powerHp' => $power,
         'seats' => $seats,
         'featureLabels' => array_values(array_filter(array_map('trim', is_array($input['featureLabels'] ?? null) ? $input['featureLabels'] : []))),
+        'createdAt' => $existing['createdAt'] ?? gmdate('c'),
         'updatedAt' => gmdate('c'),
     ]);
 }

@@ -8,16 +8,26 @@ the status and handoff sections before ending.
 
 ## Current Status
 
+The 2026-09-06 Dashboard growth-card refinement is complete locally. The
+duplicated pending quote/contact summary cards were removed; their full status
+breakdowns remain directly below. The top row now focuses on published
+vehicles, published blogs, active consent-backed newsletter contacts and draft
+content. The first three cards report the count added inside the selected
+rolling period. Vehicle creation timestamps are now persisted and preserved by
+materialization, article growth uses `publishedAt`, and newsletter growth
+deduplicates active consent records by email and consent/confirmation date.
+Records without verified historical timestamps are not fabricated into period
+growth. The sidebar `Website Canlıda` card now opens the staging home page.
+
 The 2026-09-06 Dashboard metrics redesign is complete locally. `Genel Bakış`
 now uses the approved admin palette and exposes rolling daily, weekly, monthly,
 90-day, yearly and all-time filters backed by validated PHP query values. Quote
 and contact submissions are counted from the isolated private form store and
-split into new, in-progress, replied and closed states. Summary cards show
-pending quote/contact work, the deployed vehicle catalogue, combined vehicle/
-article drafts and IYS backlog. The lower `Son Aktiviteler` panel uses semantic
+split into new, in-progress, replied and closed states. The lower
+`Son Aktiviteler` panel uses semantic
 icons, selected-period audit data and a direct `Tüm Logları Görüntüle` action.
 The sidebar footer now contains an external, clearly labelled `Website Canlıda`
-card linking to the canonical production home page.
+card linking to the canonical staging home page.
 
 The 2026-09-06 existing-vehicle gallery hydration fix is complete locally.
 Private vehicle drafts no longer hide repository gallery additions from the
@@ -2017,6 +2027,19 @@ src/app/robots.ts                          (update)
 
 ## Files Changed
 
+Current 2026-09-06 Dashboard growth-card refinement:
+
+- `src/components/admin/admin-dashboard.tsx`
+- `src/components/admin/admin-app.tsx`
+- `server/admin-api/dashboard.php`
+- `server/admin-api/read-model.php`
+- `server/admin-api/vehicle-store.php`
+- `server/admin-api/tests/dashboard.test.php`
+- `server/admin-api/tests/vehicle-store.test.php`
+- `scripts/materialize-admin-snapshot.mjs`
+- `scripts/materialize-admin-snapshot.test.mjs`
+- `docs/ADMIN_DASHBOARD_IMPLEMENTATION.md`
+
 Current 2026-09-06 Dashboard metrics redesign:
 
 - `src/components/admin/admin-dashboard.tsx` (new)
@@ -2476,6 +2499,18 @@ Current Phase 6 test-mail continuation:
 - `server/admin-api/tests/media-store.test.php`
 
 ## Validation Results
+
+2026-09-06 Dashboard growth-card refinement:
+
+- Focused PHP tests cover date-bounded/all-time content growth, deduplicated
+  active newsletter growth and persisted vehicle creation timestamps.
+- Materialization regression coverage confirms that a new vehicle's
+  `createdAt` survives into the public registry used by later snapshots.
+- Focused PHP syntax, Dashboard/vehicle-store tests, the 13-test materializer
+  suite, lint and strict TypeScript checks pass.
+- All 95 PHP files and all PHP suites pass; the complete Node suite reports
+  92/92 tests. The clean production build emits 140 static pages, output
+  verification passes and `git diff --check` reports no errors.
 
 2026-09-06 Dashboard metrics redesign:
 
@@ -3108,6 +3143,14 @@ still excludes missing consent and unsubscribed rows. No recipient list is sent
 to the browser and no delivery endpoint is packaged.
 
 ## Session Handoff
+
+2026-09-06 Dashboard growth handoff: publish the static admin bundle, PHP
+runtime and materializer changes together. On staging, verify the sidebar card
+opens `https://staging.kalitefilo.com.tr/`. Compare each date filter against a
+known newly created/published vehicle, a blog `publishedAt` date and a synthetic
+consent-backed newsletter record. Legacy vehicles without a trustworthy
+creation timestamp correctly contribute zero to bounded growth and must not be
+assigned invented dates; `Tümü` still represents the complete current count.
 
 2026-09-06 Dashboard redesign handoff: deploy the static admin bundle and PHP
 runtime atomically, then compare Günlük/Haftalık/Aylık/3 Aylık/1 Senelik/Tümü

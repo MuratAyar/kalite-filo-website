@@ -172,6 +172,43 @@ function kalite_filo_admin_dashboard_form_metrics(array $records, ?DateTimeImmut
     return $metrics;
 }
 
+/** @param list<array<string,mixed>> $records */
+function kalite_filo_admin_dashboard_recent_count(array $records, ?DateTimeImmutable $since, string $dateField): int
+{
+    if ($since === null) return count($records);
+    $count = 0;
+    foreach ($records as $record) {
+        $value = $record[$dateField] ?? null;
+        if (!is_string($value) || trim($value) === '') continue;
+        try { $date = new DateTimeImmutable($value); }
+        catch (Throwable) { continue; }
+        if ($date >= $since) $count++;
+    }
+    return $count;
+}
+
+function kalite_filo_admin_dashboard_active_contact_growth(string $path, ?DateTimeImmutable $since): int
+{
+    if (!is_file($path)) return 0;
+    $page = kalite_filo_admin_contact_page($path, 1, 100, '', 'approved');
+    $byEmail = [];
+    while (true) {
+        foreach ($page['records'] as $record) {
+            if (trim((string) ($record['unsubscribed_at'] ?? '')) !== '' || trim((string) ($record['consent_at'] ?? '')) === '' || trim((string) ($record['consent_text_version'] ?? '')) === '') continue;
+            $email = strtolower(trim((string) ($record['email'] ?? '')));
+            if (filter_var($email, FILTER_VALIDATE_EMAIL) === false) continue;
+            $dateValue = trim((string) ($record['confirmed_at'] ?? '')) ?: trim((string) ($record['consent_at'] ?? ''));
+            try { $date = new DateTimeImmutable($dateValue); }
+            catch (Throwable) { continue; }
+            if (!isset($byEmail[$email]) || $date > $byEmail[$email]) $byEmail[$email] = $date;
+        }
+        if (!$page['hasNext']) break;
+        $page = kalite_filo_admin_contact_page($path, $page['page'] + 1, 100, '', 'approved');
+    }
+    if ($since === null) return count($byEmail);
+    return count(array_filter($byEmail, static fn(DateTimeImmutable $date): bool => $date >= $since));
+}
+
 /** @return list<array<string, mixed>> */
 function kalite_filo_admin_recent_audit(string $dataRoot, int $limit = 8, ?DateTimeImmutable $since = null): array
 {

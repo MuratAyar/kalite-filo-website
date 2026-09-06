@@ -19,22 +19,25 @@ try {
     putenv(KALITE_FILO_FORM_SUBMISSION_STORE_ENV . '=' . (string) $config['data_root'] . DIRECTORY_SEPARATOR . 'form-submissions');
     $forms = kalite_filo_admin_dashboard_form_metrics(kalite_filo_form_submissions(), $since);
     $vehicles = kalite_filo_admin_vehicle_records();
+    $activeVehicleRecords = array_values(array_filter($vehicles, static fn(array $vehicle): bool => ($vehicle['publicationStatus'] ?? '') === 'published'));
+    $articleRecords = array_values(array_filter($snapshot['articles']['records'] ?? [], 'is_array'));
     $draftVehicles = count(array_filter($vehicles, static fn(array $vehicle): bool => ($vehicle['publicationStatus'] ?? '') !== 'published'));
     $draftArticles = kalite_filo_admin_article_draft_count();
     kalite_filo_admin_json([
         'range' => $range,
         'metrics' => [
             'activeVehicles' => (int) ($snapshot['vehicles']['active'] ?? 0),
+            'vehicleGrowth' => kalite_filo_admin_dashboard_recent_count($activeVehicleRecords, $since, 'createdAt'),
             'totalVehicles' => count($vehicles),
             'draftVehicles' => $draftVehicles,
             'featuredVehicles' => (int) ($snapshot['vehicles']['featured'] ?? 0),
             'articles' => (int) ($snapshot['articles']['total'] ?? 0),
+            'articleGrowth' => kalite_filo_admin_dashboard_recent_count($articleRecords, $since, 'publishedAt'),
             'draftArticles' => $draftArticles,
-            'pendingQuotes' => $forms['quote']['new'] + $forms['quote']['inProgress'],
-            'pendingContacts' => $forms['contact']['new'] + $forms['contact']['inProgress'],
             'pendingContent' => $draftVehicles + $draftArticles,
             'newsletterContacts' => $contacts['contacts'],
             'approvedMarketingConsents' => $contacts['approved'],
+            'newsletterGrowth' => kalite_filo_admin_dashboard_active_contact_growth(kalite_filo_admin_contact_store_path(), $since),
             'iysPending' => $contacts['iysPending'],
             'unsubscribed' => $contacts['unsubscribed'],
         ],

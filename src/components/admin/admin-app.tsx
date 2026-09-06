@@ -80,16 +80,17 @@ function parseDashboard(
   const publishing = payload.publishing;
   const metricKeys = [
     "activeVehicles",
+    "vehicleGrowth",
     "totalVehicles",
     "draftVehicles",
     "featuredVehicles",
     "articles",
+    "articleGrowth",
     "draftArticles",
-    "pendingQuotes",
-    "pendingContacts",
     "pendingContent",
     "newsletterContacts",
     "approvedMarketingConsents",
+    "newsletterGrowth",
     "iysPending",
     "unsubscribed",
   ] as const;
@@ -617,9 +618,9 @@ export function AdminApp() {
             Loglar
           </button>
         </nav>
-        <a className="group mt-6 flex items-center gap-3 rounded-card border border-white/15 bg-white/5 p-4 transition hover:border-accent-orange/60 hover:bg-white/10" href="https://kalitefilo.com.tr/" rel="noreferrer" target="_blank">
+        <a className="group mt-6 flex items-center gap-3 rounded-card border border-white/15 bg-white/5 p-4 transition hover:border-accent-orange/60 hover:bg-white/10" href="https://staging.kalitefilo.com.tr/" rel="noreferrer" target="_blank">
           <span className="size-2.5 shrink-0 rounded-full bg-success shadow-[0_0_0_4px_rgb(34_197_94_/_0.12)]" />
-          <span className="min-w-0 flex-1"><span className="block text-[0.65rem] font-bold tracking-wide text-text-inverse-muted uppercase">Website canlıda</span><span className="mt-0.5 block truncate text-sm font-semibold text-white">kalitefilo.com.tr</span></span>
+          <span className="min-w-0 flex-1"><span className="block text-[0.65rem] font-bold tracking-wide text-text-inverse-muted uppercase">Website canlıda</span><span className="mt-0.5 block truncate text-sm font-semibold text-white">staging.kalitefilo.com.tr</span></span>
           <svg aria-hidden="true" className="size-5 text-text-inverse-muted transition group-hover:text-accent-orange" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" viewBox="0 0 24 24"><path d="M14 4h6v6M20 4l-9 9"/><path d="M18 13v6H5V6h6"/></svg>
           <span className="sr-only">Yeni sekmede açılır</span>
         </a>
