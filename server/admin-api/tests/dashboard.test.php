@@ -90,6 +90,20 @@ try {
     try { kalite_filo_admin_audit_page($root, 1, 20, '../unsafe'); dashboard_test_assert(false, 'Unsafe audit filters must fail.'); }
     catch (InvalidArgumentException) { /* expected */ }
 
+    $now = new DateTimeImmutable('2026-09-06T12:00:00Z');
+    dashboard_test_assert(kalite_filo_admin_dashboard_range_start('week', $now)?->format('c') === '2026-08-30T12:00:00+00:00', 'Dashboard week range must cover the latest seven days.');
+    dashboard_test_assert(kalite_filo_admin_dashboard_range_start('all', $now) === null, 'Dashboard all range must remain unbounded.');
+    try { kalite_filo_admin_dashboard_range_start('unsafe', $now); dashboard_test_assert(false, 'Unknown dashboard ranges must fail closed.'); }
+    catch (InvalidArgumentException) { /* expected */ }
+    $formMetrics = kalite_filo_admin_dashboard_form_metrics([
+        ['kind'=>'quote','status'=>'new','createdAt'=>'2026-09-06T10:00:00Z'],
+        ['kind'=>'quote','status'=>'in_progress','createdAt'=>'2026-09-01T10:00:00Z'],
+        ['kind'=>'quote','status'=>'closed','createdAt'=>'2026-08-01T10:00:00Z'],
+        ['kind'=>'contact','status'=>'replied','createdAt'=>'2026-09-05T10:00:00Z'],
+    ], kalite_filo_admin_dashboard_range_start('week', $now));
+    dashboard_test_assert($formMetrics['quote']['total'] === 2 && $formMetrics['quote']['new'] === 1 && $formMetrics['quote']['inProgress'] === 1, 'Dashboard quote metrics must respect the selected period and statuses.');
+    dashboard_test_assert($formMetrics['contact']['total'] === 1 && $formMetrics['contact']['replied'] === 1, 'Dashboard contact metrics must respect the selected period.');
+
     fwrite(STDOUT, "Admin dashboard read-model tests passed.\n");
 } finally {
     dashboard_test_remove_tree($root);

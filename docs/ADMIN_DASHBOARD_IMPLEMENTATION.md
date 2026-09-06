@@ -8,6 +8,17 @@ the status and handoff sections before ending.
 
 ## Current Status
 
+The 2026-09-06 Dashboard metrics redesign is complete locally. `Genel Bakış`
+now uses the approved admin palette and exposes rolling daily, weekly, monthly,
+90-day, yearly and all-time filters backed by validated PHP query values. Quote
+and contact submissions are counted from the isolated private form store and
+split into new, in-progress, replied and closed states. Summary cards show
+pending quote/contact work, the deployed vehicle catalogue, combined vehicle/
+article drafts and IYS backlog. The lower `Son Aktiviteler` panel uses semantic
+icons, selected-period audit data and a direct `Tüm Logları Görüntüle` action.
+The sidebar footer now contains an external, clearly labelled `Website Canlıda`
+card linking to the canonical production home page.
+
 The 2026-09-06 existing-vehicle gallery hydration fix is complete locally.
 Private vehicle drafts no longer hide repository gallery additions from the
 current release snapshot. On read, published-source records receive the current
@@ -2006,6 +2017,15 @@ src/app/robots.ts                          (update)
 
 ## Files Changed
 
+Current 2026-09-06 Dashboard metrics redesign:
+
+- `src/components/admin/admin-dashboard.tsx` (new)
+- `src/components/admin/admin-app.tsx`
+- `server/admin-api/dashboard.php`
+- `server/admin-api/read-model.php`
+- `server/admin-api/tests/dashboard.test.php`
+- `docs/ADMIN_DASHBOARD_IMPLEMENTATION.md`
+
 Current 2026-09-06 existing-vehicle gallery hydration fix:
 
 - `server/admin-api/vehicle-store.php`
@@ -2456,6 +2476,16 @@ Current Phase 6 test-mail continuation:
 - `server/admin-api/tests/media-store.test.php`
 
 ## Validation Results
+
+2026-09-06 Dashboard metrics redesign:
+
+- PHP regression coverage verifies the seven-day boundary, unbounded all-time
+  range, fail-closed unknown range and period/status-aware quote/contact totals.
+- Focused PHP syntax and Dashboard read-model tests pass; lint and strict
+  TypeScript checks pass.
+- All 95 project-owned PHP files, the complete 91-test Node suite and every PHP
+  suite pass. The clean production build emits 140 static pages; output
+  verification and `git diff --check` pass.
 
 2026-09-06 existing-vehicle gallery hydration fix:
 
@@ -3078,6 +3108,14 @@ still excludes missing consent and unsubscribed rows. No recipient list is sent
 to the browser and no delivery endpoint is packaged.
 
 ## Session Handoff
+
+2026-09-06 Dashboard redesign handoff: deploy the static admin bundle and PHP
+runtime atomically, then compare Günlük/Haftalık/Aylık/3 Aylık/1 Senelik/Tümü
+against known synthetic staging form timestamps. Confirm each distribution
+matches the corresponding Formlar lists, `Son Aktiviteler` respects the period,
+`Tüm Logları Görüntüle` opens Loglar and the sidebar production link opens
+`https://kalitefilo.com.tr/` in a new tab. Counts are read-only and do not expose
+submission bodies or consent records.
 
 2026-09-06 existing-gallery handoff: deploy the refreshed admin PHP runtime and
 open a previously edited published vehicle, especially one whose private draft

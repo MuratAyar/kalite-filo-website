@@ -12,6 +12,7 @@ import { IysManagementView } from "./iys-management-view";
 import { CampaignManager } from "./campaign-manager";
 import { PublishingCenter } from "./publishing-center";
 import { FormSubmissionsView } from "./form-submissions-view";
+import { AdminDashboard, type DashboardActivity, type DashboardData, type DashboardRange } from "./admin-dashboard";
 
 type AdminIdentity = {
   id: string;
@@ -25,33 +26,6 @@ type SessionState = {
   csrfToken: string;
   environment: "production" | "staging";
   user?: AdminIdentity;
-};
-
-type DashboardActivity = {
-  id: string;
-  timestamp: string;
-  adminId: string | null;
-  action: string;
-  entityType: string;
-  entityId: string | null;
-  result: string;
-};
-
-type DashboardData = {
-  metrics: {
-    activeVehicles: number;
-    featuredVehicles: number;
-    articles: number;
-    draftArticles: number;
-    newsletterContacts: number;
-    approvedMarketingConsents: number;
-    iysPending: number;
-    unsubscribed: number;
-  };
-  recentActivity: DashboardActivity[];
-  publishing: { staging: null; production: null };
-  failures: unknown[];
-  snapshotGeneratedAt: string;
 };
 
 const endpoints = {
@@ -101,13 +75,19 @@ function parseDashboard(
   payload: Record<string, unknown>,
 ): DashboardData | null {
   const metrics = payload.metrics;
+  const forms = payload.forms;
   const activity = payload.recentActivity;
   const publishing = payload.publishing;
   const metricKeys = [
     "activeVehicles",
+    "totalVehicles",
+    "draftVehicles",
     "featuredVehicles",
     "articles",
     "draftArticles",
+    "pendingQuotes",
+    "pendingContacts",
+    "pendingContent",
     "newsletterContacts",
     "approvedMarketingConsents",
     "iysPending",
@@ -120,10 +100,17 @@ function parseDashboard(
       Number.isSafeInteger((metrics as Record<string, unknown>)[key]),
     ) ||
     !Array.isArray(activity) ||
+    typeof forms !== "object" ||
+    forms === null ||
+    !["quote", "contact"].every((kind) => {
+      const value = (forms as Record<string, unknown>)[kind];
+      return typeof value === "object" && value !== null && ["total", "new", "inProgress", "replied", "closed"].every((key) => Number.isSafeInteger((value as Record<string, unknown>)[key]));
+    }) ||
     !Array.isArray(payload.failures) ||
     typeof publishing !== "object" ||
     publishing === null ||
-    typeof payload.snapshotGeneratedAt !== "string"
+    typeof payload.snapshotGeneratedAt !== "string" ||
+    !["day", "week", "month", "quarter", "year", "all"].includes(String(payload.range))
   )
     return null;
   const parsedActivity = activity.filter((item): item is DashboardActivity => {
@@ -140,32 +127,14 @@ function parseDashboard(
     );
   });
   return {
+    range: payload.range as DashboardRange,
     metrics: metrics as DashboardData["metrics"],
+    forms: forms as DashboardData["forms"],
     recentActivity: parsedActivity,
     publishing: { staging: null, production: null },
     failures: payload.failures,
     snapshotGeneratedAt: payload.snapshotGeneratedAt,
   };
-}
-
-const activityLabels: Record<string, string> = {
-  login: "Oturum açıldı",
-  logout: "Oturum kapatıldı",
-  failed_login: "Başarısız giriş denemesi",
-  iys_export: "İYS CSV export oluşturuldu",
-  subscriber_unsubscribe: "Abonelik sonlandırıldı",
-  subscriber_iys_update: "Abone İYS bilgileri güncellendi",
-  subscriber_record_correction: "Bülten kişi kaydı düzeltildi",
-};
-
-function formatActivityDate(value: string): string {
-  const date = new Date(value);
-  return Number.isNaN(date.getTime())
-    ? "Tarih bilinmiyor"
-    : new Intl.DateTimeFormat("tr-TR", {
-        dateStyle: "medium",
-        timeStyle: "short",
-      }).format(date);
 }
 
 function messageForError(
@@ -217,6 +186,7 @@ export function AdminApp() {
   const [dashboard, setDashboard] = useState<DashboardData | null>(null);
   const [dashboardLoading, setDashboardLoading] = useState(true);
   const [dashboardError, setDashboardError] = useState("");
+  const [dashboardRange, setDashboardRange] = useState<DashboardRange>("day");
   const [view, setView] = useState<
     | "dashboard"
     | "vehicles"
@@ -265,7 +235,7 @@ export function AdminApp() {
   useEffect(() => {
     if (!session?.authenticated || view !== "dashboard") return;
     let active = true;
-    void fetch(endpoints.dashboard, {
+    void fetch(`${endpoints.dashboard}?range=${dashboardRange}`, {
       cache: "no-store",
       credentials: "same-origin",
       headers: { Accept: "application/json" },
@@ -288,7 +258,7 @@ export function AdminApp() {
     return () => {
       active = false;
     };
-  }, [session?.authenticated, view]);
+  }, [session?.authenticated, view, dashboardRange]);
 
   async function handleLogin(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -545,7 +515,7 @@ export function AdminApp() {
         <nav aria-label="Yönetim" className="mt-8 flex-1 space-y-1">
           <button
             className={`flex min-h-11 w-full items-center rounded-control px-4 text-label font-semibold text-text-inverse ${view === "dashboard" ? "bg-white/10" : ""}`}
-            onClick={() => setView("dashboard")}
+            onClick={() => { setDashboardLoading(true); setView("dashboard"); }}
           >
             Dashboard
           </button>
@@ -647,6 +617,12 @@ export function AdminApp() {
             Loglar
           </button>
         </nav>
+        <a className="group mt-6 flex items-center gap-3 rounded-card border border-white/15 bg-white/5 p-4 transition hover:border-accent-orange/60 hover:bg-white/10" href="https://kalitefilo.com.tr/" rel="noreferrer" target="_blank">
+          <span className="size-2.5 shrink-0 rounded-full bg-success shadow-[0_0_0_4px_rgb(34_197_94_/_0.12)]" />
+          <span className="min-w-0 flex-1"><span className="block text-[0.65rem] font-bold tracking-wide text-text-inverse-muted uppercase">Website canlıda</span><span className="mt-0.5 block truncate text-sm font-semibold text-white">kalitefilo.com.tr</span></span>
+          <svg aria-hidden="true" className="size-5 text-text-inverse-muted transition group-hover:text-accent-orange" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" viewBox="0 0 24 24"><path d="M14 4h6v6M20 4l-9 9"/><path d="M18 13v6H5V6h6"/></svg>
+          <span className="sr-only">Yeni sekmede açılır</span>
+        </a>
         <button className={`sticky bottom-4 mt-6 flex min-h-12 w-full items-center justify-center rounded-control bg-accent-orange px-4 text-label font-bold text-on-accent shadow-lg transition hover:bg-orange-dark ${view === "publishing" ? "ring-2 ring-white/70 ring-offset-2 ring-offset-brand-navy" : ""}`} onClick={() => setView("publishing")}>Yayına Al</button>
       </aside>
       <main className="px-gutter py-8 lg:py-10">
@@ -724,129 +700,7 @@ export function AdminApp() {
             draftOnly={view === "draftVehicles"}
           />
         ) : (
-          <section className="mt-8">
-            <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
-              <div>
-                <p className="text-label font-semibold text-corporate-blue">
-                  Operasyon özeti
-                </p>
-                <h2 className="mt-1 text-heading-md">Dashboard</h2>
-              </div>
-              <p className="text-sm text-text-secondary">
-                Salt okunur ·{" "}
-                {session.environment === "staging"
-                  ? "Staging verisi"
-                  : "Production verisi"}
-              </p>
-            </div>
-            {dashboardError ? (
-              <p
-                className="mt-5 rounded-control bg-error-surface px-4 py-3 text-body text-error"
-                role="alert"
-              >
-                {dashboardError}
-              </p>
-            ) : null}
-            {dashboardLoading && !dashboard ? (
-              <p className="mt-6 text-body text-text-secondary">
-                Metrikler yükleniyor…
-              </p>
-            ) : null}
-            {dashboard ? (
-              <>
-                <dl className="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-                  {[
-                    ["Aktif araç", dashboard.metrics.activeVehicles],
-                    ["Öne çıkan araç", dashboard.metrics.featuredVehicles],
-                    ["Filo Rehberi içeriği", dashboard.metrics.articles],
-                    ["Draft içerik", dashboard.metrics.draftArticles],
-                    ["Newsletter kişisi", dashboard.metrics.newsletterContacts],
-                    [
-                      "Onaylı pazarlama izni",
-                      dashboard.metrics.approvedMarketingConsents,
-                    ],
-                    ["İYS bekleyen", dashboard.metrics.iysPending],
-                    ["Abonelikten çıkan", dashboard.metrics.unsubscribed],
-                  ].map(([label, value]) => (
-                    <div
-                      className="rounded-card border border-border-subtle bg-surface-card p-5 shadow-sm"
-                      key={label}
-                    >
-                      <dt className="text-sm font-medium text-text-secondary">
-                        {label}
-                      </dt>
-                      <dd className="mt-3 text-3xl font-bold tracking-tight text-brand-navy">
-                        {value}
-                      </dd>
-                    </div>
-                  ))}
-                </dl>
-                <div className="mt-6 grid gap-6 xl:grid-cols-[minmax(0,1.5fr)_minmax(18rem,0.7fr)]">
-                  <section className="rounded-card border border-border-subtle bg-surface-card p-6">
-                    <h3 className="text-lg font-bold text-brand-navy">
-                      Son admin aktiviteleri
-                    </h3>
-                    {dashboard.recentActivity.length ? (
-                      <ul className="mt-4 divide-y divide-border-subtle">
-                        {dashboard.recentActivity.map((activity) => (
-                          <li
-                            className="flex gap-4 py-4 first:pt-1"
-                            key={activity.id}
-                          >
-                            <span
-                              aria-hidden="true"
-                              className={`mt-1.5 size-2 shrink-0 rounded-full ${activity.result === "success" ? "bg-success" : "bg-error"}`}
-                            />
-                            <div className="min-w-0">
-                              <p className="font-semibold text-brand-navy">
-                                {activityLabels[activity.action] ??
-                                  activity.action}
-                              </p>
-                              <p className="mt-1 text-sm text-text-secondary">
-                                {activity.adminId ?? "Anonim"} ·{" "}
-                                {formatActivityDate(activity.timestamp)}
-                              </p>
-                            </div>
-                          </li>
-                        ))}
-                      </ul>
-                    ) : (
-                      <p className="mt-4 text-body text-text-secondary">
-                        Henüz gösterilecek aktivite yok.
-                      </p>
-                    )}
-                  </section>
-                  <section className="rounded-card border border-border-subtle bg-surface-card p-6">
-                    <h3 className="text-lg font-bold text-brand-navy">
-                      Yayın durumu
-                    </h3>
-                    <dl className="mt-5 space-y-5">
-                      <div>
-                        <dt className="text-sm text-text-secondary">
-                          Son staging publish
-                        </dt>
-                        <dd className="mt-1 font-semibold">Henüz kayıt yok</dd>
-                      </div>
-                      <div>
-                        <dt className="text-sm text-text-secondary">
-                          Son production publish
-                        </dt>
-                        <dd className="mt-1 font-semibold">Henüz kayıt yok</dd>
-                      </div>
-                      <div>
-                        <dt className="text-sm text-text-secondary">
-                          Başarısız işlem
-                        </dt>
-                        <dd className="mt-1 font-semibold">
-                          {dashboard.failures.length}
-                        </dd>
-                      </div>
-                    </dl>
-                  </section>
-                </div>
-              </>
-            ) : null}
-          </section>
+          <AdminDashboard data={dashboard} environment={session.environment} error={dashboardError} loading={dashboardLoading} onRangeChange={(range) => { setDashboardLoading(true); setDashboardRange(range); }} onShowLogs={() => setView("audit")} range={dashboardRange}/>
         )}
       </main>
     </div>

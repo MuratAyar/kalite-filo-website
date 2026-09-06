@@ -142,7 +142,38 @@ function kalite_filo_admin_iys_overview(string $path):array
 }
 
 /** @return list<array<string, mixed>> */
-function kalite_filo_admin_recent_audit(string $dataRoot, int $limit = 8): array
+function kalite_filo_admin_dashboard_range_start(string $range, ?DateTimeImmutable $now = null): ?DateTimeImmutable
+{
+    if (!in_array($range, ['day', 'week', 'month', 'quarter', 'year', 'all'], true)) {
+        throw new InvalidArgumentException('Invalid dashboard range.');
+    }
+    if ($range === 'all') return null;
+    $current = $now ?? new DateTimeImmutable('now', new DateTimeZone('UTC'));
+    $days = ['day' => 1, 'week' => 7, 'month' => 30, 'quarter' => 90, 'year' => 365][$range];
+    return $current->sub(new DateInterval('P' . $days . 'D'));
+}
+
+/** @param list<array<string,mixed>> $records @return array{quote:array{total:int,new:int,inProgress:int,replied:int,closed:int},contact:array{total:int,new:int,inProgress:int,replied:int,closed:int}} */
+function kalite_filo_admin_dashboard_form_metrics(array $records, ?DateTimeImmutable $since): array
+{
+    $empty = ['total' => 0, 'new' => 0, 'inProgress' => 0, 'replied' => 0, 'closed' => 0];
+    $metrics = ['quote' => $empty, 'contact' => $empty];
+    foreach ($records as $record) {
+        $kind = $record['kind'] ?? null;
+        $status = $record['status'] ?? null;
+        if (!is_string($kind) || !isset($metrics[$kind]) || !in_array($status, ['new', 'in_progress', 'replied', 'closed'], true)) continue;
+        try { $createdAt = new DateTimeImmutable((string) ($record['createdAt'] ?? '')); }
+        catch (Throwable) { continue; }
+        if ($since !== null && $createdAt < $since) continue;
+        $key = $status === 'in_progress' ? 'inProgress' : $status;
+        $metrics[$kind]['total']++;
+        $metrics[$kind][$key]++;
+    }
+    return $metrics;
+}
+
+/** @return list<array<string, mixed>> */
+function kalite_filo_admin_recent_audit(string $dataRoot, int $limit = 8, ?DateTimeImmutable $since = null): array
 {
     $files = glob($dataRoot . DIRECTORY_SEPARATOR . 'audit' . DIRECTORY_SEPARATOR . 'audit-*.jsonl') ?: [];
     rsort($files, SORT_STRING);
@@ -159,6 +190,9 @@ function kalite_filo_admin_recent_audit(string $dataRoot, int $limit = 8): array
                 continue;
             }
             if (!is_array($record)) continue;
+            try { $timestamp = new DateTimeImmutable((string) ($record['timestamp'] ?? '')); }
+            catch (Throwable) { continue; }
+            if ($since !== null && $timestamp < $since) continue;
             $records[] = [
                 'id' => (string) ($record['id'] ?? ''),
                 'timestamp' => (string) ($record['timestamp'] ?? ''),
