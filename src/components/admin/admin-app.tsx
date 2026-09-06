@@ -701,7 +701,28 @@ export function AdminApp() {
             draftOnly={view === "draftVehicles"}
           />
         ) : (
-          <AdminDashboard data={dashboard} environment={session.environment} error={dashboardError} loading={dashboardLoading} onRangeChange={(range) => { setDashboardLoading(true); setDashboardRange(range); }} onShowLogs={() => setView("audit")} range={dashboardRange}/>
+          <AdminDashboard
+            data={dashboard}
+            environment={session.environment}
+            error={dashboardError}
+            loading={dashboardLoading}
+            onOpenArticles={() => { setArticlesOpen(true); setView("articles"); }}
+            onOpenDrafts={() => {
+              if ((dashboard?.metrics.draftArticles ?? 0) > 0 || (dashboard?.metrics.draftVehicles ?? 0) === 0) {
+                setArticlesOpen(true);
+                setView("draftArticles");
+              } else {
+                setVehiclesOpen(true);
+                setView("draftVehicles");
+              }
+            }}
+            onOpenIys={() => setView("iys")}
+            onOpenSubscribers={() => setView("subscribers")}
+            onOpenVehicles={() => { setVehiclesOpen(true); setView("vehicles"); }}
+            onRangeChange={(range) => { setDashboardLoading(true); setDashboardRange(range); }}
+            onShowLogs={() => setView("audit")}
+            range={dashboardRange}
+          />
         )}
       </main>
     </div>

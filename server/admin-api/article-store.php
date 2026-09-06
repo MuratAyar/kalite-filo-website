@@ -28,6 +28,17 @@ function kalite_filo_admin_article_drafts(): array
 }
 function kalite_filo_admin_article_draft_count(): int{return count(kalite_filo_admin_article_drafts());}
 
+/** @param list<array<string,mixed>> $published */
+function kalite_filo_admin_visible_article_draft_count(array $published): int
+{
+    $publishedIds = [];
+    foreach ($published as $article) if (is_array($article) && is_string($article['id'] ?? null)) $publishedIds[$article['id']] = true;
+    return count(array_filter(kalite_filo_admin_article_drafts(), static function (array $draft) use ($publishedIds): bool {
+        $id = (string) ($draft['id'] ?? '');
+        return !isset($publishedIds[$id]) || ($draft['locales']['tr']['status'] ?? 'draft') === 'draft';
+    }));
+}
+
 /** @param list<array<string,mixed>> $records */
 function kalite_filo_admin_write_article_drafts(array $records): void
 {

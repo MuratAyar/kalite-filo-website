@@ -8,6 +8,15 @@ the status and handoff sections before ending.
 
 ## Current Status
 
+The 2026-09-06 Dashboard metric navigation and draft-count correction is
+complete locally. Published vehicles, published blogs, active newsletter
+contacts, draft content and the restored IYS-pending metric are keyboard-
+accessible cards that navigate to their corresponding admin views; vehicle and
+article cards also expand the appropriate sidebar group. `Taslak İçerikler` no
+longer counts every private article copy. It now uses the exact Draft Bloglar
+visibility rule: a ready private copy of an already published article is not a
+draft, while a new article or a published article explicitly moved to draft is.
+
 The 2026-09-06 Dashboard growth-card refinement is complete locally. The
 duplicated pending quote/contact summary cards were removed; their full status
 breakdowns remain directly below. The top row now focuses on published
@@ -2027,6 +2036,15 @@ src/app/robots.ts                          (update)
 
 ## Files Changed
 
+Current 2026-09-06 Dashboard navigation/draft-count correction:
+
+- `src/components/admin/admin-dashboard.tsx`
+- `src/components/admin/admin-app.tsx`
+- `server/admin-api/article-store.php`
+- `server/admin-api/dashboard.php`
+- `server/admin-api/tests/article-store.test.php`
+- `docs/ADMIN_DASHBOARD_IMPLEMENTATION.md`
+
 Current 2026-09-06 Dashboard growth-card refinement:
 
 - `src/components/admin/admin-dashboard.tsx`
@@ -2499,6 +2517,17 @@ Current Phase 6 test-mail continuation:
 - `server/admin-api/tests/media-store.test.php`
 
 ## Validation Results
+
+2026-09-06 Dashboard navigation/draft-count correction:
+
+- Article-store regression coverage distinguishes a new unpublished article,
+  a published article moved to draft and a ready private copy that Draft Bloglar
+  intentionally hides.
+- Focused PHP syntax and article/Dashboard tests, lint and strict TypeScript
+  checks pass.
+- All 95 PHP files, all PHP suites and the complete 92-test Node suite pass.
+  The clean production build emits 140 static pages; output verification and
+  `git diff --check` pass.
 
 2026-09-06 Dashboard growth-card refinement:
 
@@ -3143,6 +3172,14 @@ still excludes missing consent and unsubscribed rows. No recipient list is sent
 to the browser and no delivery endpoint is packaged.
 
 ## Session Handoff
+
+2026-09-06 Dashboard card-navigation handoff: after atomic staging deployment,
+activate each top metric with mouse and keyboard. Confirm published vehicle and
+blog cards open their expanded sidebar groups, active newsletter and IYS cards
+open their views, and Taslak İçerikler opens Draft Bloglar whenever its visible
+blog count is non-zero (otherwise Draft Araçlar). Compare its displayed blog
+count with the actual Draft Bloglar cards; published `ready` edit copies must
+not inflate the count.
 
 2026-09-06 Dashboard growth handoff: publish the static admin bundle, PHP
 runtime and materializer changes together. On staging, verify the sidebar card

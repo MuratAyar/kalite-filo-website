@@ -30,6 +30,12 @@ try{kalite_filo_admin_assert_article_uniqueness([[...$article,'locales'=>['tr'=>
 $lock=kalite_filo_admin_lock_article_store();try{kalite_filo_admin_write_article_drafts([$article]);}finally{kalite_filo_admin_unlock_article_store($lock);}
 article_test_assert(kalite_filo_admin_article_drafts()[0]['id']===$article['id'],'Atomic article draft store must round-trip.');
 article_test_assert(kalite_filo_admin_article_draft_count()===1,'Dashboard draft metric must count the live private article store.');
+article_test_assert(kalite_filo_admin_visible_article_draft_count([])===1,'A new unpublished article must be visible in the Dashboard draft count.');
+article_test_assert(kalite_filo_admin_visible_article_draft_count([['id'=>$article['id']]])===1,'A published article explicitly moved to draft must remain visible in the Dashboard draft count.');
+$readyDraft=[...$article,'locales'=>['tr'=>[...$article['locales']['tr'],'status'=>'ready'],'en'=>null]];
+kalite_filo_admin_write_article_drafts([$readyDraft]);
+article_test_assert(kalite_filo_admin_visible_article_draft_count([['id'=>$article['id']]])===0,'A ready private copy of a published article must not be counted when Draft Bloglar hides it.');
+kalite_filo_admin_write_article_drafts([$article]);
 kalite_filo_admin_write_article_revision('create',$article);
 article_test_assert(count(glob($articleTestRoot.DIRECTORY_SEPARATOR.'revisions'.DIRECTORY_SEPARATOR.'articles'.DIRECTORY_SEPARATOR.$article['id'].DIRECTORY_SEPARATOR.'*.json')?:[])===1,'Immutable article revision must be written privately.');
 $revisionSummary=kalite_filo_admin_article_revisions($article['id']);

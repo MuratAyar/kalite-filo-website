@@ -22,7 +22,7 @@ try {
     $activeVehicleRecords = array_values(array_filter($vehicles, static fn(array $vehicle): bool => ($vehicle['publicationStatus'] ?? '') === 'published'));
     $articleRecords = array_values(array_filter($snapshot['articles']['records'] ?? [], 'is_array'));
     $draftVehicles = count(array_filter($vehicles, static fn(array $vehicle): bool => ($vehicle['publicationStatus'] ?? '') !== 'published'));
-    $draftArticles = kalite_filo_admin_article_draft_count();
+    $draftArticles = kalite_filo_admin_visible_article_draft_count($articleRecords);
     kalite_filo_admin_json([
         'range' => $range,
         'metrics' => [
