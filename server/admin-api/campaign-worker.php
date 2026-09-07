@@ -75,7 +75,7 @@ try {
         }
         $token = kalite_filo_issue_unsubscribe_token($email);
         $campaign = $queue['campaign'];
-        $html = kalite_filo_admin_render_campaign_html($campaign, (string) $config['origin']);
+        $html = kalite_filo_admin_render_campaign_html($campaign, (string) $config['origin'], false);
         $unsubscribeUrl = (string) $config['origin'] . '/forms/unsubscribe.php?token=' . rawurlencode($token);
         $footer = '<p style="font-size:12px;text-align:center"><a href="'
             . htmlspecialchars($unsubscribeUrl, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8')

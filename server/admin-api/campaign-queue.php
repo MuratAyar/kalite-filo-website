@@ -25,6 +25,7 @@ try {
         kalite_filo_admin_json([
             'queues' => $queues,
             'deliveryMode' => kalite_filo_admin_config()['campaign_delivery_mode'],
+            'environment' => kalite_filo_admin_config()['environment'],
         ]);
     }
     if (($_SERVER['REQUEST_METHOD'] ?? '') === 'PATCH') {

@@ -44,6 +44,19 @@ KALITE_FILO_ADMIN_TARGET=staging KALITE_FILO_ADMIN_CONFIG=/absolute/private/path
 Keep delivery disabled until the dry-run ledger has been inspected. Never run
 the worker through HTTP; it returns 404 outside PHP CLI.
 
+For live delivery, use the isolated production admin/config/data roots. Set
+`campaign_delivery_mode => 'live'` only in the private production `config.php`,
+then schedule the CLI worker in cPanel Cron (for example once per minute):
+
+```text
+KALITE_FILO_ADMIN_TARGET=production KALITE_FILO_ADMIN_CONFIG=/absolute/private/path/config.php php /absolute/production-document-root/admin-api/campaign-worker.php
+```
+
+The web action only creates an immutable queue. Cron performs bounded batches,
+rechecks consent, IYS approval/sync and unsubscribe suppression immediately
+before every delivery, and records retry-safe results. Never point a production
+worker at the staging config or data root.
+
 Admin access is not restricted by source IP. `allowedDevOrigins` in
 `next.config.ts` remains a Next.js development setting and is not an admin
 security control. Authentication, CSRF, secure sessions, rate limiting and audit

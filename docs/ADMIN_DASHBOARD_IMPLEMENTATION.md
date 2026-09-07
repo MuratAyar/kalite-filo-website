@@ -8,6 +8,20 @@ the status and handoff sections before ending.
 
 ## Current Status
 
+The 2026-09-06 production campaign-delivery readiness pass is complete locally.
+The queue panel now explains the actual environment and distinguishes staging,
+disabled production and live production instead of showing the opaque
+`Mod: disabled` sentence. A live production button is labelled explicitly.
+Production delivery remains an intentional private-config opt-in: staging is
+still forbidden from sending to real subscribers. The existing CLI worker
+delivers bounded batches only to consent-backed `iys_status` approved/synced
+contacts, rechecking suppression immediately before delivery. Consolidated
+contact resolution now prefers an IYS-approved consent row when approval was
+recorded on a later duplicate source, while any unsubscribe remains fail-closed.
+Live email HTML no longer contains the preview-only disclaimer. Production
+private-config and cPanel Cron activation are documented; no secret or live
+recipient data is committed and this local change sends no campaign.
+
 The 2026-09-06 campaign-template refinement is complete locally. The campaign
 summary no longer exposes the environment-sendable, IYS-blocked, delivery
 engine, staging-blocked or unsubscribed cards. It retains the concise unique,
@@ -2055,6 +2069,16 @@ src/app/robots.ts                          (update)
 
 ## Files Changed
 
+Current 2026-09-06 production campaign-delivery readiness:
+
+- `src/components/admin/campaign-manager.tsx`
+- `server/admin-api/campaign-queue.php`
+- `server/admin-api/campaign-store.php`
+- `server/admin-api/campaign-worker.php`
+- `server/admin-api/read-model.php`
+- `server/admin-api/README.md`
+- `docs/ADMIN_DASHBOARD_IMPLEMENTATION.md`
+
 Current 2026-09-06 campaign-template refinement:
 
 - `src/components/admin/campaign-manager.tsx`
@@ -2548,6 +2572,13 @@ Current Phase 6 test-mail continuation:
 - `server/admin-api/tests/media-store.test.php`
 
 ## Validation Results
+
+2026-09-06 production campaign-delivery readiness:
+
+- All 95 project-owned PHP files pass syntax validation; the complete 92-test
+  Node suite and PHP test suite, lint, strict TypeScript checks, the 140-page
+  production static export, exported-output validation and `git diff --check`
+  pass.
 
 2026-09-06 campaign-template refinement:
 
@@ -3220,6 +3251,16 @@ still excludes missing consent and unsubscribed rows. No recipient list is sent
 to the browser and no delivery endpoint is packaged.
 
 ## Session Handoff
+
+2026-09-06 live campaign handoff: deploy this release to the production admin
+origin; staging must continue to reject `live`. In the private production
+`config.php`, set `campaign_delivery_mode` to `live`, retain an isolated
+production `data_root`, and configure cPanel Cron to invoke the CLI-only worker
+with explicit production target/config paths as documented in
+`server/admin-api/README.md`. Confirm SMTP with an allowlisted test first, create
+a deliberately small reviewed campaign, verify its frozen eligible-recipient
+count, then approve the queue. The browser does not send the batch itself; Cron
+does. Do not copy staging subscriber data or config into production.
 
 2026-09-06 campaign-template handoff: deploy the static admin bundle, open Mail
 Kampanyaları with a Marketing/Admin/Owner identity and verify that each of the

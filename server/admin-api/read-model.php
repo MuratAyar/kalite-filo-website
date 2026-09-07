@@ -101,6 +101,7 @@ function kalite_filo_admin_consolidate_contact_rows(array $rows): array
         usort($emailRows, static fn(array $left, array $right): int => strcmp((string) ($left['created_at'] ?? ''), (string) ($right['created_at'] ?? '')) ?: strcmp((string) ($left['id'] ?? ''), (string) ($right['id'] ?? '')));
         $sources = [];
         $approved = null;
+        $iysApproved = null;
         $unsubscribed = null;
         $latest = $emailRows[0];
         foreach ($emailRows as $row) {
@@ -110,10 +111,11 @@ function kalite_filo_admin_consolidate_contact_rows(array $rows): array
                 && trim((string) ($row['consent_at'] ?? '')) !== ''
                 && trim((string) ($row['consent_text_version'] ?? '')) !== '';
             if ($approved === null && $hasEvidence) $approved = $row;
+            if ($iysApproved === null && $hasEvidence && in_array($row['iys_status'] ?? '', ['approved', 'synced'], true)) $iysApproved = $row;
             if (trim((string) ($row['unsubscribed_at'] ?? '')) !== '' || ($row['status'] ?? '') === 'unsubscribed') $unsubscribed = $row;
             if (strcmp((string) ($row['updated_at'] ?? ''), (string) ($latest['updated_at'] ?? '')) >= 0) $latest = $row;
         }
-        $resolved = $unsubscribed ?? $approved ?? $latest;
+        $resolved = $unsubscribed ?? $iysApproved ?? $approved ?? $latest;
         if ($unsubscribed !== null) $resolved['status'] = 'unsubscribed';
         $resolved['email'] = $email;
         $resolved['created_at'] = (string) ($emailRows[0]['created_at'] ?? '');

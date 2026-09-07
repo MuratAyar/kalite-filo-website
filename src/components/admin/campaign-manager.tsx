@@ -140,6 +140,7 @@ export function CampaignManager({
   const [testSending, setTestSending] = useState(false);
   const [notice, setNotice] = useState("");
   const [deliveryMode, setDeliveryMode] = useState("disabled");
+  const [environment, setEnvironment] = useState("staging");
   const [queueing, setQueueing] = useState(false);
   const [queues, setQueues] = useState<QueueSummary[]>([]);
   const formRef = useRef<HTMLFormElement>(null);
@@ -188,6 +189,7 @@ export function CampaignManager({
         const queuePayload = await queueResponse.json();
         if (queueResponse.ok && typeof queuePayload.deliveryMode === "string") {
           setDeliveryMode(queuePayload.deliveryMode);
+          setEnvironment(typeof queuePayload.environment === "string" ? queuePayload.environment : "staging");
           setQueues(
             Array.isArray(queuePayload.queues) ? queuePayload.queues : [],
           );
@@ -835,8 +837,11 @@ export function CampaignManager({
               <section className="mt-5 rounded-card border border-warning bg-white p-5">
                 <h4 className="font-bold">Kampanya kuyruğu</h4>
                 <p className="mt-1 text-sm text-text-secondary">
-                  Mod: {deliveryMode}. Kuyruk, kaydedilmiş revizyonu ve o andaki
-                  uygun audience’ı değişmez olarak dondurur.
+                  {environment === "staging"
+                    ? "Staging ortamı gerçek alıcılara kampanya göndermez. Canlı gönderim yalnızca production admin ortamından yapılabilir."
+                    : deliveryMode === "live"
+                      ? "Canlı gönderim hazır. Kuyruğa yalnızca geçerli onayı bulunan, İYS approved/synced ve abonelikten ayrılmamış kişiler alınır."
+                      : "Canlı gönderim özel production yapılandırmasında kapalı. campaign_delivery_mode değeri live olarak ayarlanmalı ve Cron worker etkin olmalıdır."}
                 </p>
                 <button
                   className="mt-4 min-h-11 rounded-control border px-5 font-semibold disabled:opacity-50"
@@ -844,7 +849,11 @@ export function CampaignManager({
                   onClick={() => void queueCampaign()}
                   type="button"
                 >
-                  {queueing ? "Hazırlanıyor..." : "Onayla ve Kuyruğa Al"}
+                  {queueing
+                    ? "Hazırlanıyor..."
+                    : deliveryMode === "live"
+                      ? "Onayla ve Canlı Gönderim Kuyruğuna Al"
+                      : "Onayla ve Kuyruğa Al"}
                 </button>
               </section>
             ) : null}
