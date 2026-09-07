@@ -84,7 +84,7 @@ test("validates the claim-safe About output contract", () => {
       <section data-about-section="hero">
         <img src="/images/home/commercial-fleet.jpg">
         <img src="/images/home/hero-fleet-highway.jpg">
-        <button data-about-hero-control="milestones">Kilometre Taşlarımız</button><a href="#vizyon-misyon-degerler">Vizyonumuz</a>
+        <a data-about-hero-control="quote" href="/teklif-al/">Teklif Al</a><a href="#vizyon-misyon-degerler">Vizyonumuz</a>
         <p>300+ Araç Filosu</p><p>%98 Müşteri Memnuniyeti</p>
       </section>
       <section data-about-section="vision-mission-values" id="vizyon-misyon-degerler">

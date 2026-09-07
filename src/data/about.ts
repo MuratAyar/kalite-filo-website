@@ -14,7 +14,8 @@ export const aboutPageContent = {
     titleAccent: "Yola Taşıyoruz",
     body:
       "Modern iş dünyasının dinamiklerine uygun, veri odaklı ve sürdürülebilir filo kiralama çözümleriyle kurumların operasyonel gücünü maksimize ediyoruz.",
-    primaryAction: "Kilometre Taşlarımız",
+    primaryAction: "Teklif Al",
+    primaryHref: "/teklif-al/",
     secondaryAction: "Vizyonumuz",
     statistics: [
       { id: "vehicle-fleet", value: "300+", label: "Araç Filosu" },

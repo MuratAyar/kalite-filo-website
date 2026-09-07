@@ -1,5 +1,5 @@
 import { PageContainer, Section } from "@/components/layout";
-import { ActionLink, Button } from "@/components/ui";
+import { ActionLink } from "@/components/ui";
 import type { AboutPageContent } from "@/data/about";
 
 import { AboutIcon } from "./about-icon";
@@ -38,9 +38,14 @@ export function AboutHero({ content, imageAlts = ["Ticari araçların bulunduğu
               {content.body}
             </p>
             <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
-              <Button data-about-hero-control="milestones" size="primary" variant="secondary">
+              <ActionLink
+                data-about-hero-control="quote"
+                href={content.primaryHref}
+                size="primary"
+                variant="secondary"
+              >
                 {content.primaryAction}
-              </Button>
+              </ActionLink>
               <ActionLink
                 data-about-hero-control="vision"
                 href="#vizyon-misyon-degerler"

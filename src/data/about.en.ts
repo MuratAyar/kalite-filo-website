@@ -8,7 +8,7 @@ export const englishAboutPageContent = {
   hero: {
     eyebrow: "Our Corporate Story", titleLead: "Putting Quality", titleAccent: "on the Road",
     body: "We support corporate mobility with data-informed and sustainable fleet leasing solutions designed for the dynamics of modern business.",
-    primaryAction: "Our Milestones", secondaryAction: "Our Vision",
+    primaryAction: "Request a Quote", primaryHref: "/en/request-a-quote/", secondaryAction: "Our Vision",
     statistics: [{ id: "vehicle-fleet", value: "300+", label: "Vehicle Fleet" }, { id: "customer-satisfaction", value: "98%", label: "Customer Satisfaction" }],
   },
   visionMissionValues: {

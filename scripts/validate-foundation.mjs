@@ -1888,12 +1888,15 @@ export function validateAboutOutput(html) {
     "Araç Filosu",
     "%98",
     "Müşteri Memnuniyeti",
-    "Kilometre Taşlarımız",
+    "Teklif Al",
     "Vizyonumuz",
   ]) {
     if (!html.includes(approvedHeroFact)) {
       fail(`The About output is missing approved hero content: ${approvedHeroFact}.`);
     }
+  }
+  if (!html.includes('href="/teklif-al/"')) {
+    fail("The About hero quote action must target /teklif-al/.");
   }
 
   for (const approvedVisionMissionValue of [
@@ -1925,11 +1928,11 @@ export function validateAboutOutput(html) {
   }
 
   if (
-    !/<button\b[^>]*data-about-hero-control=["']milestones["'][^>]*>/i.test(
+    !/<a\b[^>]*data-about-hero-control=["']quote["'][^>]*>/i.test(
       html,
     )
   ) {
-    fail("The inactive About milestones control must remain a button.");
+    fail("The About quote control must remain a link.");
   }
 
   if (!html.includes('data-content-status="draft"')) {
