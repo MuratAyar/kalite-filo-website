@@ -51,6 +51,8 @@ jobs:
         id: claim
         env:
           KALITE_FILO_STAGING_RUNNER_TOKEN: ${{ secrets.KALITE_FILO_STAGING_RUNNER_TOKEN }}
+          KALITE_FILO_STAGING_BASIC_AUTH_USERNAME: ${{ secrets.KALITE_FILO_STAGING_BASIC_AUTH_USERNAME }}
+          KALITE_FILO_STAGING_BASIC_AUTH_PASSWORD: ${{ secrets.KALITE_FILO_STAGING_BASIC_AUTH_PASSWORD }}
         run: >-
           node scripts/fetch-staging-publish-inputs.mjs
           --request-id "${{ inputs.request_id }}"
@@ -75,6 +77,8 @@ jobs:
         id: deploy
         env:
           KALITE_FILO_STAGING_RUNNER_TOKEN: ${{ secrets.KALITE_FILO_STAGING_RUNNER_TOKEN }}
+          KALITE_FILO_STAGING_BASIC_AUTH_USERNAME: ${{ secrets.KALITE_FILO_STAGING_BASIC_AUTH_USERNAME }}
+          KALITE_FILO_STAGING_BASIC_AUTH_PASSWORD: ${{ secrets.KALITE_FILO_STAGING_BASIC_AUTH_PASSWORD }}
         run: >-
           node scripts/deploy-staging-via-admin-api.mjs
           --release-result "$RUNNER_TEMP/kalite-filo/runner-result.json"
@@ -85,6 +89,8 @@ jobs:
         continue-on-error: true
         env:
           KALITE_FILO_STAGING_RUNNER_TOKEN: ${{ secrets.KALITE_FILO_STAGING_RUNNER_TOKEN }}
+          KALITE_FILO_STAGING_BASIC_AUTH_USERNAME: ${{ secrets.KALITE_FILO_STAGING_BASIC_AUTH_USERNAME }}
+          KALITE_FILO_STAGING_BASIC_AUTH_PASSWORD: ${{ secrets.KALITE_FILO_STAGING_BASIC_AUTH_PASSWORD }}
         run: >-
           node scripts/report-staging-publish-failure.mjs
           --result "$RUNNER_TEMP/kalite-filo/runner-result.json"

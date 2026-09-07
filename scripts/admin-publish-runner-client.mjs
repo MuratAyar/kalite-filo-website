@@ -7,9 +7,20 @@ export const RUNNER_STAGES = ["materialization", "validation", "build", "release
 export function runnerCredentials(environment = process.env) {
   const token = environment.KALITE_FILO_STAGING_RUNNER_TOKEN ?? "";
   const runId = environment.GITHUB_RUN_ID ?? "";
+  const basicUsername = environment.KALITE_FILO_STAGING_BASIC_AUTH_USERNAME ?? "";
+  const basicPassword = environment.KALITE_FILO_STAGING_BASIC_AUTH_PASSWORD ?? "";
   if (!/^[A-Za-z0-9._~-]{32,255}$/.test(token)) throw new Error("Runner token is missing or invalid.");
   if (!/^[1-9][0-9]{0,19}$/.test(runId)) throw new Error("GitHub run identity is missing or invalid.");
-  return { token, runId };
+  if ((basicUsername === "") !== (basicPassword === "")) throw new Error("Staging Basic Auth credentials are incomplete.");
+  if (basicUsername !== "" && (!/^[^:\r\n]{1,128}$/.test(basicUsername) || basicPassword.length < 12 || basicPassword.length > 255 || /[\r\n]/.test(basicPassword))) {
+    throw new Error("Staging Basic Auth credentials are invalid.");
+  }
+  const basicAuthorization = basicUsername === "" ? null : `Basic ${Buffer.from(`${basicUsername}:${basicPassword}`, "utf8").toString("base64")}`;
+  return { token, runId, basicAuthorization };
+}
+
+export function basicAuthHeaders(credentials) {
+  return credentials.basicAuthorization ? { "Authorization": credentials.basicAuthorization } : {};
 }
 
 export function runnerHeaders(credentials, extra = {}) {
@@ -18,6 +29,7 @@ export function runnerHeaders(credentials, extra = {}) {
     "User-Agent": "Kalite-Filo-Staging-Publisher/1.0",
     "X-Kalite-Runner-Token": credentials.token,
     "X-Kalite-Runner-Run-Id": credentials.runId,
+    ...basicAuthHeaders(credentials),
     ...extra,
   };
 }

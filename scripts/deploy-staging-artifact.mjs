@@ -30,13 +30,13 @@ export function deploymentStages(failedStage = null) {
   };
 }
 
-export async function smokeStaging(origin, fetcher = fetch) {
+export async function smokeStaging(origin, fetcher = fetch, requestHeaders = {}) {
   const checks = [
     ["/", "text/html"], ["/admin/", "text/html"], ["/robots.txt", "text/plain"],
     ["/admin-api/session.php", "application/json"],
   ];
   for (const [pathname, contentType] of checks) {
-    const response = await fetcher(`${origin}${pathname}`, { redirect: "error", headers: { "cache-control": "no-cache" } });
+    const response = await fetcher(`${origin}${pathname}`, { redirect: "error", headers: { "cache-control": "no-cache", ...requestHeaders } });
     if (!response.ok) fail(`smoke ${pathname} returned HTTP ${response.status}`);
     if (!(response.headers.get("content-type") ?? "").toLowerCase().includes(contentType)) fail(`smoke ${pathname} returned an unexpected content type`);
     const body = await response.text();
@@ -50,8 +50,8 @@ export async function smokeStaging(origin, fetcher = fetch) {
   }
 }
 
-export async function verifyStagingReleaseMarker(origin, expected, fetcher = fetch) {
-  const response = await fetcher(`${origin}/kalite-filo-release.json`, { redirect: "error", headers: { "cache-control": "no-cache" } });
+export async function verifyStagingReleaseMarker(origin, expected, fetcher = fetch, requestHeaders = {}) {
+  const response = await fetcher(`${origin}/kalite-filo-release.json`, { redirect: "error", headers: { "cache-control": "no-cache", ...requestHeaders } });
   if (!response.ok) fail(`release marker returned HTTP ${response.status}`);
   const marker = JSON.parse(await response.text());
   for (const key of ["requestId", "snapshotHash", "manifestHash"]) if (marker?.[key] !== expected?.[key]) fail(`release marker ${key} mismatch`);

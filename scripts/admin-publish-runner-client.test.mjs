@@ -3,7 +3,7 @@ import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import test from "node:test";
-import { completionStages, runnerCredentials, runnerHeaders, runnerJson } from "./admin-publish-runner-client.mjs";
+import { basicAuthHeaders, completionStages, runnerCredentials, runnerHeaders, runnerJson } from "./admin-publish-runner-client.mjs";
 import { uploadArtifact } from "./deploy-staging-via-admin-api.mjs";
 import { requiredPrivateMedia } from "./fetch-staging-publish-inputs.mjs";
 
@@ -14,6 +14,22 @@ test("requires bounded machine credentials and emits no query-string secret", ()
   assert.equal(headers.Accept, "application/json");
   assert.equal(headers["User-Agent"], "Kalite-Filo-Staging-Publisher/1.0");
   assert.throws(() => runnerCredentials({ KALITE_FILO_STAGING_RUNNER_TOKEN: "short", GITHUB_RUN_ID: "1" }), /token/);
+});
+
+test("adds optional staging Basic Auth without exposing raw credentials", () => {
+  const credentials = runnerCredentials({
+    KALITE_FILO_STAGING_RUNNER_TOKEN: "a".repeat(64),
+    GITHUB_RUN_ID: "12345",
+    KALITE_FILO_STAGING_BASIC_AUTH_USERNAME: "staging-user",
+    KALITE_FILO_STAGING_BASIC_AUTH_PASSWORD: "a-strong-staging-password",
+  });
+  assert.match(runnerHeaders(credentials).Authorization, /^Basic /);
+  assert.deepEqual(basicAuthHeaders(credentials), { Authorization: credentials.basicAuthorization });
+  assert.ok(!runnerHeaders(credentials).Authorization.includes("staging-user"));
+  assert.throws(() => runnerCredentials({
+    KALITE_FILO_STAGING_RUNNER_TOKEN: "a".repeat(64), GITHUB_RUN_ID: "1",
+    KALITE_FILO_STAGING_BASIC_AUTH_USERNAME: "staging-user",
+  }), /incomplete/);
 });
 
 test("rejects unsuccessful and malformed runner API responses", async () => {

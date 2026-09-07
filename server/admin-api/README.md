@@ -57,6 +57,15 @@ rechecks consent, IYS approval/sync and unsubscribe suppression immediately
 before every delivery, and records retry-safe results. Never point a production
 worker at the staging config or data root.
 
+If cPanel Directory Privacy protects the staging document root, add its exact
+username and password to the GitHub `staging` environment as
+`KALITE_FILO_STAGING_BASIC_AUTH_USERNAME` and
+`KALITE_FILO_STAGING_BASIC_AUTH_PASSWORD`. The workflow sends Basic Auth only
+in request headers for staging runner APIs and post-deployment HTTPS smoke
+checks. Do not place either value in workflow YAML, repository variables, logs
+or command arguments. Both secrets must be configured together; an incomplete
+pair fails before any runner request.
+
 Admin access is not restricted by source IP. `allowedDevOrigins` in
 `next.config.ts` remains a Next.js development setting and is not an admin
 security control. Authentication, CSRF, secure sessions, rate limiting and audit

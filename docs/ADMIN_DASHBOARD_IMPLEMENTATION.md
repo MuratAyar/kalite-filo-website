@@ -1,12 +1,23 @@
 # Kalite Filo Admin Dashboard Implementation
 
-Last updated: 2026-09-06
+Last updated: 2026-09-08
 
 This document is the single source of truth for Phase 2 Admin Dashboard work.
 Every admin development session must read it before making changes and update
 the status and handoff sections before ending.
 
 ## Current Status
+
+The 2026-09-08 staging Directory Privacy compatibility pass is complete
+locally. GitHub Actions request claim, private-media download, artifact upload,
+deployment, rollback, result reporting, release-marker verification and HTTPS
+smoke requests now support an optional cPanel Basic Auth header sourced only
+from paired GitHub `staging` environment secrets. The existing independent
+runner bearer token/run-ID checks remain mandatory. Missing credentials retain
+the previous unprotected-staging behavior; a half-configured or malformed
+Basic Auth pair fails before network access. This fixes the observed HTML
+`HTTP 401` response that also prevented terminal failure reporting and left
+request `publish-20260907-233941-5ad90546d56e` appearing active.
 
 The 2026-09-06 production campaign-delivery readiness pass is complete locally.
 The queue panel now explains the actual environment and distinguishes staging,
@@ -2069,6 +2080,16 @@ src/app/robots.ts                          (update)
 
 ## Files Changed
 
+Current 2026-09-08 staging Directory Privacy compatibility:
+
+- `.github/workflows/admin-staging-publish.yml`
+- `scripts/admin-publish-runner-client.mjs`
+- `scripts/admin-publish-runner-client.test.mjs`
+- `scripts/deploy-staging-artifact.mjs`
+- `scripts/deploy-staging-via-admin-api.mjs`
+- `server/admin-api/README.md`
+- `docs/ADMIN_DASHBOARD_IMPLEMENTATION.md`
+
 Current 2026-09-06 production campaign-delivery readiness:
 
 - `src/components/admin/campaign-manager.tsx`
@@ -2572,6 +2593,14 @@ Current Phase 6 test-mail continuation:
 - `server/admin-api/tests/media-store.test.php`
 
 ## Validation Results
+
+2026-09-08 staging Directory Privacy compatibility:
+
+- The complete 93-test Node suite and PHP test suite pass, including Basic Auth
+  header generation, incomplete-pair rejection and unchanged no-auth
+  compatibility. All 95 project-owned PHP files pass syntax validation; lint,
+  strict TypeScript, the 140-page production static export, exported-output
+  validation and `git diff --check` also pass.
 
 2026-09-06 production campaign-delivery readiness:
 
@@ -3251,6 +3280,14 @@ still excludes missing consent and unsubscribed rows. No recipient list is sent
 to the browser and no delivery endpoint is packaged.
 
 ## Session Handoff
+
+2026-09-08 Directory Privacy handoff: create the paired Basic Auth secrets in
+the GitHub `staging` environment, commit/push this workflow and runner update to
+`main`, then re-run failed Actions run `34170782074` (all jobs). The old frozen
+request should be claimable if it remains active; otherwise cancel/expire it in
+Yayına Al and create a fresh request. Verify the run can report a terminal state
+and that release marker/public/admin/robots/session smoke checks pass behind
+Basic Auth. Never expose the Directory Privacy password in Actions logs.
 
 2026-09-06 live campaign handoff: deploy this release to the production admin
 origin; staging must continue to reject `live`. In the private production

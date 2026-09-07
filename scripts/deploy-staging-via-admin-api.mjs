@@ -2,7 +2,7 @@ import { createHash } from "node:crypto";
 import { openSync, closeSync, readFileSync, readSync, statSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { completeRunner, completionStages, runnerCredentials, runnerHeaders, runnerJson, STAGING_ORIGIN, withRunnerRetry } from "./admin-publish-runner-client.mjs";
+import { basicAuthHeaders, completeRunner, completionStages, runnerCredentials, runnerHeaders, runnerJson, STAGING_ORIGIN, withRunnerRetry } from "./admin-publish-runner-client.mjs";
 import { smokeStaging, validateReleaseReady, verifyStagingReleaseMarker } from "./deploy-staging-artifact.mjs";
 
 const CHUNK_BYTES = 1024 * 1024;
@@ -63,8 +63,9 @@ if (invokedPath === path.resolve(fileURLToPath(import.meta.url))) {
     }));
     deployed = true;
     failedStage = "smoke";
-    await verifyStagingReleaseMarker(STAGING_ORIGIN, result);
-    await smokeStaging(STAGING_ORIGIN);
+    const smokeHeaders = basicAuthHeaders(credentials);
+    await verifyStagingReleaseMarker(STAGING_ORIGIN, result, fetch, smokeHeaders);
+    await smokeStaging(STAGING_ORIGIN, fetch, smokeHeaders);
     await withRunnerRetry(() => completeRunner(result, credentials, {
       outcome: "succeeded",
       stages: completionStages(result),
